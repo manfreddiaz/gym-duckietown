@@ -1,6 +1,19 @@
 # Gym-Duckietown
 
-[Duckietown](http://duckietown.mit.edu/) self-driving car simulator environment for OpenAI Gym.
+[Duckietown](http://duckietown.mit.edu/) self-driving car simulator environments for OpenAI Gym.
+
+Please use this bibtex if you want to cite this repository in your publications:
+
+```
+@misc{gym_duckietown,
+  author = {Maxime Chevalier-Boisvert, Florian Golemo, Yanjun Cao, Liam Paull},
+  title = {Duckietown Environments for OpenAI Gym},
+  year = {2018},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/duckietown/gym-duckietown}},
+}
+```
 
 Introduction
 ------------
@@ -49,7 +62,7 @@ Clone this repository and install the dependencies with `pip3`:
 
 ```python3
 git clone https://github.com/duckietown/gym-duckietown.git
-cd gym
+cd gym-duckietown
 pip3 install -e .
 ```
 
