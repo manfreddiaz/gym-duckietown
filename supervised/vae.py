@@ -6,7 +6,7 @@ from torch.nn import functional as F
 # VAE model
 class VAE(nn.Module):
     def __init__(self, z_dim=32, use_cuda=True):
-        super(VAE, self).__init__()
+        super().__init__()
 
         self.z_dim = z_dim
         self.use_cuda = use_cuda
