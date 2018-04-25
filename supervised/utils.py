@@ -1,3 +1,6 @@
+from functools import reduce
+import operator
+
 import numpy as np
 
 import torch
@@ -5,6 +8,40 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
+
+class GradReverse(torch.autograd.Function):
+    """
+    Gradient reversal layer
+    """
+
+    def __init__(self, lambd=1):
+        self.lambd = lambd
+
+    def forward(self, x):
+        return x.view_as(x)
+
+    def backward(self, grad_output):
+        return (grad_output * -self.lambd)
+
+def init_weights(m):
+    classname = m.__class__.__name__
+    if classname.startswith('Conv'):
+        nn.init.orthogonal(m.weight.data)
+        m.bias.data.fill_(0)
+    elif classname.find('Linear') != -1:
+        nn.init.xavier_uniform(m.weight)
+        m.bias.data.fill_(0)
+    elif classname.find('BatchNorm') != -1:
+        m.weight.data.normal_(1.0, 0.02)
+        m.bias.data.fill_(0)
+
+def print_model_info(model):
+    modelSize = 0
+    for p in model.parameters():
+        pSize = reduce(operator.mul, p.size(), 1)
+        modelSize += pSize
+    print(str(model))
+    print('Total model size: %d' % modelSize)
 
 def make_var(arr):
     arr = np.ascontiguousarray(arr)
