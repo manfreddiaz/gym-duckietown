@@ -25,18 +25,25 @@ class VAE(nn.Module):
             nn.LeakyReLU()
         )
 
-        self.encoder_mean = nn.Linear(32 * 8 * 11, self.z_dim)
+        self.encoder_mean = nn.Sequential(
+            nn.Linear(32 * 8 * 11, 256),
+            nn.LeakyReLU(),
+            nn.Linear(256, self.z_dim)
+        )
 
         self.encoder_logvar = nn.Sequential(
-            nn.Linear(32 * 8 * 11, self.z_dim),
+            nn.Linear(32 * 8 * 11, 256),
+            nn.LeakyReLU(),
+            nn.Linear(256, self.z_dim),
             nn.Softplus()
         )
 
-        #self.deconv1 = nn.ConvTranspose2d(self.z_dim, 32 * 8 * 11, 1, 1)
-        #self.bn1 = nn.BatchNorm2d(32 * 8 * 11)
-        #self.relu1 = nn.LeakyReLU(negative_slope=0.2)
-
-        self.decoder_linear = nn.Linear(self.z_dim, 32 * 8 * 11)
+        self.z_to_decoder = nn.Sequential(
+            nn.Linear(self.z_dim, 256),
+            nn.LeakyReLU(),
+            nn.Linear(256, 32 * 8 * 11),
+            nn.LeakyReLU()
+        )
 
         self.decoder = nn.Sequential(
             nn.ConvTranspose2d(32, 32, 5, stride=2, output_padding=0),
@@ -66,11 +73,14 @@ class VAE(nn.Module):
         h = self.encoder(x)
         h = h.view(x.size(0), -1)
 
-        return self.encoder_mean(h), self.encoder_logvar(h)
+        mu = self.encoder_mean(h)
+        logvar = self.encoder_logvar(h)
+
+        return mu, logvar
 
     def decode(self, z):
         #h = self.relu1(self.deconv1(z))
-        h = F.leaky_relu(self.decoder_linear(z))
+        h = self.z_to_decoder(z)
         h = h.view(z.size(0), -1, 8, 11)
 
         x = self.decoder(h)

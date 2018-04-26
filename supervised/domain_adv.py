@@ -24,7 +24,13 @@ class DomainAdv(nn.Module):
         self.vae = VAE()
 
         self.grad_rev = GradReverse()
-        self.fc1 = nn.Linear(32, 2)
+
+        self.categorize = nn.Sequential(
+            nn.Linear(32, 256),
+            nn.LeakyReLU(),
+            nn.Linear(256, 2),
+            nn.LogSoftmax(dim=1)
+        )
 
     def forward(self, x):
         recon, mu, log_var = self.vae(x)
@@ -32,12 +38,9 @@ class DomainAdv(nn.Module):
         z = self.vae.reparameterize(mu, log_var)
 
         z = self.grad_rev(z)
-        x = self.fc1(z)
-        cat = F.log_softmax(x, dim=1)
+        cat = self.categorize(z)
 
         return recon, mu, log_var, cat
-
-
 
 # Load the real images
 real_imgs = []
@@ -102,10 +105,10 @@ if __name__ == "__main__":
         img, target = random.choice([(fake_img, zero), (real_img, one)])
         _, _, _, cat_output = model(img)
         class_loss = F.nll_loss(cat_output, target)
-
         print(class_loss.data[0])
 
-        total_loss = vae_loss + class_loss
+        #total_loss = vae_loss
+        total_loss = vae_loss + 1 * class_loss
         total_loss.backward()
         optimizer.step()
 
