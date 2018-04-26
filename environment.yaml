@@ -6,10 +6,10 @@ dependencies:
     - python=3.6
     - pytorch=0.3
     - torchvision
-    - pyglet
     - pyzmq
     - numpy
-    - opencv-python
-    - scikit-image
     - pip:
         - gym
+        - pyglet
+        - opencv-python
+        - scikit-image
