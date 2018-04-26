@@ -83,8 +83,8 @@ if __name__ == "__main__":
     # weight_decay is L2 regularization, helps avoid overfitting
     optimizer = optim.Adam(
         model.parameters(),
-        lr=0.001
-        #weight_decay=1e-3
+        lr=0.001,
+        weight_decay=1e-3
     )
 
     avg_loss = 0
@@ -108,7 +108,7 @@ if __name__ == "__main__":
         print(class_loss.data[0])
 
         #total_loss = vae_loss
-        total_loss = vae_loss + 1 * class_loss
+        total_loss = vae_loss + 0 * class_loss
         total_loss.backward()
         optimizer.step()
 
@@ -117,7 +117,7 @@ if __name__ == "__main__":
 
         print('epoch %d, loss=%.3f' % (epoch, avg_loss))
 
-        if epoch == 100 or epoch % 1000 == 0:
+        if (epoch == 25) or (epoch % 1000 == 0):
             test_model(model)
 
         if epoch % 1000 == 0:
