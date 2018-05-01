@@ -5,3 +5,5 @@
 img_*.png
 real_images*/*seg*
 real_images*/*recon*
+
+xvfb.log
