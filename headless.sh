@@ -1,7 +1,3 @@
-cd ./gym-duckietown
-
-source activate gym-duckietown
-
 # Add the gym_duckietown package to your Python path
 export PYTHONPATH="${PYTHONPATH}:`pwd`"
 
