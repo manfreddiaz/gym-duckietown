@@ -60,7 +60,6 @@ def main():
 
     obs_shape = envs.observation_space.shape
     obs_shape = (obs_shape[0] * args.num_stack, *obs_shape[1:])
-
     obs_numel = reduce(operator.mul, obs_shape, 1)
 
     actor_critic = CNNPolicy(obs_shape[0], envs.action_space, args.recurrent_policy)
@@ -86,8 +85,6 @@ def main():
         optimizer = optim.Adam(actor_critic.parameters(), args.lr, eps=args.eps)
     elif args.algo == 'acktr':
         optimizer = KFACOptimizer(actor_critic)
-
-    print(obs_shape)
 
     rollouts = RolloutStorage(args.num_steps, args.num_processes, obs_shape, envs.action_space, actor_critic.state_size)
     current_obs = torch.zeros(args.num_processes, *obs_shape)
@@ -117,9 +114,11 @@ def main():
     for j in range(num_updates):
         for step in range(args.num_steps):
             # Sample actions
-            value, action, action_log_prob, states = actor_critic.act(Variable(rollouts.observations[step], volatile=True),
-                                                                      Variable(rollouts.states[step], volatile=True),
-                                                                      Variable(rollouts.masks[step], volatile=True))
+            value, action, action_log_prob, states = actor_critic.act(
+                Variable(rollouts.observations[step]),
+                Variable(rollouts.states[step]),
+                Variable(rollouts.masks[step])
+            )
             cpu_actions = action.data.squeeze(1).cpu().numpy()
 
             # Observation, reward and next obs
@@ -149,9 +148,11 @@ def main():
             update_current_obs(obs)
             rollouts.insert(step, current_obs, states.data, action.data, action_log_prob.data, value.data, reward, masks)
 
-        next_value = actor_critic(Variable(rollouts.observations[-1], volatile=True),
-                                  Variable(rollouts.states[-1], volatile=True),
-                                  Variable(rollouts.masks[-1], volatile=True))[0].data
+        next_value = actor_critic(
+            Variable(rollouts.observations[-1]),
+            Variable(rollouts.states[-1]),
+            Variable(rollouts.masks[-1])
+        )[0].data
 
         rollouts.compute_returns(next_value, args.use_gae, args.gamma, args.tau)
 
@@ -261,9 +262,9 @@ def main():
                     total_num_steps,
                     int(total_num_steps / (end - start)),
                     reward_avg,
-                    dist_entropy.data[0],
-                    value_loss.data[0],
-                    action_loss.data[0]
+                    dist_entropy.item(),
+                    value_loss.item(),
+                    action_loss.item()
                 )
             )
 
