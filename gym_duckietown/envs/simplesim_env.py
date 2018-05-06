@@ -170,6 +170,8 @@ class SimpleSimEnv(gym.Env):
         # Load the map
         self._load_map(map_file)
 
+        self.graphics = True
+
         # Initialize the state
         self.seed()
         self.reset()
@@ -547,6 +549,9 @@ class SimpleSimEnv(gym.Env):
         return obs, reward, done, {}
 
     def _render_obs(self):
+        if self.graphics == False:
+            return None
+
         # Switch to the default context
         # This is necessary on Linux nvidia drivers
         self.shadow_window.switch_to()
