@@ -92,12 +92,12 @@ def render_drive(env, actions):
 
 env = SimpleSimEnv()
 
-best_actions = gen_actions(10)
+best_actions = gen_actions(20)
 best_r = -math.inf
 
 env.graphics = False
 
-for epoch in range(1, 1000):
+for epoch in range(1, 400):
 
     new_actions = mutate_actions(best_actions)
     r = eval_actions(env, new_actions)
