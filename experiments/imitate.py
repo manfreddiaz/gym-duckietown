@@ -119,84 +119,84 @@ def gen_data():
 
 
 
-with open('experiments/data.json') as f:
-    data = json.load(f)
 
-positions = data['positions']
-actions = data['actions']
 
-env = SimpleSimEnv()
-env2 = SimpleSimEnv()
 
-model = Model()
-model.train()
-if torch.cuda.is_available():
-    model.cuda()
-print_model_info(model)
-
-# weight_decay is L2 regularization, helps avoid overfitting
-optimizer = optim.Adam(
-    #chain(model.encoder.parameters(), model.decoder.parameters()),
-    model.parameters(),
-    lr=0.001,
-    weight_decay=1e-3
-)
+if __name__ == "__main__":
 
 
 
 
+    with open('experiments/data.json') as f:
+        data = json.load(f)
+
+    positions = data['positions']
+    actions = data['actions']
+
+    env = SimpleSimEnv()
+    env2 = SimpleSimEnv()
+
+    model = Model()
+    model.train()
+    if torch.cuda.is_available():
+        model.cuda()
+    print_model_info(model)
+
+    # weight_decay is L2 regularization, helps avoid overfitting
+    optimizer = optim.Adam(
+        #chain(model.encoder.parameters(), model.decoder.parameters()),
+        model.parameters(),
+        lr=0.001,
+        weight_decay=1e-3
+    )
+
+
+    avg_loss = 0
+    num_epochs = 2000000
+    for epoch in range(1, num_epochs+1):
+        optimizer.zero_grad()
+
+        env.reset()
+        obs, vels = gen_batch(gen_data)
+
+        model_vels = model(obs)
+
+        loss = (model_vels - vels).norm(2).mean()
+        loss.backward()
+        optimizer.step()
+
+        loss = loss.data[0]
+        avg_loss = avg_loss * 0.995 + loss * 0.005
+
+        print('epoch %d, loss=%.3f' % (epoch, avg_loss))
+
+        #print('gen time: %d ms' % genTime)
+        #print('train time: %d ms' % trainTime)
+
+        if epoch % 200 == 0:
+            torch.save(model.state_dict(), 'trained_models/imitate.pt')
 
 
 
-
-
-
-avg_loss = 0
-num_epochs = 2000000
-for epoch in range(1, num_epochs+1):
-    optimizer.zero_grad()
-
-    env.reset()
-    obs, vels = gen_batch(gen_data)
-
-    model_vels = model(obs)
-
-    loss = (model_vels - vels).norm(2).mean()
-    loss.backward()
-    optimizer.step()
-
-    loss = loss.data[0]
-    avg_loss = avg_loss * 0.995 + loss * 0.005
-
-    print('epoch %d, loss=%.3f' % (epoch, avg_loss))
-
-    #print('gen time: %d ms' % genTime)
-    #print('train time: %d ms' % trainTime)
-
-    if epoch % 200 == 0:
-        torch.save(model.state_dict(), 'trained_models/imitate.pt')
-
-
-
-    continue
-    if epoch % 4 != 0:
         continue
+        if epoch % 4 != 0:
+            continue
 
-    obs2 = env2._render_obs()
-    obs2 = obs2.transpose(2, 0, 1)
-    obs2 = make_var(obs2).unsqueeze(0)
+        obs2 = env2._render_obs()
+        obs2 = obs2.transpose(2, 0, 1)
+        obs2 = make_var(obs2).unsqueeze(0)
 
-    vels = model(obs2)
-    vels = vels.squeeze()
-    vels = vels.data.cpu().numpy()
-    #print(vels)
+        vels = model(obs2)
+        vels = vels.squeeze()
+        vels = vels.data.cpu().numpy()
+        #print(vels)
 
-    obs, reward, done, info = env2.step(vels)
+        obs, reward, done, info = env2.step(vels)
 
-    env2.render('human')
+        env2.render('human')
 
-    if done:
-        print('failed')
-        env2.reset()
+        if done:
+            print('failed')
+            env2.reset()
 
-    time.sleep(0.2)
+        time.sleep(0.2)
