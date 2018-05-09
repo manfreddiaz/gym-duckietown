@@ -35,6 +35,10 @@ while True:
 
     vels = vels.squeeze().data.cpu().numpy()
 
+    print(vels)
+
+    vels *= 0.8
+
     obs, reward, done, info = env.step(vels)
     #print('stepCount = %s, reward=%.3f' % (env.stepCount, reward))
 
