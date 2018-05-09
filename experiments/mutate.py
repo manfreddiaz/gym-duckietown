@@ -137,7 +137,7 @@ while True:
     print('num steps: %d' % len(positions))
 
     import json
-    with open('data.json', 'w') as outfile:
+    with open('experiments/data.json', 'w') as outfile:
         json.dump({ 'positions': positions, 'actions':actions }, outfile)
 
 
