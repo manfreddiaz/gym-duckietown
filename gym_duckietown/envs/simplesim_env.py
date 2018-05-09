@@ -2,6 +2,7 @@ import os
 import math
 import time
 import numpy as np
+import yaml
 
 import pyglet
 from pyglet.gl import *
@@ -11,13 +12,9 @@ import gym
 from gym import error, spaces, utils
 from gym.utils import seeding
 
-# For Python 3 compatibility
-import sys
-if sys.version_info > (3,):
-    buffer = memoryview
-
 # Graphics utility code
 from ..graphics import *
+from ..objmesh import *
 
 # Rendering window size
 WINDOW_WIDTH = 800
@@ -77,10 +74,11 @@ class SimpleSimEnv(gym.Env):
         map_file=None,
         max_steps=600,
         img_noise_scale=0,
-        draw_curve=False
+        draw_curve=False,
+        domain_rand=True
     ):
         if map_file is None:
-            map_file = 'gym_duckietown/maps/udem1.csv'
+            map_file = 'gym_duckietown/maps/udem1.yaml'
 
         # Two-tuple of wheel torques, each in the range [-1, 1]
         self.action_space = spaces.Box(
@@ -109,6 +107,9 @@ class SimpleSimEnv(gym.Env):
         # Flag to draw the road curve
         self.draw_curve = draw_curve
 
+        # Flag to enable/disable domain randomization
+        self.domain_rand = domain_rand
+
         # Array to render the image into
         self.img_array = np.zeros(shape=IMG_SHAPE, dtype=np.float32)
 
@@ -134,7 +135,9 @@ class SimpleSimEnv(gym.Env):
         self.road_left_tex = load_texture('road_left.png')
         self.road_right_tex = load_texture('road_right.png')
         self.road_3way_left_tex = load_texture('road_3way_left.png')
-        self.black_tile_tex = load_texture('black_tile.png')
+        self.asphalt_tex = load_texture('asphalt.png')
+        self.grass_tex = load_texture('grass_1.png')
+        self.floor_tex = load_texture('floor_tiles_green.png')
 
         # Create a frame buffer object
         self.multi_fbo, self.final_fbo = create_frame_buffers(
@@ -177,6 +180,11 @@ class SimpleSimEnv(gym.Env):
         self.reset()
 
     def reset(self):
+        """
+        Reset the simulation at the start of a new episode
+        This also randomizes many environment parameters (domain randomization)
+        """
+
         # Step count since episode start
         self.step_count = 0
 
@@ -184,10 +192,7 @@ class SimpleSimEnv(gym.Env):
         self.horizonColor = self._perturb(HORIZON_COLOR)
 
         # Ground color
-        self.groundColor = self.np_random.uniform(low=0.05, high=0.6, size=(3,))
-
-        # Road color multiplier
-        self.roadColor = self._perturb(ROAD_COLOR, 0.2)
+        self.groundColor = self._perturb(GROUND_COLOR, 0.3)
 
         # Distance between the robot's wheels
         self.wheelDist = self._perturb(WHEEL_DIST)
@@ -214,6 +219,15 @@ class SimpleSimEnv(gym.Env):
             colors += [c[0], c[1], c[2]]
         self.tri_vlist = pyglet.graphics.vertex_list(3 * numTris, ('v3f', verts), ('c3f', colors) )
 
+        # Randomize tile parameters
+        for tile in self.grid:
+            tile['color'] = self._perturb(ROAD_COLOR, 0.2)
+
+        # Randomize object parameters
+        for obj in self.objects:
+            # Randomize the object color
+            obj['color'] = self._perturb(np.array([1, 1, 1]), 0.3)
+
         # Randomize the starting position and angle
         # Pick a random starting tile and angle, do rejection sampling
         while True:
@@ -226,12 +240,7 @@ class SimpleSimEnv(gym.Env):
             i, j = self._get_grid_pos(self.curPos[0], self.curPos[2])
             tile = self._get_grid(i, j)
 
-            if tile is None:
-                continue
-
-            kind, angle = tile
-
-            if kind == 'black':
+            if tile is None or not tile['drivable']:
                 continue
 
             # Choose a random direction
@@ -251,42 +260,85 @@ class SimpleSimEnv(gym.Env):
         # Return first observation
         return obs
 
-    def _load_map(self, map_file):
+    def _load_map(self, file_path):
         """
         Load the map layout from a CSV file
         """
 
-        import csv
-        csvfile = open(map_file, 'r')
-        reader = csv.reader(csvfile, delimiter=',', quotechar='"')
-        rows = list(reader)
+        print('loading map file "%s"' % file_path)
 
-        assert len(rows) > 0
-        assert len(rows[0]) > 0
+        with open(file_path, 'r') as f:
+            map_data = yaml.load(f)
+
+        grid = map_data['tiles']
+        assert len(grid) > 0
+        assert len(grid[0]) > 0
 
         # Create the grid
-        self.grid_height = len(rows)
-        self.grid_width = len(rows[0])
+        self.grid_height = len(grid)
+        self.grid_width = len(grid[0])
         self.grid = [None] * self.grid_width * self.grid_height
 
-        for j, row in enumerate(rows):
-
+        # For each row in the grid
+        for j, row in enumerate(grid):
             assert len(row) == self.grid_width
 
-            for i, cell in enumerate(row):
-                cell = cell.strip()
+            # For each tile in this row
+            for i, tile in enumerate(row):
+                tile = tile.strip()
 
-                if cell == 'empty':
+                if tile == 'empty':
                     continue
 
-                if ':' in cell:
-                    kind, angle = cell.split(':')
+                if '/' in tile:
+                    kind, angle = tile.split('/')
                     angle = int(angle)
+                    drivable = True
                 else:
-                    kind = cell
+                    kind = tile
                     angle = 0
+                    drivable = False
 
-                self._set_grid(i, j, (kind, angle))
+                tile = {
+                    'kind': kind,
+                    'angle': angle,
+                    'drivable': drivable
+                }
+
+                self._set_grid(i, j, tile)
+
+        # Create the objects array
+        self.objects = []
+
+        if not 'objects' in map_data:
+            return
+
+        # For each object
+        for desc in map_data['objects']:
+            mesh_file = desc['mesh_file']
+            pos = desc['pos']
+            rotate = desc['rotate']
+
+            pos = pos
+            pos = ROAD_TILE_SIZE * np.array((pos[0], 0, pos[1]))
+
+            # Load the mesh
+            mesh = ObjMesh(mesh_file)
+
+            if 'height' in desc:
+                scale = desc['height'] / mesh.y_max
+            else:
+                scale = desc['scale']
+            assert not ('height' in desc and 'scale' in desc), "cannot specify both height and scale"
+
+            obj = {
+                'mesh': mesh,
+                'pos': pos,
+                'scale': scale,
+                'y_rot': rotate
+            }
+
+            self.objects.append(obj)
 
     def close(self):
         pass
@@ -308,9 +360,14 @@ class SimpleSimEnv(gym.Env):
         return self.grid[j * self.grid_width + i]
 
     def _perturb(self, val, scale=0.1):
-        """Add noise to a value"""
+        """
+        Add noise to a value. This is used for domain randomization.
+        """
         assert scale >= 0
         assert scale < 1
+
+        if not self.domain_rand:
+            return val
 
         if isinstance(val, np.ndarray):
             noise = self.np_random.uniform(low=1-scale, high=1+scale, size=val.shape)
@@ -343,7 +400,8 @@ class SimpleSimEnv(gym.Env):
         tile = self._get_grid(i, j)
         assert tile is not None
 
-        kind, angle = tile
+        kind = tile['kind']
+        angle = tile['angle']
 
         if kind.startswith('linear') or kind.startswith('3way'):
             pts = np.array([
@@ -460,12 +518,6 @@ class SimpleSimEnv(gym.Env):
         # Update the robot's position
         self._update_pos(action * ROBOT_SPEED * 1, 0.1)
 
-        # Add a small amount of noise to the position
-        # This will randomize the movement dynamics
-        posNoise = self.np_random.uniform(low=-0.005, high=0.005, size=(3,))
-        self.curPos += posNoise
-        self.curPos[1] = 0
-
         # Get the current position
         x, y, z = self.curPos
 
@@ -478,7 +530,7 @@ class SimpleSimEnv(gym.Env):
         #print('i=%d, j=%d' % (i, j))
 
         # If there is no road at this grid cell
-        if tile == None or tile[0] == 'black':
+        if tile == None or not tile['drivable']:
             reward = -10
             done = True
             return obs, reward, done, {}
@@ -509,6 +561,7 @@ class SimpleSimEnv(gym.Env):
         glBindFramebuffer(GL_FRAMEBUFFER, self.multi_fbo);
         glViewport(0, 0, CAMERA_WIDTH, CAMERA_HEIGHT)
 
+        # Clear the color and depth buffers
         glClearColor(*self.horizonColor, 1.0)
         glClearDepth(1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -519,13 +572,15 @@ class SimpleSimEnv(gym.Env):
         gluPerspective(
             self.camFovY,
             CAMERA_WIDTH / float(CAMERA_HEIGHT),
-            0.05,
+            0.04,
             100.0
         )
 
         # Set modelview matrix
-        x, _, z = self.curPos
-        y = CAMERA_FLOOR_DIST + self.np_random.uniform(low=-0.006, high=0.006)
+        # Note: we add a bit of noise to the camera position for data augmentation
+        pos_noise = self.np_random.uniform(low=-0.005, high=0.005, size=(3,))
+        x, y, z = self.curPos + pos_noise
+        y += CAMERA_FLOOR_DIST
         dx, dy, dz = self.getDirVec()
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
@@ -569,9 +624,11 @@ class SimpleSimEnv(gym.Env):
                 if tile == None:
                     continue
 
-                kind, angle = tile
+                kind = tile['kind']
+                angle = tile['angle']
+                color = tile['color']
 
-                glColor3f(*self.roadColor)
+                glColor3f(*color)
 
                 glPushMatrix()
                 glTranslatef((i+0.5) * ROAD_TILE_SIZE, 0, (j+0.5) * ROAD_TILE_SIZE)
@@ -592,17 +649,34 @@ class SimpleSimEnv(gym.Env):
                     glBindTexture(self.road_left_tex.target, self.road_left_tex.id)
                 elif kind == 'diag_right':
                     glBindTexture(self.road_right_tex.target, self.road_right_tex.id)
-                elif kind == 'black':
-                    glBindTexture(self.black_tile_tex.target, self.black_tile_tex.id)
+                elif kind == 'asphalt':
+                    glBindTexture(self.asphalt_tex.target, self.asphalt_tex.id)
+                elif kind == 'grass':
+                    glBindTexture(self.grass_tex.target, self.grass_tex.id)
+                elif kind == 'floor':
+                    glBindTexture(self.floor_tex.target, self.floor_tex.id)
                 else:
                     assert False, kind
 
                 self.road_vlist.draw(GL_QUADS)
                 glPopMatrix()
 
-                if self.draw_curve and kind != "black":
+                if self.draw_curve and tile['drivable']:
                     pts = self._get_curve(i, j)
                     bezier_draw(pts, n = 20)
+
+        # For each object
+        for obj in self.objects:
+            scale = obj['scale']
+            y_rot = obj['y_rot']
+            mesh = obj['mesh']
+            glPushMatrix()
+            glTranslatef(*obj['pos'])
+            glScalef(scale, scale, scale)
+            glRotatef(y_rot, 0, 1, 0)
+            glColor3f(*obj['color'])
+            mesh.render()
+            glPopMatrix()
 
         # Resolve the multisampled frame buffer into the final frame buffer
         glBindFramebuffer(GL_READ_FRAMEBUFFER, self.multi_fbo);
