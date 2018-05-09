@@ -80,6 +80,8 @@ class SimpleSimEnv(gym.Env):
         if map_file is None:
             map_file = 'gym_duckietown/maps/udem1.yaml'
 
+        self.graphics = True
+
         # Two-tuple of wheel torques, each in the range [-1, 1]
         self.action_space = spaces.Box(
             low=-1,
@@ -551,6 +553,10 @@ class SimpleSimEnv(gym.Env):
         return obs, reward, done, {}
 
     def _render_obs(self):
+        if self.graphics == False:
+            return
+
+
         # Switch to the default context
         # This is necessary on Linux nvidia drivers
         #pyglet.gl._shadow_window.switch_to()

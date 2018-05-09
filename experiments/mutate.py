@@ -20,8 +20,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 
-seed = 3
-
 def gen_actions(seq_len):
     actions = []
 
@@ -47,14 +45,18 @@ def mutate_actions(actions):
 
     return actions
 
-def eval_actions(env, actions):
+def eval_actions(env, seed, actions):
     env.seed(seed)
     env.reset()
 
     total_reward = 0
 
+    positions = []
+
     for i in range(0, len(actions)):
         vels = actions[i]
+
+        positions.append((env.curPos, env.curAngle))
 
         obs, reward, done, info = env.step(vels)
 
@@ -64,9 +66,9 @@ def eval_actions(env, actions):
             #print('failed')
             break
 
-    return total_reward
+    return positions, total_reward
 
-def render_drive(env, actions):
+def render_drive(env, seed, actions):
     env.seed(seed)
     env.reset()
 
@@ -88,29 +90,60 @@ def render_drive(env, actions):
     time.sleep(0.2)
 
 
+def gen_action_batch(env, seed, num_actions):
+    best_actions = gen_actions(num_actions)
+    best_r = -math.inf
+
+    env.graphics = False
+
+    for epoch in range(1, 500):
+
+        new_actions = mutate_actions(best_actions)
+        positions, r = eval_actions(env, seed, new_actions)
+
+        #print(new_actions)
+        #print(r)
+
+        if r > best_r:
+            best_r = r
+            best_actions = new_actions
+            #print('epoch %d, r=%f' % (epoch, r))
+
+    env.graphics = True
+
+    print('r=%f' % best_r)
+
+    return positions, best_actions
 
 
 env = SimpleSimEnv()
 
-best_actions = gen_actions(20)
-best_r = -math.inf
-
-env.graphics = False
-
-for epoch in range(1, 400):
-
-    new_actions = mutate_actions(best_actions)
-    r = eval_actions(env, new_actions)
-
-    #print(new_actions)
-    #print(r)
-
-    if r > best_r:
-        best_r = r
-        best_actions = new_actions
-        print('epoch %d, r=%f' % (epoch, r))
-
-env.graphics = True
+positions = []
+actions = []
 
 while True:
-    render_drive(env, best_actions)
+    seed = random.randint(0, 0xFFFFFFFF)
+    p, a = gen_action_batch(env, seed, 20)
+
+    if len(p) < 20:
+        continue
+
+    p = list(map(lambda p: [ p[0].tolist(), p[1] ], p))
+    a = list(map(lambda a: a.tolist(), a))
+
+    positions += p
+    actions += a
+
+    print('num steps: %d' % len(positions))
+
+    import json
+    with open('data.json', 'w') as outfile:
+        json.dump({ 'positions': positions, 'actions':actions }, outfile)
+
+
+
+
+
+#env.graphics = True
+#while True:
+#    render_drive(env, best_actions)

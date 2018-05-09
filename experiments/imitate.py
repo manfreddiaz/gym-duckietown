@@ -6,6 +6,7 @@ from functools import reduce
 import operator
 from itertools import chain
 import math
+import json
 
 import gym_duckietown
 from gym_duckietown.envs import SimpleSimEnv
@@ -68,53 +69,18 @@ class Model(nn.Module):
 
 
 
-seed = 3
 
-def gen_actions(seq_len):
-    actions = []
 
-    for i in range(0, seq_len):
-        vels = np.random.uniform(low=0.3, high=1.0, size=(2,))
-        actions.append(vels)
 
-    return actions
 
-# TODO: try biasing mutations to end
-# TODO: try mutating by small adjustments
-def mutate_actions(actions):
-    actions = actions[:]
 
-    for i in range(0, len(actions)):
-        if np.random.uniform(0, 1) < (1 / len(actions)):
-            vels = np.random.uniform(low=0.3, high=1.0, size=(2,))
-            actions[i] = vels
 
-        if np.random.uniform(0, 1) < (1 / len(actions)):
-            vels = actions[i] + np.random.uniform(low=-0.1, high=0.1, size=(2,))
-            actions[i] = vels
 
-    return actions
 
-def eval_actions(env, actions):
-    env.seed(seed)
-    env.reset()
 
-    total_reward = 0
 
-    for i in range(0, len(actions)):
-        vels = actions[i]
 
-        obs, reward, done, info = env.step(vels)
-
-        total_reward += reward
-
-        if done:
-            #print('failed')
-            break
-
-    return total_reward
-
-def render_drive(env, actions):
+def render_drive(env, seed, actions):
     env.seed(seed)
     env.reset()
 
@@ -136,47 +102,31 @@ def render_drive(env, actions):
     time.sleep(0.2)
 
 
+def gen_data():
+    idx = random.randint(0, len(positions) - 1)
+    curPos = np.array(positions[idx][0])
+    curAngle = positions[idx][1]
+    vels = np.array(actions[idx])
 
+    env.curPos = curPos
+    env.curAngle = curAngle
+
+    obs = env._render_obs().copy()
+    obs = obs.transpose(2, 0, 1)
+
+    return obs, vels
+
+
+
+
+with open('experiments/data.json') as f:
+    data = json.load(f)
+
+positions = data['positions']
+actions = data['actions']
 
 env = SimpleSimEnv()
-
-best_actions = gen_actions(30)
-best_r = -math.inf
-
-env.graphics = False
-
-for epoch in range(1, 1000):
-
-    new_actions = mutate_actions(best_actions)
-    r = eval_actions(env, new_actions)
-
-    #print(new_actions)
-    #print(r)
-
-    if r > best_r:
-        best_r = r
-        best_actions = new_actions
-        print('epoch %d, r=%f' % (epoch, r))
-
-env.graphics = True
-
-
-
-
-obss = []
-env.seed(seed)
-obs = env.reset()
-for vels in best_actions:
-    obss.append(obs.transpose(2, 0, 1))
-    obs, reward, done, info = env.step(vels)
-assert len(obss) == len(best_actions)
-
-
-
-
-
-
-
+env2 = SimpleSimEnv()
 
 model = Model()
 model.train()
@@ -188,27 +138,28 @@ print_model_info(model)
 optimizer = optim.Adam(
     #chain(model.encoder.parameters(), model.decoder.parameters()),
     model.parameters(),
-    lr=0.001
-    #weight_decay=1e-3
+    lr=0.001,
+    weight_decay=1e-3
 )
 
-avg_loss = 0
-num_epochs = 20000
-for epoch in range(1, num_epochs+1):
-    print(epoch)
 
+
+
+
+
+
+
+
+
+avg_loss = 0
+num_epochs = 2000000
+for epoch in range(1, num_epochs+1):
     optimizer.zero_grad()
 
-
-
-    idx = random.randint(0, len(best_actions)-1)
-
-    obs = make_var(obss[idx]).unsqueeze(0)
-    vels = make_var(best_actions[idx]).unsqueeze(0)
-
+    env.reset()
+    obs, vels = gen_batch(gen_data)
 
     model_vels = model(obs)
-
 
     loss = (model_vels - vels).norm(2).mean()
     loss.backward()
@@ -219,22 +170,32 @@ for epoch in range(1, num_epochs+1):
 
     print('epoch %d, loss=%.3f' % (epoch, avg_loss))
 
-    #loss = loss.data[0]
-    #avg_loss = avg_loss * 0.995 + loss * 0.005
-
     #print('gen time: %d ms' % genTime)
     #print('train time: %d ms' % trainTime)
-    #print('epoch %d, loss=%.3f' % (epoch, avg_loss))
 
-    #if epoch == 100 or epoch % 1000 == 0:
-    #    test_model(model)
-
+    if epoch % 200 == 0:
+        torch.save(model.state_dict(), 'trained_models/imitate.pt')
 
 
 
+    if epoch % 4 != 0:
+        continue
 
+    obs2 = env2._render_obs()
+    obs2 = obs2.transpose(2, 0, 1)
+    obs2 = make_var(obs2).unsqueeze(0)
 
+    vels = model(obs2)
+    vels = vels.squeeze()
+    vels = vels.data.cpu().numpy()
+    #print(vels)
 
+    obs, reward, done, info = env2.step(vels)
 
-#while True:
-#    render_drive(env, best_actions)
+    env2.render('human')
+
+    if done:
+        print('failed')
+        env2.reset()
+
+    time.sleep(0.2)
