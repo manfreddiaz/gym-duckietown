@@ -178,6 +178,7 @@ for epoch in range(1, num_epochs+1):
 
 
 
+    continue
     if epoch % 4 != 0:
         continue
 
