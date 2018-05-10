@@ -21,13 +21,6 @@ import torch.nn.functional as F
 import torch.optim as optim
 from torch.autograd import Variable
 
-
-
-
-
-
-
-
 class Model(nn.Module):
     def __init__(self):
         super().__init__()
@@ -62,54 +55,23 @@ class Model(nn.Module):
 
         return vels
 
+def load_data():
+    global positions
+    global actions
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-def render_drive(env, seed, actions):
-    env.seed(seed)
-    env.reset()
-
-    env.render('human')
-    time.sleep(0.2)
-
-    for i in range(0, len(actions)):
-
-        vels = actions[i]
-        obs, reward, done, info = env.step(vels)
-
-        env.render('human')
-        time.sleep(0.12)
-
-        if done:
-            #print('failed')
-            break
-
-    time.sleep(0.2)
-
+    with open('experiments/data.json') as f:
+        data = json.load(f)
+    positions = data['positions']
+    actions = data['actions']
 
 def gen_data():
     idx = random.randint(0, len(positions) - 1)
-    curPos = np.array(positions[idx][0])
-    curAngle = positions[idx][1]
+    cur_pos = np.array(positions[idx][0])
+    cur_angle = positions[idx][1]
     vels = np.array(actions[idx])
 
-    env.curPos = curPos
-    env.curAngle = curAngle
+    env.cur_pos = cur_pos
+    env.cur_angle = cur_angle
 
     obs = env._render_obs().copy()
     obs = obs.transpose(2, 0, 1)
@@ -122,16 +84,10 @@ def gen_data():
 
 
 
+
+
 if __name__ == "__main__":
-
-
-
-
-    with open('experiments/data.json') as f:
-        data = json.load(f)
-
-    positions = data['positions']
-    actions = data['actions']
+    load_data()
 
     env = SimpleSimEnv()
     env2 = SimpleSimEnv()
@@ -150,9 +106,9 @@ if __name__ == "__main__":
         weight_decay=1e-3
     )
 
-
     avg_loss = 0
     num_epochs = 2000000
+
     for epoch in range(1, num_epochs+1):
         optimizer.zero_grad()
 
@@ -176,9 +132,9 @@ if __name__ == "__main__":
         if epoch % 200 == 0:
             torch.save(model.state_dict(), 'trained_models/imitate.pt')
 
+        if epoch % 200 == 0:
+            load_data()
 
-
-        continue
         if epoch % 4 != 0:
             continue
 

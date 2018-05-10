@@ -56,7 +56,7 @@ def eval_actions(env, seed, actions):
     for i in range(0, len(actions)):
         vels = actions[i]
 
-        positions.append((env.curPos, env.curAngle))
+        positions.append((env.cur_pos, env.cur_angle))
 
         obs, reward, done, info = env.step(vels)
 
