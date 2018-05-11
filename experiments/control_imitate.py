@@ -10,16 +10,29 @@ import torch
 import numpy as np
 import gym
 import gym_duckietown
+from gym_duckietown.envs import SimpleSimEnv
 
 from imitate import Model
 from utils import make_var
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env-name', default='SimpleSim-v0')
+parser.add_argument('--map-file', default='gym_duckietown/maps/udem1.yaml')
+parser.add_argument('--draw-curve', action='store_true', help='draw the lane following curve')
+parser.add_argument('--no-random', action='store_true', help='disable domain randomization')
+parser.add_argument('--full-res', action='store_true', help='render at full window resolution')
 args = parser.parse_args()
 
-env = gym.make(args.env_name)
-env.max_steps = math.inf
+if args.env_name == 'SimpleSim-v0':
+    env = SimpleSimEnv(
+        map_file = args.map_file,
+        draw_curve = args.draw_curve,
+        domain_rand = not args.no_random,
+        full_res = args.full_res
+    )
+    env.max_steps = math.inf
+else:
+    env = gym.make(args.env_name)
 
 obs = env.reset()
 env.render()

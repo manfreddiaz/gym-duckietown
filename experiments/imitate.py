@@ -61,10 +61,13 @@ def load_data():
     global positions
     global actions
 
-    with open('experiments/data.json') as f:
-        data = json.load(f)
-    positions = data['positions']
-    actions = data['actions']
+    try:
+        with open('experiments/data.json') as f:
+            data = json.load(f)
+        positions = data['positions']
+        actions = data['actions']
+    except:
+        print('failed to load data')
 
 def gen_data():
     idx = random.randint(0, len(positions) - 1)
