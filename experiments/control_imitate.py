@@ -3,6 +3,7 @@
 import time
 import sys
 import argparse
+import math
 
 import torch
 
@@ -18,6 +19,8 @@ parser.add_argument('--env-name', default='SimpleSim-v0')
 args = parser.parse_args()
 
 env = gym.make(args.env_name)
+env.max_steps = math.inf
+
 obs = env.reset()
 env.render()
 
