@@ -89,14 +89,13 @@ def render_drive(env, seed, actions):
 
     time.sleep(0.2)
 
-
 def gen_action_batch(env, seed, num_actions):
     best_actions = gen_actions(num_actions)
     best_r = -math.inf
 
     env.graphics = False
 
-    for epoch in range(1, 500):
+    for epoch in range(1, 750):
 
         new_actions = mutate_actions(best_actions)
         positions, r = eval_actions(env, seed, new_actions)
@@ -123,10 +122,14 @@ actions = []
 
 while True:
     seed = random.randint(0, 0xFFFFFFFF)
-    p, a = gen_action_batch(env, seed, 20)
+    p, a = gen_action_batch(env, seed, 30)
 
-    if len(p) < 20:
+    if len(p) < 30:
         continue
+
+    # Drop the last few actions
+    p = p[:-10]
+    a = a[:-10]
 
     p = list(map(lambda p: [ p[0].tolist(), p[1] ], p))
     a = list(map(lambda a: a.tolist(), a))
@@ -139,10 +142,6 @@ while True:
     import json
     with open('experiments/data.json', 'w') as outfile:
         json.dump({ 'positions': positions, 'actions':actions }, outfile)
-
-
-
-
 
 #env.graphics = True
 #while True:

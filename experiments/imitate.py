@@ -42,7 +42,9 @@ class Model(nn.Module):
         self.enc_to_vels = nn.Sequential(
             nn.Linear(32 * 8 * 11, 256),
             nn.LeakyReLU(),
-            nn.Linear(256, 2),
+            nn.Linear(256, 128),
+            nn.LeakyReLU(),
+            nn.Linear(128, 2),
             #nn.Tanh()
         )
 
@@ -77,14 +79,6 @@ def gen_data():
     obs = obs.transpose(2, 0, 1)
 
     return obs, vels
-
-
-
-
-
-
-
-
 
 if __name__ == "__main__":
     load_data()
