@@ -65,7 +65,8 @@ while True:
         env.reset()
         env.render()
 
-    time.sleep(0.1)
+    #time.sleep(0.1)
+    #time.sleep(0.015)
 
 #except:
 #    print('closing env')

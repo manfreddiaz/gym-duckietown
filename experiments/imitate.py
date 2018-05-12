@@ -96,10 +96,9 @@ if __name__ == "__main__":
     print_model_info(model)
 
     # weight_decay is L2 regularization, helps avoid overfitting
-    optimizer = optim.Adam(
-        #chain(model.encoder.parameters(), model.decoder.parameters()),
+    optimizer = optim.SGD(
         model.parameters(),
-        lr=0.001,
+        lr=0.0007,
         weight_decay=1e-3
     )
 
@@ -134,6 +133,8 @@ if __name__ == "__main__":
 
         if epoch % 4 != 0:
             continue
+
+        continue
 
         obs2 = env2._render_obs()
         obs2 = obs2.transpose(2, 0, 1)
