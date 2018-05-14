@@ -41,15 +41,17 @@ model.load_state_dict(torch.load('trained_models/imitate.pt'))
 model.eval()
 model.cuda()
 
-#try:
+avg_frame_time = 0
+max_frame_time = 0
+
 while True:
+    start_time = time.time()
+
     obs = obs.transpose(2, 0, 1)
     obs = make_var(obs).unsqueeze(0)
 
     vels = model(obs)
-
     vels = vels.squeeze().data.cpu().numpy()
-
     print(vels)
 
     vels *= 0.8
@@ -59,6 +61,16 @@ while True:
 
     env.render()
 
+    end_time = time.time()
+    frame_time = 1000 * (end_time - start_time)
+    avg_frame_time = avg_frame_time * 0.95 + frame_time * 0.05
+    max_frame_time = 0.99 * max(max_frame_time, frame_time) + 0.01 * frame_time
+    fps = 1 / (frame_time / 1000)
+
+    print('avg frame time: %d' % int(avg_frame_time))
+    print('max frame time: %d' % int(max_frame_time))
+    print('fps: %.1f' % fps)
+
     if done:
         print('done!')
         env.reset()
@@ -66,8 +78,3 @@ while True:
 
     #time.sleep(0.1)
     #time.sleep(0.015)
-
-#except:
-#    print('closing env')
-#    env.close()
-#    time.sleep(0.25)
