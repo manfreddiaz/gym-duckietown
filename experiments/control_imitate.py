@@ -27,8 +27,7 @@ if args.env_name == 'SimpleSim-v0':
     env = SimpleSimEnv(
         map_file = args.map_file,
         draw_curve = args.draw_curve,
-        domain_rand = not args.no_random,
-        full_res = args.full_res
+        domain_rand = not args.no_random
     )
     env.max_steps = math.inf
 else:
