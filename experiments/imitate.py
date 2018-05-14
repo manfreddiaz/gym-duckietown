@@ -51,6 +51,8 @@ class Model(nn.Module):
         self.apply(init_weights)
 
     def forward(self, img):
+        img = img / 255
+
         x = self.encoder(img)
         x = x.view(x.size(0), -1)
         vels = self.enc_to_vels(x)
@@ -78,7 +80,7 @@ def gen_data():
     env.cur_pos = cur_pos
     env.cur_angle = cur_angle
 
-    obs = env._render_obs().copy()
+    obs = env.render_obs().copy()
     obs = obs.transpose(2, 0, 1)
 
     return obs, vels
@@ -136,7 +138,7 @@ if __name__ == "__main__":
 
         continue
 
-        obs2 = env2._render_obs()
+        obs2 = env2.render_obs()
         obs2 = obs2.transpose(2, 0, 1)
         obs2 = make_var(obs2).unsqueeze(0)
 
