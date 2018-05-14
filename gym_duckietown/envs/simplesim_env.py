@@ -573,7 +573,7 @@ class SimpleSimEnv(gym.Env):
         self.step_count += 1
 
         # Update the robot's position
-        self._update_pos(action * ROBOT_SPEED * 1, 0.1)
+        self._update_pos(action * ROBOT_SPEED * 1, 1 / 6.1)
 
         # Generate the current camera image
         obs = self.render_obs()

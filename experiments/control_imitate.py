@@ -54,6 +54,7 @@ while True:
     vels = vels.squeeze().data.cpu().numpy()
     print(vels)
 
+    vels = vels.clip(0, 1)
     vels *= 0.8
 
     obs, reward, done, info = env.step(vels)
