@@ -13,6 +13,7 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 
 # Graphics utility code
+from ..utils import *
 from ..graphics import *
 from ..objmesh import *
 
@@ -24,8 +25,11 @@ WINDOW_HEIGHT = 600
 CAMERA_WIDTH = 160
 CAMERA_HEIGHT = 120
 
-# Horizon/wall color
-HORIZON_COLOR = np.array([0.64, 0.71, 0.28])
+# Blue sky horizon color
+BLUE_SKY_COLOR = np.array([0.45, 0.82, 1])
+
+# Color meant to approximate interior walls
+WALL_COLOR = np.array([0.64, 0.71, 0.28])
 
 # Road color multiplier
 ROAD_COLOR = np.array([0.79, 0.88, 0.53])
@@ -73,7 +77,7 @@ class SimpleSimEnv(gym.Env):
 
     def __init__(
         self,
-        map_file='gym_duckietown/maps/udem1.yaml',
+        map_name='udem1',
         max_steps=600,
         draw_curve=False,
         domain_rand=True
@@ -144,26 +148,26 @@ class SimpleSimEnv(gym.Env):
         self.img_array_human = np.zeros(shape=(WINDOW_HEIGHT, WINDOW_WIDTH, 3), dtype=np.uint8)
 
         # Load the road textures
-        self.road_tex = load_texture('road_plain.png')
-        self.road_stop_tex = load_texture('road_stop.png')
-        self.road_stop_left_tex = load_texture('road_stop_left.png')
-        self.road_stop_both_tex = load_texture('road_stop_both.png')
-        self.road_left_tex = load_texture('road_left.png')
-        self.road_right_tex = load_texture('road_right.png')
-        self.road_3way_left_tex = load_texture('road_3way_left.png')
-        self.asphalt_tex = load_texture('asphalt.png')
-        self.grass_tex = load_texture('grass_1.png')
-        self.floor_tex = load_texture('floor_tiles_green.png')
+        self.road_tex = load_texture('road_plain')
+        self.road_stop_tex = load_texture('road_stop')
+        self.road_stop_left_tex = load_texture('road_stop_left')
+        self.road_stop_both_tex = load_texture('road_stop_both')
+        self.road_left_tex = load_texture('road_left')
+        self.road_right_tex = load_texture('road_right')
+        self.road_3way_left_tex = load_texture('road_3way_left')
+        self.asphalt_tex = load_texture('asphalt')
+        self.grass_tex = load_texture('grass_1')
+        self.floor_tex = load_texture('floor_tiles_green')
 
         # Create the vertex list for our road quad
         # Note: the vertices are centered around the origin so we can easily
         # rotate the tiles about their center
-        halfSize = ROAD_TILE_SIZE / 2
+        half_size = ROAD_TILE_SIZE / 2
         verts = [
-            -halfSize, 0.0, -halfSize,
-             halfSize, 0.0, -halfSize,
-             halfSize, 0.0,  halfSize,
-            -halfSize, 0.0,  halfSize
+            -half_size, 0.0, -half_size,
+             half_size, 0.0, -half_size,
+             half_size, 0.0,  half_size,
+            -half_size, 0.0,  half_size
         ]
         texCoords = [
             1.0, 0.0,
@@ -183,7 +187,7 @@ class SimpleSimEnv(gym.Env):
         self.ground_vlist = pyglet.graphics.vertex_list(4, ('v3f', verts))
 
         # Load the map
-        self._load_map(map_file)
+        self._load_map(map_name)
 
         # Initialize the state
         self.seed()
@@ -201,13 +205,18 @@ class SimpleSimEnv(gym.Env):
         # Horizon color
         # Note: we explicitly sample white and grey/black because
         # these colors are easily confused for road and lane markings
-        horz_mode = self.np_random.randint(0, 3)
-        if horz_mode == 0 or not self.domain_rand:
-            self.horizon_color = self._perturb(HORIZON_COLOR)
-        elif horz_mode == 1:
-            self.horizon_color = self._perturb(np.array([0.15, 0.15, 0.15]), 0.4)
-        elif horz_mode == 2:
-            self.horizon_color = self._perturb(np.array([0.9, 0.9, 0.9]), 0.4)
+        if self.domain_rand:
+            horz_mode = self.np_random.randint(0, 4)
+            if horz_mode == 0:
+                self.horizon_color = self._perturb(BLUE_SKY_COLOR)
+            elif horz_mode == 1:
+                self.horizon_color = self._perturb(WALL_COLOR)
+            elif horz_mode == 2:
+                self.horizon_color = self._perturb(np.array([0.15, 0.15, 0.15]), 0.4)
+            elif horz_mode == 3:
+                self.horizon_color = self._perturb(np.array([0.9, 0.9, 0.9]), 0.4)
+        else:
+            self.horizon_color = BLUE_SKY_COLOR
 
         # Ground color
         self.ground_color = self._perturb(GROUND_COLOR, 0.3)
@@ -277,10 +286,12 @@ class SimpleSimEnv(gym.Env):
         # Return first observation
         return obs
 
-    def _load_map(self, file_path):
+    def _load_map(self, map_name):
         """
         Load the map layout from a CSV file
         """
+
+        file_path = get_file_path('maps', map_name, 'yaml')
 
         print('loading map file "%s"' % file_path)
 
@@ -334,7 +345,7 @@ class SimpleSimEnv(gym.Env):
 
         # For each object
         for desc in map_data['objects']:
-            mesh_file = desc['mesh_file']
+            kind = desc['kind']
             pos = desc['pos']
             rotate = desc['rotate']
 
@@ -342,7 +353,7 @@ class SimpleSimEnv(gym.Env):
             pos = ROAD_TILE_SIZE * np.array((pos[0], 0, pos[1]))
 
             # Load the mesh
-            mesh = ObjMesh(mesh_file)
+            mesh = ObjMesh(kind)
 
             if 'height' in desc:
                 scale = desc['height'] / mesh.y_max
@@ -641,8 +652,10 @@ class SimpleSimEnv(gym.Env):
 
         # Set modelview matrix
         # Note: we add a bit of noise to the camera position for data augmentation
-        pos_noise = self.np_random.uniform(low=-0.005, high=0.005, size=(3,))
-        x, y, z = self.cur_pos + pos_noise
+        pos = self.cur_pos
+        if self.domain_rand:
+            pos = pos + self.np_random.uniform(low=-0.005, high=0.005, size=(3,))
+        x, y, z = pos
         y += CAMERA_FLOOR_DIST
         dx, dy, dz = self.get_dir_vec()
         glMatrixMode(GL_MODELVIEW)
