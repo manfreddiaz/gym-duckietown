@@ -28,7 +28,8 @@ if args.env_name == 'SimpleSim-v0':
         draw_curve = args.draw_curve,
         domain_rand = not args.no_random
     )
-    env.max_steps = math.inf
+    #env.max_steps = math.inf
+    env.max_steps = 500
 else:
     env = gym.make(args.env_name)
 
@@ -72,8 +73,9 @@ while True:
     print('fps: %.1f' % fps)
 
     if done:
-        print('*** FAILED ***')
-        time.sleep(1.5)
+        if reward < 0:
+            print('*** FAILED ***')
+            time.sleep(1.5)
         env.reset()
         env.render()
 
