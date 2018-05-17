@@ -41,6 +41,8 @@ GROUND_COLOR = np.array([0.15, 0.15, 0.15])
 CAMERA_ANGLE = 20
 
 # Camera field of view angle in the Y direction
+# Note: robot uses Raspberri Pi camera module V1.3
+# https://www.raspberrypi.org/documentation/hardware/camera/README.md
 CAMERA_FOV_Y = 42
 
 # Distance from camera to floor (10.8cm)
@@ -359,7 +361,7 @@ class SimpleSimEnv(gym.Env):
             pos = ROAD_TILE_SIZE * np.array((x, 0, z))
 
             # Load the mesh
-            mesh = ObjMesh(kind)
+            mesh = ObjMesh.get(kind)
 
             if 'height' in desc:
                 scale = desc['height'] / mesh.y_max
