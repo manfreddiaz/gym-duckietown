@@ -157,9 +157,11 @@ class SimpleSimEnv(gym.Env):
         self.road_left_tex = load_texture('road_left')
         self.road_right_tex = load_texture('road_right')
         self.road_3way_left_tex = load_texture('road_3way_left')
+        self.road_3way_right_tex = load_texture('road_3way_right')
         self.asphalt_tex = load_texture('asphalt')
-        self.grass_tex = load_texture('grass_1')
         self.floor_tex = load_texture('floor_tiles_green')
+        self.grass_tex = load_texture('grass_1')
+        self.water_tex = load_texture('water')
 
         # Create the vertex list for our road quad
         # Note: the vertices are centered around the origin so we can easily
@@ -263,29 +265,31 @@ class SimpleSimEnv(gym.Env):
             else:
                 obj['visible'] = True
 
-        # Randomize the starting position and angle
-        # Pick a random starting tile and angle, do rejection sampling
+        # Select a random drivable tile to start on
+        tile_idx = self.np_random.randint(0, len(self.drivable_tiles))
+        tile = self.drivable_tiles[tile_idx]
+
         while True:
-            # Choose a random position on the grid
-            self.cur_pos = np.array([
-                self.np_random.uniform(0, self.grid_width) * ROAD_TILE_SIZE,
-                0,
-                self.np_random.uniform(0, self.grid_height) * ROAD_TILE_SIZE,
-            ])
+            i, j = tile['coords']
+
+            # Choose a random position on this tile
+            x = self.np_random.uniform(i, i + 1) * ROAD_TILE_SIZE
+            z = self.np_random.uniform(j, j + 1) * ROAD_TILE_SIZE
+            self.cur_pos = np.array([x, 0, z])
 
             # Choose a random direction
             self.cur_angle = self.np_random.uniform(0, 2 * math.pi)
 
-            # If this is not a valid pose (on drivable tiles), skip it
+            # If this is not a valid pose, retry
             if not self._valid_pose():
                 continue
 
-            dist, dotDir, angle = self.get_lane_pos()
-            if dist < -0.20 or dist > 0.12:
-                continue
-            if angle < -30 or angle > 30:
+            # If the angle is too far away from the driving direction, retry
+            dist, dot_dir, angle = self.get_lane_pos()
+            if angle < -70 or angle > 70:
                 continue
 
+            # Found a valid initial pose
             break
 
         # Generate the first camera image
@@ -306,17 +310,20 @@ class SimpleSimEnv(gym.Env):
         with open(file_path, 'r') as f:
             map_data = yaml.load(f)
 
-        grid = map_data['tiles']
-        assert len(grid) > 0
-        assert len(grid[0]) > 0
+        tiles = map_data['tiles']
+        assert len(tiles) > 0
+        assert len(tiles[0]) > 0
 
         # Create the grid
-        self.grid_height = len(grid)
-        self.grid_width = len(grid[0])
+        self.grid_height = len(tiles)
+        self.grid_width = len(tiles[0])
         self.grid = [None] * self.grid_width * self.grid_height
 
+        # We keep a separate list of drivable tiles
+        self.drivable_tiles = []
+
         # For each row in the grid
-        for j, row in enumerate(grid):
+        for j, row in enumerate(tiles):
             assert len(row) == self.grid_width
 
             # For each tile in this row
@@ -338,10 +345,14 @@ class SimpleSimEnv(gym.Env):
                     drivable = False
 
                 tile = {
+                    'coords': (i, j),
                     'kind': kind,
                     'angle': angle,
                     'drivable': drivable
                 }
+
+                if drivable:
+                    self.drivable_tiles.append(tile)
 
                 self._set_tile(i, j, tile)
 
@@ -731,16 +742,20 @@ class SimpleSimEnv(gym.Env):
                     glBindTexture(self.road_stop_both_tex.target, self.road_stop_both_tex.id)
                 elif kind == '3way_left':
                     glBindTexture(self.road_3way_left_tex.target, self.road_3way_left_tex.id)
+                elif kind == '3way_right':
+                    glBindTexture(self.road_3way_right_tex.target, self.road_3way_right_tex.id)
                 elif kind == 'diag_left':
                     glBindTexture(self.road_left_tex.target, self.road_left_tex.id)
                 elif kind == 'diag_right':
                     glBindTexture(self.road_right_tex.target, self.road_right_tex.id)
                 elif kind == 'asphalt':
                     glBindTexture(self.asphalt_tex.target, self.asphalt_tex.id)
-                elif kind == 'grass':
-                    glBindTexture(self.grass_tex.target, self.grass_tex.id)
                 elif kind == 'floor':
                     glBindTexture(self.floor_tex.target, self.floor_tex.id)
+                elif kind == 'grass':
+                    glBindTexture(self.grass_tex.target, self.grass_tex.id)
+                elif kind == 'water':
+                    glBindTexture(self.water_tex.target, self.water_tex.id)
                 else:
                     assert False, kind
 
