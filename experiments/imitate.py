@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # weight_decay is L2 regularization, helps avoid overfitting
     optimizer = optim.SGD(
         model.parameters(),
-        lr=0.0007,
+        lr=0.0004,
         weight_decay=1e-3
     )
 
