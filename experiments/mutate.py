@@ -24,7 +24,7 @@ def gen_actions(seq_len):
     actions = []
 
     for i in range(0, seq_len):
-        vels = np.random.uniform(low=0.3, high=1.0, size=(2,))
+        vels = np.random.uniform(low=0.4, high=0.9, size=(2,))
         actions.append(vels)
 
     return actions
@@ -36,11 +36,12 @@ def mutate_actions(actions):
 
     for i in range(0, len(actions)):
         if np.random.uniform(0, 1) < (1 / len(actions)):
-            vels = np.random.uniform(low=0.3, high=1.0, size=(2,))
+            vels = np.random.uniform(low=0.4, high=0.9, size=(2,))
             actions[i] = vels
 
         if np.random.uniform(0, 1) < (1 / len(actions)):
             vels = actions[i] + np.random.uniform(low=-0.1, high=0.1, size=(2,))
+            vels = vels.clip(0.4, 0.9)
             actions[i] = vels
 
     return actions
