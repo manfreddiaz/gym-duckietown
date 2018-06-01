@@ -317,7 +317,7 @@ class SimpleSimEnv(gym.Env):
 
         # For each row in the grid
         for j, row in enumerate(tiles):
-            assert len(row) == self.grid_width
+            assert len(row) == self.grid_width, "each row of tiles must have the same length"
 
             # For each tile in this row
             for i, tile in enumerate(row):
@@ -448,21 +448,21 @@ class SimpleSimEnv(gym.Env):
         kind = tile['kind']
         angle = tile['angle']
 
-        if kind.startswith('linear') or kind.startswith('3way'):
+        if kind.startswith('straight') or kind.startswith('3way') or kind.startswith('4way'):
             pts = np.array([
                 [-0.20, 0,-0.50],
                 [-0.20, 0,-0.25],
                 [-0.20, 0, 0.25],
                 [-0.20, 0, 0.50],
             ]) * ROAD_TILE_SIZE
-        elif kind == 'diag_left':
+        elif kind == 'curve_left':
             pts = np.array([
                 [-0.20, 0,-0.50],
                 [-0.20, 0, 0.00],
                 [ 0.00, 0, 0.20],
                 [ 0.50, 0, 0.20],
             ]) * ROAD_TILE_SIZE
-        elif kind == 'diag_right':
+        elif kind == 'curve_right':
             pts = np.array([
                 [-0.20, 0,-0.50],
                 [-0.20, 0,-0.20],
