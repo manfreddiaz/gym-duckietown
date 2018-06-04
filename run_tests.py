@@ -4,7 +4,7 @@ import os
 import numpy as np
 import gym
 import gym_duckietown
-from gym_duckietown.envs import SimpleSimEnv
+from gym_duckietown.envs import SimpleSimEnv, MultiMapEnv
 
 env = gym.make('SimpleSim-v0')
 
@@ -23,3 +23,6 @@ obs, _, _, _ = env.step(np.array([0.1, 0.1]))
 for map_file in os.listdir('gym_duckietown/maps'):
     map_name = map_file.split('.')[0]
     env = SimpleSimEnv(map_name=map_name)
+
+# Test the multi-map environment
+env = MultiMapEnv()
