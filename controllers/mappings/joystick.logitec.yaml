@@ -1,0 +1,9 @@
+controller: "Joystick Logitec"
+config:
+  speed_boost: 1.5
+buttons:
+  0: delete_record # X button
+  1: record # A button
+  3: reset # Y button
+modifiers:
+  5: boost # RT button
