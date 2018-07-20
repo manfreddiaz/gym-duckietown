@@ -1,4 +1,3 @@
-import sys
 import argparse
 import math
 import pyglet
@@ -34,7 +33,8 @@ def create_environment(args, with_heading=True):
     if args.env_name == 'SimpleSim-v0':
         environment = SimpleSimEnv(
             max_steps=math.inf,
-            domain_rand=False
+            domain_rand=False,
+            draw_curve=True
         )
     else:
         environment = gym.make(args.env_name)
@@ -61,11 +61,11 @@ def create_controller(environment, arguments):
 
 def create_shared_controller(environment, arguments):
     # human controller
-    joystick_controller = JoystickController(env)
+    joystick_controller = JoystickController(environment)
     joystick_controller.load_mapping(AVAILABLE_MAPPINGS['joystick']['logitech'])
 
     # nn controller
-    tf_controller = TensorflowNNController(env)
+    tf_controller = TensorflowNNController(environment)
 
     shared = SharedController(env, joystick_controller, tf_controller)
 

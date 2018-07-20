@@ -5,10 +5,12 @@ from pyglet.input import DeviceOpenException
 from controllers.devices.device_controller import DeviceController
 
 
+# Adapted from Bhairav Mehta initial implementation.
 class JoystickController(DeviceController):
 
     def __init__(self, env, device_id=0):
         self.device_id = device_id
+        self.joystick = None
         DeviceController.__init__(self, env)
 
     def initialize(self):
