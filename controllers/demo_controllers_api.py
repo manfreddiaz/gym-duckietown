@@ -14,8 +14,8 @@ AVAILABLE_CONTROLLERS = {
 }
 AVAILABLE_MAPPINGS = {
     'joystick': {
-        'logitech': 'mappings/joystick.logitech.yaml',
-        'generic': 'mappings/joystick.generic.yaml'
+        'logitech': 'devices/mappings/joystick.logitech.yaml',
+        'generic': 'devices/mappings/joystick.generic.yaml'
     }
 
 }
@@ -32,7 +32,10 @@ def parse_args():
 
 def create_environment(args, with_heading=True):
     if args.env_name == 'SimpleSim-v0':
-        environment = SimpleSimEnv(max_steps=math.inf)
+        environment = SimpleSimEnv(
+            max_steps=math.inf,
+            domain_rand=False
+        )
     else:
         environment = gym.make(args.env_name)
     if with_heading:

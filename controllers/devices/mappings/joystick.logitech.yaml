@@ -1,11 +1,11 @@
-controller: "Joystick Logitec"
+controller: "Joystick Logitech"
 config:
   speed_boost: 1.5
 buttons:
   0: delete_record # X button
   1: record # A button
   3: reset # Y button
-  6: share
+  6: share # LT temporay until Controller API is fixed.
 modifiers:
   5: boost # RT button
 
