@@ -2,17 +2,16 @@ import numpy as np
 import pyglet
 from pyglet.input import DeviceOpenException
 
-from controllers.base_controller import Controller
+from controllers.devices.device_controller import DeviceController
 
 
-class JoystickController(Controller):
+class JoystickController(DeviceController):
 
     def __init__(self, env, device_id=0):
-        Controller.__init__(self, env)
         self.device_id = device_id
-        self._initialize()
+        DeviceController.__init__(self, env)
 
-    def _initialize(self):
+    def initialize(self):
         # enumerate all available joysticks and select the one with id = device_id
         joysticks = pyglet.input.get_joysticks()
         if not joysticks:
@@ -30,7 +29,7 @@ class JoystickController(Controller):
         # register this controller as a handler
         self.joystick.push_handlers(self.on_joybutton_press, self)
         # call general initialization routine
-        Controller._initialize(self)
+        DeviceController.initialize(self)
 
     def _do_update(self, dt):
         if round(self.joystick.x, 2) == 0.0 and round(self.joystick.y, 2) == 0.0:

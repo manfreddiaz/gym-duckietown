@@ -1,1 +1,3 @@
-from .joystick import JoystickController
+from controllers.devices.joystick import JoystickController
+from controllers.nn.tf_controller import TensorflowNNController
+from controllers.shared_controller import SharedController
