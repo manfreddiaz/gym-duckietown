@@ -15,9 +15,8 @@ class ReplayController(Controller):
 
         Controller.__init__(self, env)
 
-    def _initialize(self):
+    def configure(self):
         self.recording_file = open(self.recording_file_name, 'rb')
-        Controller._initialize(self)
 
     def _do_update(self, dt):
         if self.current_episode is None:

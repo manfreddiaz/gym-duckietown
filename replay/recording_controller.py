@@ -24,13 +24,13 @@ class RecordingController(Controller):
     def _do_update(self, dt):
         return self._controller._do_update(dt)
 
-    def _initialize(self):
+    def configure(self):
         capabilities = {
             'record': self.record,
             'stop': self.stop
         }
         Controller.extend_capabilities(self, self._controller, capabilities)
-        Controller._initialize(self)
+        self._controller.configure()
 
     # here we save global metadata about the environment
     def _store_metadata(self):
