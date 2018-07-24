@@ -8,7 +8,7 @@ import pyglet
 from gym_duckietown.envs import SimpleSimEnv
 from gym_duckietown.wrappers import HeadingWrapper
 
-from replay.recording_wrapper import RecordingWrapper
+from replay.recording_controller import RecordingController
 from controllers import JoystickController
 
 AVAILABLE_MAPPINGS = {
@@ -46,13 +46,14 @@ def create_environment(args, with_heading=True):
 
 if __name__ == '__main__':
     env = create_environment(parse_args())
-    env = RecordingWrapper(env, 'record.pkl')
 
     env.reset()
     env.render()
 
     joystick_controller = JoystickController(env)
     joystick_controller.load_mapping('demos/mappings/joystick.logitech.yaml')
+
+    recording_controller = RecordingController(env, joystick_controller, 'record.pkl')
 
     pyglet.app.run()
 
