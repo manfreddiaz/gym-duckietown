@@ -12,10 +12,10 @@ class SharedController(Controller):
     def _inject_share_action(self):
         self.human_controller.share = types.MethodType(self.share, self)
 
-    def initialize(self):
+    def _initialize(self):
         self._inject_share_action()
         self.nn_controller.enabled = False
-        Controller.initialize(self)
+        Controller._initialize(self)
 
     def _do_update(self, dt):
         self.human_controller.update(dt)
@@ -24,3 +24,7 @@ class SharedController(Controller):
     def share(self, caller):
         self.human_controller.enabled = not self.human_controller.enabled
         self.nn_controller.enabled = not self.nn_controller.enabled
+
+    def close(self):
+        self.human_controller.close()
+        self.nn_controller.close()
