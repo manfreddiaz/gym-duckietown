@@ -54,6 +54,8 @@ if __name__ == '__main__':
     joystick_controller.load_mapping('demos/mappings/joystick.logitech.yaml')
 
     recording_controller = RecordingController(env, joystick_controller, 'record.pkl')
+    recording_controller.configure()
+    recording_controller.open()
 
     pyglet.app.run()
 

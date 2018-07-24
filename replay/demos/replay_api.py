@@ -40,6 +40,8 @@ if __name__ == '__main__':
     env.render()
 
     replay_controller = ReplayController(env, 'record.pkl')
+    replay_controller.configure()
+    replay_controller.open()
 
     pyglet.app.run()
 
