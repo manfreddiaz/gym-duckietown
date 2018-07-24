@@ -4,24 +4,29 @@ from controllers.base_controller import Controller
 
 class SharedController(Controller):
 
-    def __init__(self, env, human_controller, nn_controller):
-        self.human_controller = human_controller
-        self.nn_controller = nn_controller
-        Controller.__init__(self, env=env)
-
-    def _initialize(self):
-        Controller.extend_capabilities(self, self.human_controller, {'share': self.share})
-        self.nn_controller.enabled = False
-        Controller._initialize(self)
-
     def _do_update(self, dt):
-        self.human_controller.update(dt)
-        self.nn_controller.update(dt)
+        if self.primary.enabled:
+            return self.primary._do_update(dt)
+        elif self.secondary.enabled:
+            return self.secondary._do_update(dt)
 
-    def share(self, caller):
-        self.human_controller.enabled = not self.human_controller.enabled
-        self.nn_controller.enabled = not self.nn_controller.enabled
+        return None  # consistence
 
-    def close(self):
-        self.human_controller.close()
-        self.nn_controller.close()
+    def __init__(self, env, primary, secondary):
+        Controller.__init__(self, env=env)
+        self.primary = primary
+        self.secondary = secondary
+
+    def configure(self):
+        Controller.extend_capabilities(self, self.primary, {'share': self.share})
+
+        self.primary.configure()
+        self.secondary.configure()
+
+        self.secondary.enabled = False
+
+    # extended capability
+    def share(self, _):
+        self.primary.enabled = not self.primary.enabled
+        self.secondary.enabled = not self.secondary.enabled
+        print('primary: {}, secondary: {}'.format(self.primary.enabled, self.secondary.enabled))
