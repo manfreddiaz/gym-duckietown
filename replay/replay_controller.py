@@ -8,16 +8,16 @@ class ReplayController(Controller):
         self.episode_counter = 0
         self.current_episode = None
         self.current_episode_step = 0
-        self.current_episode_size = None
+        self.current_episode_size = 0
 
         self.recording_file = None
         self.recording_file_name = record_file
 
         Controller.__init__(self, env)
 
-    def initialize(self):
+    def _initialize(self):
         self.recording_file = open(self.recording_file_name, 'rb')
-        Controller.initialize(self)
+        Controller._initialize(self)
 
     def _do_update(self, dt):
         if self.current_episode is None:
