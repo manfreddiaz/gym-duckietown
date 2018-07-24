@@ -13,7 +13,7 @@ class JoystickController(DeviceController):
         self.joystick = None
         DeviceController.__init__(self, env)
 
-    def initialize(self):
+    def _initialize(self):
         # enumerate all available joysticks and select the one with id = device_id
         joysticks = pyglet.input.get_joysticks()
         if not joysticks:
@@ -31,7 +31,7 @@ class JoystickController(DeviceController):
         # register this controller as a handler
         self.joystick.push_handlers(self.on_joybutton_press, self)
         # call general initialization routine
-        DeviceController.initialize(self)
+        DeviceController._initialize(self)
 
     def _do_update(self, dt):
         if round(self.joystick.x, 2) == 0.0 and round(self.joystick.y, 2) == 0.0:
