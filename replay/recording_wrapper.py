@@ -20,7 +20,6 @@ class RecordingWrapper(gym.Wrapper):
     def _initialize_(self, record_file):
         self._record_file = open(record_file, 'wb')
 
-
     # here we save global metadata about the environment
     def _store_metadata(self):
         pass
@@ -36,6 +35,9 @@ class RecordingWrapper(gym.Wrapper):
         result = self.env.step(action)
         self._record(observation, action, result)
         return result
+
+    def record(self):
+        pass
 
     # could be parallel at some point
     def _record(self, observation, action, result):
@@ -60,11 +62,9 @@ class RecordingWrapper(gym.Wrapper):
         self._episode_current_dataset.clear()
         self._recording = False
 
-    def replay(self, record_file):
-        pass
-
     def close(self):
         self._record_file.close()
+        gym.Wrapper.close(self)
 
     # add a transparent wrapper
     @property
