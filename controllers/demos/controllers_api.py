@@ -69,6 +69,8 @@ if __name__ == '__main__':
     env.render()
 
     shared_controller = create_shared_controller(environment=env, arguments=args)
+    shared_controller.configure()
+    shared_controller.open()
 
     pyglet.app.run()
 

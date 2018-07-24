@@ -12,9 +12,8 @@ class Controller:
         self.env = env
         self.mapping = None
         self.refresh_rate = refresh_rate
-        self._initialize()
 
-    # dynamically extends a controller capabilities by redirecting the call to the extender.
+    # dynamically extends a controller capabilities by redirecting calls to the extender.
     @staticmethod
     def extend_capabilities(extender, controller, actions):
         # expects a dict with name:action
@@ -31,13 +30,8 @@ class Controller:
         if capability is function:
             return capability_method(**arguments)
 
-    def _initialize(self):
-        pyglet.clock.schedule_interval(self.update, self.refresh_rate)
-        self.env.unwrapped.window.push_handlers(self)
-
-    def load_mapping(self, path):
-        with open(path) as mf:
-            self.mapping = yaml.load(mf)
+    def configure(self):
+        pass
 
     def update(self, dt):
         if self.enabled:
@@ -54,15 +48,20 @@ class Controller:
         self.env.render()
         return response
 
-    # action
+    # basic capability: reset the environment
     def reset(self):
         self.env.reset()
         self.env.render()
 
+    # basic capability: exit the environment
     def exit(self):
         self.close()
         self.env.close()
         sys.exit(0)
+
+    def open(self):
+        pyglet.clock.schedule_interval(self.update, self.refresh_rate)
+        self.env.unwrapped.window.push_handlers(self)
 
     def close(self):
         pyglet.clock.unschedule(self.update)

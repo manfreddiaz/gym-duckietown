@@ -1,3 +1,5 @@
+import yaml
+
 from controllers.base_controller import Controller
 
 
@@ -5,6 +7,10 @@ class DeviceController(Controller):
 
     def __init__(self, env):
         Controller.__init__(self, env)
+
+    def load_mapping(self, path):
+        with open(path) as mf:
+            self.mapping = yaml.load(mf)
 
     def _do_update(self, dt):
         raise NotImplementedError
