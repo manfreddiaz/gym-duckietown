@@ -1,3 +1,5 @@
+import types
+
 import pyglet
 import sys
 import yaml
@@ -12,6 +14,23 @@ class Controller:
         self.refresh_rate = refresh_rate
         self._initialize()
 
+    # dynamically extends a controller capabilities by redirecting the call to the extender.
+    @staticmethod
+    def extend_capabilities(extender, controller, actions):
+        # expects a dict with name:action
+        for action in actions:
+            setattr(controller, action, types.MethodType(actions[action], extender))
+
+    @staticmethod
+    def has_capability(controller, capability):
+        return getattr(controller, capability, None) is not None
+
+    @staticmethod
+    def invoke_capability(controller, capability, arguments):
+        capability_method = getattr(controller, capability, None)
+        if capability is function:
+            return capability_method(**arguments)
+
     def _initialize(self):
         pyglet.clock.schedule_interval(self.update, self.refresh_rate)
         self.env.unwrapped.window.push_handlers(self)
@@ -22,13 +41,12 @@ class Controller:
 
     def update(self, dt):
         if self.enabled:
-            self._do_update(dt=dt)
+            action = self._do_update(dt=dt)
+            if action is not None:
+                self.step(action=action)
 
     def _do_update(self, dt):
         raise NotImplementedError
-
-    def _has_capability(self, capability):
-        return getattr(self, capability, None) is not None
 
     # action
     def step(self, action):

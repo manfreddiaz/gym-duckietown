@@ -44,9 +44,10 @@ class JoystickController(DeviceController):
 
         action = self.on_modifier_pressed(self.joystick.buttons, action)
 
-        self.step(action=action)
+        return action
 
     def on_joybutton_press(self, joystick, button):
+        print(button)
         self.on_button_pressed(button)
 
 
