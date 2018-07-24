@@ -17,7 +17,6 @@ class ReplayController(Controller):
 
     def initialize(self):
         self.recording_file = open(self.recording_file_name, 'rb')
-        pickle.load(self.recording_file)  # TODO: Remove
         Controller.initialize(self)
 
     def _do_update(self, dt):
@@ -37,8 +36,8 @@ class ReplayController(Controller):
             sample = self.current_episode[self.current_episode_step]
             unwrapped_env = self.env.unwrapped
 
-            unwrapped_env.cur_pos = sample['internal'][0]
-            unwrapped_env.cur_angle = sample['internal'][1]
+            unwrapped_env.cur_pos = sample['hidden'][0]
+            unwrapped_env.cur_angle = sample['hidden'][1]
 
             self.current_episode_step += 1
 

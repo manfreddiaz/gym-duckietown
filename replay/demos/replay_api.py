@@ -15,8 +15,6 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--env-name', default='SimpleSim-v0')
     parser.add_argument('--map-name', default='udem1')
-    parser.add_argument('--controller', default='joystick')
-    parser.add_argument('--controller_mapping', default='logitech')
     return parser.parse_args()
 
 

@@ -19,6 +19,7 @@ AVAILABLE_MAPPINGS = {
 
 }
 
+
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--env-name', default='SimpleSim-v0')
@@ -51,7 +52,7 @@ if __name__ == '__main__':
     env.render()
 
     joystick_controller = JoystickController(env)
-    joystick_controller.load_mapping(AVAILABLE_MAPPINGS['joystick']['logitech'])
+    joystick_controller.load_mapping('demos/mappings/joystick.logitech.yaml')
 
     pyglet.app.run()
 

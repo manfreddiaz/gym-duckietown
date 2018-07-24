@@ -1,0 +1,5 @@
+controller: "Joystick Logitech"
+buttons:
+  3: reset # Y button
+
+

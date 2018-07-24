@@ -46,11 +46,26 @@ class RecordingWrapper(gym.Wrapper):
         if not self._recording:
             self._episodes_counter += 1
             self._recording = True
+            print('[RECORDING] Episode {}'.format(self._episodes_counter))
 
         unwrapped_env = self.env.unwrapped
+        # record for each timestep
         self._episode_current_dataset.append({
-            'external': np.array([observation, action, next_observation, reward, done, info]),
-            'internal': np.array([unwrapped_env.cur_pos, unwrapped_env.cur_angle])
+            'agent': np.array([
+                observation,
+                action
+            ]),
+            'env': np.array([
+                next_observation,
+                reward,
+                done,
+                info
+            ]),
+            'hidden': np.array([
+                unwrapped_env.cur_pos,
+                unwrapped_env.cur_angle,
+                unwrapped_env.step_count
+            ])
         })
 
         # auto stop at done
@@ -58,8 +73,10 @@ class RecordingWrapper(gym.Wrapper):
             self._stop()
 
     def _stop(self):
-        pickle.dump(self._episode_current_dataset, self._record_file)
-        self._episode_current_dataset.clear()
+        if len(self._episode_current_dataset) > 0:
+            pickle.dump(self._episode_current_dataset, self._record_file)
+            print('[RECORDED] Episode {}, Horizon: {}'.format(self._episodes_counter, len(self._episode_current_dataset)))
+            self._episode_current_dataset.clear()
         self._recording = False
 
     def close(self):
