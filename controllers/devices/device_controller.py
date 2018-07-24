@@ -18,13 +18,14 @@ class DeviceController(Controller):
     def on_modifier_pressed(self, modifiers, action):
         modified_action = action
 
-        for modifier in self.mapping['modifiers']:
-            # if one of the mapped modifiers is active
-            if modifiers[modifier]:
-                # execute modifier over input action
-                modifier_method = getattr(self, self.mapping['modifiers'][modifier])
-                if modifier_method is not None:
-                    modified_action = modifier_method(modified_action)
+        if 'modifiers' in self.mapping:
+            for modifier in self.mapping['modifiers']:
+                # if one of the mapped modifiers is active
+                if modifiers[modifier]:
+                    # execute modifier over input action
+                    modifier_method = getattr(self, self.mapping['modifiers'][modifier])
+                    if modifier_method is not None:
+                        modified_action = modifier_method(modified_action)
 
         return modified_action
 
