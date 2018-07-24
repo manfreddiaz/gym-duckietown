@@ -9,11 +9,8 @@ class SharedController(Controller):
         self.nn_controller = nn_controller
         Controller.__init__(self, env=env)
 
-    def _inject_share_action(self):
-        self.human_controller.share = types.MethodType(self.share, self)
-
     def _initialize(self):
-        self._inject_share_action()
+        Controller.extend_capabilities(self, self.human_controller, {'share': self.share})
         self.nn_controller.enabled = False
         Controller._initialize(self)
 

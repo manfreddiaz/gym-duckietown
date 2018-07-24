@@ -3,8 +3,8 @@ config:
   speed_boost: 1.5
 buttons:
   3: reset # Y button
-  8: exit # Back button
-  6: share # LT button
+  9: share # LT button
+  6: exit # Back button
 modifiers:
   5: boost # RT button
 
