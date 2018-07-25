@@ -7,7 +7,7 @@ class NeuralNetworkController(Controller):
         self.obs = self.env.reset()
 
     def _do_update(self, dt):
-        # action = self.predict()
+        return self.predict()
         # self.observation, _, _, _ = self.step(action=action)
         print('computer in charge now')
 

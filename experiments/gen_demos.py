@@ -18,7 +18,7 @@ import numpy as np
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--map-name', required=True)
-parser.add_argument('--demo-len', default=30, type=int, help='length of demonstrations to be generated')
+parser.add_argument('--demos-len', default=30, type=int, help='length of demonstrations to be generated')
 parser.add_argument('--tail-len', default=30, type=int, help='extra actions at the end of trajectories, cut out of demonstrations')
 parser.add_argument('--num-itrs', default=750, type=int)
 args = parser.parse_args()
@@ -154,6 +154,6 @@ while True:
 
         # Store the trajectories in a JSON file
         with open('experiments/demos_%s.json' % args.map_name, 'w') as outfile:
-            json.dump({ 'demos': demos }, outfile)
+            json.dump({ 'algorithms': demos }, outfile)
 
     print('total num steps: %d' % total_steps)

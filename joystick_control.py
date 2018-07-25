@@ -37,7 +37,7 @@ env = HeadingWrapper(env)
 env.reset()
 env.render()
 
-# global variables for demo recording
+# global variables for demos recording
 positions = []
 actions = []
 demos = []
@@ -62,7 +62,7 @@ def process_recording():
         if len(demos) == 0:
             return
 
-        # Remove the last recorded demo
+        # Remove the last recorded demos
         demos.pop()
         write_to_file(demos)
         return

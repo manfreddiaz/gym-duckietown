@@ -1,1 +1,1 @@
-# Interactive Imitation Learning Demo [WIP]
+# Interactive Imitation Learning API [WIP]

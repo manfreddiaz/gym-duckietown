@@ -79,7 +79,7 @@ def load_data(map_name):
         print('failed to load data file "%s"' % file_name)
         return
 
-    demos = data['demos']
+    demos = data['algorithms']
     positions = map(lambda d: d['positions'], demos)
     actions = map(lambda d: d['actions'], demos)
 

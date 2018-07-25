@@ -30,4 +30,4 @@ All episodes are sequentially stored in a pickle file and can simply be read wit
         print('no more episodes')
 ```
 
-Check the demos folder for sample of usage.
+Check the algorithms folder for sample of usage.
