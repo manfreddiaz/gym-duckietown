@@ -8,3 +8,6 @@ class MockStraightController(TensorflowNNController):
 
     def predict(self):
         return [0.2, 0.0]
+
+    def learn(self, dataset):
+        pass

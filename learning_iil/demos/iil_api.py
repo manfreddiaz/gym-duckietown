@@ -6,7 +6,7 @@ from gym_duckietown.envs import SimpleSimEnv
 from gym_duckietown.wrappers import HeadingWrapper
 from controllers import JoystickController
 
-from learning_iil.algorithms.dagger import DAggerLearning
+from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning
 from learning_iil.learners.mock_straight import MockStraightController
 
 
@@ -42,7 +42,7 @@ def create_dagger_controller(environment, arguments):
     # nn controller
     tf_controller = MockStraightController(environment)
 
-    shared = DAggerLearning(env, joystick_controller, tf_controller, 100, 100)
+    shared = SupervisedLearning(env, joystick_controller, tf_controller, 100, 10)
 
     return shared
 

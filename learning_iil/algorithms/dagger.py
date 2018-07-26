@@ -26,12 +26,14 @@ class DAggerLearning(SharedController):
         return control_policy._do_update(dt)
 
     def step(self, action):
+        print('HERE')
         next_observation, reward, done, info = SharedController.step(self, action)
-        self._update_mixture_policy()
 
         if done:
             self._on_episode_done()
             self.reset()
+
+        self._update_horizon_boundaries()
 
         return next_observation, reward, done, info
 
@@ -39,12 +41,12 @@ class DAggerLearning(SharedController):
         random_control_policy = np.random.choice([self.primary, self.secondary], p=[self.alpha, 1. - self.alpha])
         return random_control_policy
 
-    def _update_mixture_policy(self):
+    def _update_horizon_boundaries(self):
         self.horizon_count += 1
         if self.horizon_count == self.horizon:
             self._on_episode_done()
 
-        if self.episodes_count == self.episodes:
+        if self.episodes_count >= self.episodes:
             self._on_training_done()
 
     def _aggregate(self, observation, action):
@@ -56,9 +58,9 @@ class DAggerLearning(SharedController):
         self.alpha_episode = self.alpha_episode ** self.episodes_count
         self.secondary.learn(self.dataset)
         print('episode: {}/{}, alpha: {}'.format(self.episodes_count, self.episodes, self.alpha_episode))
-        self._on_learning_done()
+        self._on_episode_learning_done()
 
-    def _on_learning_done(self):
+    def _on_episode_learning_done(self):
         pass
 
     def _on_training_done(self):
