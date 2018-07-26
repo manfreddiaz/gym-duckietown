@@ -1,69 +1,29 @@
 import numpy as np
-from controllers import SharedController
+from ..iil_controller import InteractiveImitationLearning
+
+np.random.seed(1234)
 
 
-class DAggerLearning(SharedController):
-    def __init__(self, env, teacher, learner, horizon, episodes, alpha=0.99):
-        SharedController.__init__(self, env, teacher, learner)
+class DAggerLearning(InteractiveImitationLearning):
+    def __init__(self, env, teacher, learner, horizon, episodes, starting_position, starting_angle, alpha=0.99):
+        InteractiveImitationLearning.__init__(self, env, teacher, learner,
+                                              horizon, episodes, starting_position, starting_angle)
 
-        # from IIL
-        self.horizon = horizon
+        # from DAgger
         self.alpha = alpha
-        self.episodes = episodes
-
         # internal count
-        self.horizon_count = 0
-        self.episodes_count = 0
         self.alpha_episode = self.alpha
 
-        self.dataset = []
-
-    # execute current control policy
-    def _do_update(self, dt):
-        control_policy = self._mix_policy()
-        # TODO: Some performance/clarity may be added below
-        self._aggregate(self.env.unwrapped.render_obs(), self.primary._do_update(dt))
-        return control_policy._do_update(dt)
-
-    def step(self, action):
-        print('HERE')
-        next_observation, reward, done, info = SharedController.step(self, action)
-
-        if done:
-            self._on_episode_done()
-            self.reset()
-
-        self._update_horizon_boundaries()
-
-        return next_observation, reward, done, info
-
-    def _mix_policy(self):
-        random_control_policy = np.random.choice([self.primary, self.secondary], p=[self.alpha, 1. - self.alpha])
-        return random_control_policy
-
-    def _update_horizon_boundaries(self):
-        self.horizon_count += 1
-        if self.horizon_count == self.horizon:
-            self._on_episode_done()
-
-        if self.episodes_count >= self.episodes:
-            self._on_training_done()
-
-    def _aggregate(self, observation, action):
-        self.dataset.append([observation, action])
+    def _select_policy(self):
+        if self.episodes_count == 0:  # check DAgger definition (initial policy equals expert)
+            return self.primary
+        expert_control_decay = np.random.choice(
+            a=[self.primary, self.secondary],
+            p=[self.alpha_episode, 1. - self.alpha_episode]
+        )
+        return expert_control_decay
 
     def _on_episode_done(self):
-        self.horizon_count = 0
-        self.episodes_count += 1
+        # decay expert probability of control after each episode
         self.alpha_episode = self.alpha_episode ** self.episodes_count
-        self.secondary.learn(self.dataset)
-        print('episode: {}/{}, alpha: {}'.format(self.episodes_count, self.episodes, self.alpha_episode))
-        self._on_episode_learning_done()
-
-    def _on_episode_learning_done(self):
-        pass
-
-    def _on_training_done(self):
-        self.enabled = False
-        print('[DONE] episode: {}/{}, alpha: {}'.format(self.episodes_count, self.episodes, self.alpha_episode))
-        self.exit()
+        InteractiveImitationLearning._on_episode_done(self)

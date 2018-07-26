@@ -7,7 +7,8 @@ from gym_duckietown.wrappers import HeadingWrapper
 from controllers import JoystickController
 
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning
-from learning_iil.learners.mock_go_straight import MockStraightController
+from learning_iil.learners import NeuralNetworkController
+from learning_iil.learners.models.tf.baselines.resnet_one_regression import ResnetOneRegression
 
 
 def parse_args():
@@ -40,11 +41,18 @@ def create_dagger_controller(environment, arguments):
     joystick_controller.load_mapping(arguments.controller_mapping)
 
     # nn controller
-    tf_controller = MockStraightController(environment)
+    tf_model = ResnetOneRegression()
+    tf_controller = NeuralNetworkController(environment, learner=tf_model, storage_location='demos/aggrevate/')
 
-    shared = DAggerLearning(env, joystick_controller, tf_controller, 100, 10)
+    iil_algorithm = AggreVaTeLearning(env=env,
+                                      teacher=joystick_controller,
+                                      learner=tf_controller,
+                                      horizon=500,
+                                      episodes=10,
+                                      starting_position=(1.5, 0.0, 3.5),
+                                      starting_angle=0.0)
 
-    return shared
+    return iil_algorithm
 
 
 if __name__ == '__main__':
@@ -57,6 +65,7 @@ if __name__ == '__main__':
     dagger_controller = create_dagger_controller(environment=env, arguments=args)
     dagger_controller.configure()
     dagger_controller.open()
+    dagger_controller.reset()
 
     pyglet.app.run()
 
