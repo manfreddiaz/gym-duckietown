@@ -6,7 +6,7 @@ from gym_duckietown.wrappers import HeadingWrapper
 from controllers import JoystickController, SharedController
 
 from learning_iil.learners import NeuralNetworkController
-from learning_iil.learners.models.tf.baselines.resnet_one_regression import ResnetOneRegression
+from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
 
 
 def parse_args():
@@ -21,6 +21,7 @@ def parse_args():
 def create_environment(args, with_heading=True):
     if args.env_name == 'SimpleSim-v0':
         environment = SimpleSimEnv(
+            map_name=args.map_name,
             max_steps=5000,
             domain_rand=False,
             draw_curve=False
@@ -39,8 +40,10 @@ def create_dagger_controller(environment, arguments):
     joystick_controller.load_mapping(arguments.controller_mapping)
 
     # nn controller
-    tf_model = ResnetOneRegression()
-    tf_controller = NeuralNetworkController(environment, learner=tf_model, storage_location='demos/aggrevate/')
+    tf_model = ResnetOneMixture()
+    tf_controller = NeuralNetworkController(env=environment,
+                                            learner=tf_model,
+                                            storage_location='demos/aggrevate/cnn_mdn_adam_1/')
 
     iil_algorithm = SharedController(env, joystick_controller, tf_controller)
 

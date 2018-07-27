@@ -8,7 +8,7 @@ from controllers import JoystickController
 
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning
 from learning_iil.learners import NeuralNetworkController
-from learning_iil.learners.models.tf.baselines.resnet_one_regression import ResnetOneRegression
+from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
 
 
 def parse_args():
@@ -25,7 +25,7 @@ def create_environment(args, with_heading=True):
         environment = SimpleSimEnv(
             max_steps=math.inf,
             domain_rand=False,
-            draw_curve=True
+            draw_curve=False
         )
     else:
         environment = gym.make(args.env_name)
@@ -41,13 +41,15 @@ def create_dagger_controller(environment, arguments):
     joystick_controller.load_mapping(arguments.controller_mapping)
 
     # nn controller
-    tf_model = ResnetOneRegression()
-    tf_controller = NeuralNetworkController(environment, learner=tf_model, storage_location='demos/aggrevate/')
+    tf_model = ResnetOneMixture()
+    tf_controller = NeuralNetworkController(env=environment,
+                                            learner=tf_model,
+                                            storage_location='demos/aggrevate/cnn_mdn_adam_1/')
 
     iil_algorithm = AggreVaTeLearning(env=env,
                                       teacher=joystick_controller,
                                       learner=tf_controller,
-                                      horizon=500,
+                                      horizon=512,
                                       episodes=10,
                                       starting_position=(1.5, 0.0, 3.5),
                                       starting_angle=0.0)

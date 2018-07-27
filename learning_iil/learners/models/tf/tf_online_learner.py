@@ -23,10 +23,10 @@ class TensorflowOnlineLearner:
         self.last_loss = None
 
     def predict(self, state, horizon=1):
-        action = self.tf_session.run([self.policy_model], feed_dict={
+        action = self.tf_session.run(self.policy_model, feed_dict={
             self.state_tensor: state,
         })
-        action = np.squeeze(action)
+        # action = np.squeeze(action)
         return action
 
     def explore(self, state, horizon=1):

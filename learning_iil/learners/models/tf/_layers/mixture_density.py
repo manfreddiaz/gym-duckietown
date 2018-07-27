@@ -15,11 +15,18 @@ def loss_1(y, mean, variance, mixtures):
     return tf.reduce_mean(log_sum_exp)
 
 
-def loss(y, mixtures, means, variances):
-    diff = y - means
-    log_likelihood = tf.log(mixtures) - 0.5 * tf.log(2.0 * np.pi * tf.square(variances)) - 0.5 * tf.square(diff * tf.reciprocal(variances))
-    log_sum_exp = -tf.reduce_logsumexp(log_likelihood, axis=1)
-    final_loss = tf.reduce_mean(log_sum_exp)
+def loss(y, mixtures, means, variances, dims):
+    diff = tf.expand_dims(y, axis=2) - means
+    # log              log \pi        - d/2 log(2 \times \pi)
+    term1 = tf.log(mixtures)
+    term2 = - dims / 2 * tf.log(2.0 * np.pi)
+    term3 = -0.5 * tf.log(variances)
+    inverse_v = tf.reciprocal(variances)
+    term4 = -0.5 * diff * inverse_v * diff
+
+    log_likelihood = term1 + term2 + term3 + term4
+    log_sum_exp = -tf.reduce_logsumexp(log_likelihood, axis=2)
+    final_loss = tf.reduce_mean(log_sum_exp, axis=(0, 1))
     tf.summary.scalar('loss', final_loss)
     return final_loss
 
@@ -30,36 +37,51 @@ class MixtureDensityNetwork:
                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01)):
-        output_dim = output_layer.get_shape().as_list()[0]
+        output_dim = output_layer.get_shape().as_list()[1]
 
-        layer = tf.layers.dense(input_layer,
-                                units=3 * number_mixtures * output_dim,
+        means = tf.layers.dense(input_layer,
+                                units=number_mixtures * output_dim,
                                 kernel_initializer=kernel_initializer,
                                 bias_initializer=bias_initializer,
                                 kernel_regularizer=kernel_regularizer)
-        mixtures_activations, means, variance_activations = tf.split(layer, 3, axis=1)
+        means = tf.reshape(means, shape=(-1, output_dim, number_mixtures))
 
+        mixtures_activations = tf.layers.dense(input_layer,
+                                               units=number_mixtures,
+                                               kernel_initializer=kernel_initializer,
+                                               bias_initializer=bias_initializer,
+                                               kernel_regularizer=kernel_regularizer)
         mixtures = tf.nn.softmax(mixtures_activations, name='mixtures_component')
+        mixtures = tf.reshape(mixtures, shape=(-1, 1, number_mixtures))
+
+        variance_activations = tf.layers.dense(input_layer,
+                                               units=number_mixtures * output_dim,
+                                               kernel_initializer=kernel_initializer,
+                                               bias_initializer=bias_initializer,
+                                               kernel_regularizer=kernel_regularizer)
+
         variances = tf.exp(variance_activations, name='variances_component')
+        variances = tf.reshape(variances, shape=(-1, output_dim, number_mixtures))
 
-        i_mixtures = tf.split(mixtures, number_mixtures, axis=1)
-        i_means = tf.split(means, number_mixtures, axis=1)
-        i_variances = tf.split(variances, number_mixtures, axis=1)
+        # TODO: FIX instrumentation code
+        # i_mixtures = tf.split(mixtures, number_mixtures, axis=1)
+        # i_means = tf.split(means, number_mixtures, axis=0)
+        # i_variances = tf.split(variances, number_mixtures, axis=1)
+        #
+        # for i in range(number_mixtures):
+        #     with tf.name_scope('mixture_{}'.format(i)):
+        #         tf.summary.scalar('mixture', tf.reshape(i_mixtures[i], shape=[]))
+        #         tf.summary.scalar('mean', tf.reshape(i_means[i], shape=[]))
+        #         tf.summary.scalar('variance', tf.reshape(i_variances[i], shape=[]))
+        #
+        # conditional_average = tf.reduce_sum(tf.multiply(means, mixtures))
+        # with tf.name_scope('statistisc'):
+        #     epistemic_total = tf.reduce_sum(tf.multiply(mixtures, variances))
+        #     tf.summary.scalar('epistemic', epistemic_total)
+        #     aleatoric_total = tf.reduce_sum(tf.multiply(mixtures, tf.square(np.subtract(means, conditional_average))))
+        #     tf.summary.scalar('aleatoric', aleatoric_total)
 
-        for i in range(number_mixtures):
-            with tf.name_scope('mixture_{}'.format(i)):
-                tf.summary.scalar('mixture', tf.reshape(i_mixtures[i], shape=[]))
-                tf.summary.scalar('mean', tf.reshape(i_means[i], shape=[]))
-                tf.summary.scalar('variance', tf.reshape(i_variances[i], shape=[]))
-
-        conditional_average = tf.reduce_sum(tf.multiply(means, mixtures))
-        with tf.name_scope('statistisc'):
-            epistemic_total = tf.reduce_sum(tf.multiply(mixtures, variances))
-            tf.summary.scalar('epistemic', epistemic_total)
-            aleatoric_total = tf.reduce_sum(tf.multiply(mixtures, tf.square(np.subtract(means, conditional_average))))
-            tf.summary.scalar('aleatoric', aleatoric_total)
-
-        return loss(output_layer, mixtures, means, variances), [mixtures, means, variances], layer
+        return loss(output_layer, mixtures, means, variances, output_dim), [mixtures, means, variances], None
 
     @staticmethod
     def conditional_average(mixtures, means, std_dev):
@@ -70,29 +92,29 @@ class MixtureDensityNetwork:
 
     @staticmethod
     def max_maximum_mixture(mixtures, means, variances):
-        conditional_average = np.sum(np.multiply(means, mixtures))
+        conditional_average = np.dot(means, mixtures)
         max_mixture = np.argmax(mixtures)
-        mean = means[max_mixture]
-        aleatoric = variances[max_mixture]
+        mean = means[:, max_mixture]
+        aleatoric = variances[:, max_mixture]
         epistemic = (mean - conditional_average) ** 2
         return mean, aleatoric, epistemic, mixtures[max_mixture], max_mixture
 
     @staticmethod
     def max_central_value(mixtures, means, std_dev):
-        conditional_average = np.sum(np.multiply(means, mixtures))
-        central_value = np.divide(mixtures, std_dev)
+        conditional_average = np.dot(means, mixtures)
+        central_value = np.divide(mixtures, np.linalg.norm(std_dev, axis=0))
 
-        epistemic_total = np.sum(np.multiply(mixtures, std_dev))
-        aleatoric_total = np.sum(np.multiply(mixtures, np.square(np.subtract(means, conditional_average))))
+        epistemic_total = np.dot(std_dev, mixtures)
+        aleatoric_total = np.dot(np.square(np.subtract(means, np.expand_dims(conditional_average, axis=2))), mixtures)
 
         max_mixture = np.argmax(central_value)
 
-        mean = means[max_mixture]
+        mean = means[:, max_mixture]
 
         print(epistemic_total, aleatoric_total, epistemic_total + aleatoric_total)
 
         # TODO: Find a function to make this bigger
-        aleatoric = std_dev[max_mixture] # ** 2
+        aleatoric = std_dev[:, max_mixture] # ** 2
         epistemic = (mean - conditional_average) ** 2
 
         return mean, aleatoric_total + epistemic_total, epistemic, mixtures[max_mixture], max_mixture

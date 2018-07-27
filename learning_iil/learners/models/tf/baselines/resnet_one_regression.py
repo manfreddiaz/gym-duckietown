@@ -33,5 +33,5 @@ class ResnetOneRegression(TensorflowOnlineLearner):
         return [model], loss
 
     def get_optimizer(self, loss):
-        return tf.train.AdagradOptimizer(1e-3).minimize(loss, global_step=self.global_step)
+        return tf.train.AdamOptimizer(1e-3).minimize(loss, global_step=self.global_step)
 
