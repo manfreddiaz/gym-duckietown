@@ -72,7 +72,6 @@ class InteractiveImitationLearning(SharedController):
             self.horizon_count = 0
             self.episodes_count += 1
             self._on_episode_done()
-            self._learn()
 
         if self.episodes_count >= self.episodes:
             self._on_training_done()
@@ -82,6 +81,7 @@ class InteractiveImitationLearning(SharedController):
         self.expert_actions.append(action)
 
     def _on_episode_done(self):
+        self._learn()
         print('[FINISHED] Episode: {}/{}'.format(self.episodes_count, self.episodes))
 
     def _learn(self):

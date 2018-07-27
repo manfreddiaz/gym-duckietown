@@ -3,7 +3,7 @@ import pyglet
 import gym
 from gym_duckietown.envs import SimpleSimEnv
 from gym_duckietown.wrappers import HeadingWrapper
-from controllers import JoystickController, SharedController
+from controllers import JoystickController, ParallelController
 
 from learning_iil.learners import NeuralNetworkController
 from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
@@ -43,9 +43,9 @@ def create_dagger_controller(environment, arguments):
     tf_model = ResnetOneMixture()
     tf_controller = NeuralNetworkController(env=environment,
                                             learner=tf_model,
-                                            storage_location='demos/aggrevate/cnn_mdn_adam_1/')
+                                            storage_location='demos/supervised/cnn_mdn_adam_1/')
 
-    iil_algorithm = SharedController(env, joystick_controller, tf_controller)
+    iil_algorithm = ParallelController(env, joystick_controller, tf_controller)
 
     return iil_algorithm
 

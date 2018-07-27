@@ -7,9 +7,9 @@ class NeuralNetworkController(Controller):
         self.obs = self.env.reset()
 
     def _do_update(self, dt):
-        return self.predict()
-        # self.observation, _, _, _ = self.step(action=action)
         print('computer in charge now')
+        return self.predict()
+
 
     def predict(self):
         raise NotImplementedError()

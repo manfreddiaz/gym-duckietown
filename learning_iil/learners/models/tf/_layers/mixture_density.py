@@ -100,24 +100,26 @@ class MixtureDensityNetwork:
         return mean, aleatoric, epistemic, mixtures[max_mixture], max_mixture
 
     @staticmethod
-    def max_central_value(mixtures, means, std_dev):
+    def max_central_value(mixtures, means, variances):
         conditional_average = np.dot(means, mixtures)
-        central_value = np.divide(mixtures, np.linalg.norm(std_dev, axis=0))
+        central_value = np.divide(mixtures, np.prod(variances, axis=0))
 
-        epistemic_total = np.dot(std_dev, mixtures)
-        aleatoric_total = np.dot(np.square(np.subtract(means, np.expand_dims(conditional_average, axis=2))), mixtures)
+        # epistemic_total = np.dot(variances, mixtures)
+        # aleatoric_total = np.dot(np.square(np.subtract(means, np.expand_dims(conditional_average, axis=2))), mixtures)
 
         max_mixture = np.argmax(central_value)
 
         mean = means[:, max_mixture]
 
-        print(epistemic_total, aleatoric_total, epistemic_total + aleatoric_total)
+        # print(epistemic_total, aleatoric_total, epistemic_total + aleatoric_total)
 
         # TODO: Find a function to make this bigger
-        aleatoric = std_dev[:, max_mixture] # ** 2
+        aleatoric = variances[:, max_mixture] # ** 2
         epistemic = (mean - conditional_average) ** 2
 
-        return mean, aleatoric_total + epistemic_total, epistemic, mixtures[max_mixture], max_mixture
+        print(aleatoric, epistemic)
+
+        return mean, aleatoric + epistemic, epistemic, mixtures[max_mixture], max_mixture
 
     @staticmethod
     def top_k_mixtures(k, mixtures, means, variances):

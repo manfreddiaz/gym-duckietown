@@ -44,9 +44,9 @@ def create_dagger_controller(environment, arguments):
     tf_model = ResnetOneMixture()
     tf_controller = NeuralNetworkController(env=environment,
                                             learner=tf_model,
-                                            storage_location='demos/aggrevate/cnn_mdn_adam_1/')
+                                            storage_location='demos/supervised/cnn_mdn_adam_1/')
 
-    iil_algorithm = AggreVaTeLearning(env=env,
+    iil_algorithm = SupervisedLearning(env=env,
                                       teacher=joystick_controller,
                                       learner=tf_controller,
                                       horizon=512,

@@ -26,8 +26,8 @@ class AggreVaTeLearning(DAggerLearning):
         return control_action
 
     def _on_episode_done(self):
-        DAggerLearning._on_episode_done(self)
         self._select_breakpoint()
+        DAggerLearning._on_episode_done(self)
 
     def _on_episode_learning_done(self):
         self.observations.clear()
