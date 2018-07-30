@@ -45,6 +45,31 @@ class UPMSLearning(AggreVaTeLearning):
     def _select_breakpoint(self):
         self.break_point = math.floor(self.horizon * UPMSLearning.exploration_coefficient(self.learner_uncertainty))
 
+    def _exploit(self, observation):
+        control_action = None
+
+        teacher_action, self.teacher_uncertainty = self.primary._do_update(observation)
+        learner_action, self.learner_uncertainty = self.secondary._do_update(observation)
+        control_policy = self._select_policy()
+
+        if control_policy == self.primary:
+            control_action = teacher_action
+        elif control_policy == self.secondary:
+            control_action = learner_action
+
+        return control_action, teacher_action
+
+    def _explore(self, observation):
+        control_action = None
+
+        teacher_action, self.teacher_uncertainty = self.primary._do_update(observation)
+        learner_action, self.learner_uncertainty = self.explorer._do_update(observation)
+        control_policy = self._select_exploration()
+        if control_policy is not None:
+            control_action, _ = control_policy._do_update(observation)
+
+        return control_action, teacher_action
+
     def _do_update(self, dt):
         observation = self.env.unwrapped.render_obs()
 
@@ -53,19 +78,9 @@ class UPMSLearning(AggreVaTeLearning):
 
         self._select_breakpoint()  # t = f(U_learner)
         if self.horizon_count <= self.break_point:
-            teacher_action, self.teacher_uncertainty = self.primary._do_update(observation)
-            learner_action, self.learner_uncertainty = self.secondary._do_update(observation)
-            control_policy = self._select_policy()
-            if control_policy == self.primary:
-                control_action = teacher_action
-            elif control_policy == self.secondary:
-                control_action = learner_action
+            control_action, teacher_action = self._exploit(observation)
         elif self.horizon_count > self.break_point:
-            teacher_action, self.teacher_uncertainty = self.primary._do_update(observation)
-            learner_action, self.learner_uncertainty = self.explorer._do_update(observation)
-            control_policy = self._select_exploration()
-            if control_policy is not None:
-                control_action, _ = control_policy._do_update(observation)
+            control_action, teacher_action = self._explore(observation)
 
         if teacher_action is not None:
             self._aggregate(observation, teacher_action)
