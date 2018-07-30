@@ -25,12 +25,13 @@ class UPMSLearning(AggreVaTeLearning):
         learner_preference = UPMSLearning.control_coefficient(self.learner_uncertainty)
         normalization_factor = teacher_preference + learner_preference
 
-        try:
-            mixing_proportions = [teacher_preference / normalization_factor, learner_preference / normalization_factor]
+        # rationality
+        mixing_proportions = [teacher_preference / normalization_factor, learner_preference / normalization_factor]
+        if math.isnan(mixing_proportions[0]) and math.isnan(mixing_proportions[1]): # impossibility
+            self._emergency_action()
+        else:
             selected_policy = np.random.choice(a=[self.primary, self.secondary], p=mixing_proportions)
             return selected_policy
-        except ZeroDivisionError:  # impossibility
-            self._emergency_action()
 
         return None
 
@@ -88,8 +89,8 @@ class UPMSLearning(AggreVaTeLearning):
         return control_action
 
     def _emergency_action(self):
-        self.primary.enabled = False
-        self.secondary.enabled = False
+        self.secondary.enabled = False  # disable the learner, allows the teacher to control back
+        print('emergency action applied')
 
     def reset(self):
         self.primary.enabled = True
