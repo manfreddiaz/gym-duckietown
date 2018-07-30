@@ -6,7 +6,8 @@ class AggreVaTeLearning(DAggerLearning):
 
     def __init__(self, env, teacher, learner, horizon, episodes, starting_position, starting_angle, alpha=0.99):
         DAggerLearning.__init__(self, env, teacher, learner, horizon, episodes, starting_position, starting_angle, alpha)
-        self._select_breakpoint()
+        # self._select_breakpoint()
+        self.break_point = None
 
     def _select_breakpoint(self):
         self.break_point = np.random.randint(1, self.horizon)  # t in AggreVaTeSampling()
@@ -15,6 +16,8 @@ class AggreVaTeLearning(DAggerLearning):
     def _do_update(self, dt):
         observation = self.env.unwrapped.render_obs()
 
+        if self.break_point is None:
+            self._select_breakpoint()
         if self.horizon_count < self.break_point:
             control_policy = self._select_policy()
         elif self.horizon_count >= self.break_point:  # FIXME: exploration step

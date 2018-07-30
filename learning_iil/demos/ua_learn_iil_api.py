@@ -1,11 +1,13 @@
 import argparse
+import math
 import pyglet
 import gym
 from gym_duckietown.envs import SimpleSimEnv
 from gym_duckietown.wrappers import HeadingWrapper
-from controllers import JoystickController, ParallelController, SharedController
+from controllers import JoystickController
 
-from learning_iil.learners import NeuralNetworkController
+from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning
+from learning_iil.learners import UncertaintyAwareRandomController, UncertaintyAwareHumanController
 from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
 
 
@@ -21,8 +23,7 @@ def parse_args():
 def create_environment(args, with_heading=True):
     if args.env_name == 'SimpleSim-v0':
         environment = SimpleSimEnv(
-            map_name=args.map_name,
-            max_steps=5000,
+            max_steps=math.inf,
             domain_rand=False,
             draw_curve=False
         )
@@ -34,18 +35,22 @@ def create_environment(args, with_heading=True):
     return environment
 
 
-def create_dagger_controller(environment, arguments):
+def create_learning_algorithm(environment, arguments):
     # human controller
-    joystick_controller = JoystickController(environment)
+    joystick_controller = UncertaintyAwareHumanController(environment)
     joystick_controller.load_mapping(arguments.controller_mapping)
 
-    # nn controller
-    tf_model = ResnetOneMixture()
-    tf_controller = NeuralNetworkController(env=environment,
-                                            learner=tf_model,
-                                            storage_location='demos/aggrevate/cnn_mdn_adam_1/')
+    # learner
+    random_controller = UncertaintyAwareRandomController(environment)
 
-    iil_algorithm = SharedController(env, joystick_controller, tf_controller)
+    iil_algorithm = UPMSLearning(env=environment,
+                                       teacher=joystick_controller,
+                                       learner=random_controller,
+                                        explorer=random_controller,
+                                       horizon=512,
+                                       episodes=10,
+                                       starting_position=(1.5, 0.0, 3.5),
+                                       starting_angle=0.0)
 
     return iil_algorithm
 
@@ -57,10 +62,10 @@ if __name__ == '__main__':
     env.reset()
     env.render()
 
-    dagger_controller = create_dagger_controller(environment=env, arguments=args)
+    dagger_controller = create_learning_algorithm(environment=env, arguments=args)
     dagger_controller.configure()
     dagger_controller.open()
-    print('Press [START] to switch controllers...')
+    dagger_controller.reset()
 
     pyglet.app.run()
 
