@@ -2,12 +2,12 @@ import numpy as np
 import tensorflow as tf
 from learning_iil.learners.models.tf.tf_online_learner import TensorflowOnlineLearner
 
-from .._layers import resnet_1, resnet_1_dropout
+from .._layers import resnet_1_dropout
 
 tf.set_random_seed(1234)
 
 
-class ResnetOneRegression(TensorflowOnlineLearner):
+class MonteCarloDropoutResnetOneRegression(TensorflowOnlineLearner):
     def explore(self, state, horizon=1):
         pass
 
@@ -17,11 +17,11 @@ class ResnetOneRegression(TensorflowOnlineLearner):
 
     def predict(self, state, horizon=1):
         regression = TensorflowOnlineLearner.predict(self, np.repeat(state, 16, axis=0))
-        return np.mean(regression), np.var(regression)
+        return np.squeeze(np.mean(regression, axis=1)), np.sum(np.var(regression, axis=1))
 
     def architecture(self):
         model = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), self.state_tensor)
-        model = resnet_1(model)
+        model = resnet_1_dropout(model)
         model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),

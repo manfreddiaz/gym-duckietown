@@ -30,8 +30,8 @@ class JoystickController(DeviceController):
         except DeviceOpenException:
             raise ConnectionError('Joystick with id = {} is already in use.'.format(self.device_id))
         # register this controller as a handler
-        self.joystick.push_handlers(self.on_joybutton_press, self)
-        self.joystick.push_handlers(self.on_joyaxis_motion, self)
+        self.joystick.push_handlers(self)
+        # self.joystick.push_handlers(self.on_joyaxis_motion, self)
         # call general initialization routine
         DeviceController.configure(self)
 
@@ -40,9 +40,6 @@ class JoystickController(DeviceController):
             self.x = value
         if axis == 'y' and self.y != value:
             self.y = value
-
-    def open(self):
-        pass
 
     def _do_update(self, dt):
         clean_x = round(self.y, 2)

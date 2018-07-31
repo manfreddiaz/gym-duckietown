@@ -12,6 +12,8 @@ from learning_iil.iil_recording_controller import ImitationLearningRecorder
 from learning_iil.learners import UncertaintyAwareRandomController, UncertaintyAwareNNController
 from learning_iil.teachers import UncertaintyAwareHumanController
 from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
+from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetOneRegression, \
+    MonteCarloDropoutResnetOneMixture, FortifiedResnetOneRegression, FortifiedResnetOneMixture
 
 
 def parse_args():
@@ -43,10 +45,10 @@ def create_learning_algorithm(environment, arguments):
     joystick_controller = UncertaintyAwareHumanController(environment)
     joystick_controller.load_mapping(arguments.controller_mapping)
 
-    tf_learner = ResnetOneMixture()
+    tf_learner = FortifiedResnetOneMixture()
     tf_controller = UncertaintyAwareNNController(env=environment,
                                                  learner=tf_learner,
-                                                 storage_location='trained_models/upms/cnn_reg_adagrad_1/')
+                                                 storage_location='trained_models/upms/fort_1e-2_mdn_reg_adagrad_1/')
 
     # explorer
     random_controller = UncertaintyAwareRandomController(environment)
@@ -60,7 +62,7 @@ def create_learning_algorithm(environment, arguments):
                                  starting_position=(1.5, 0.0, 3.5),
                                  starting_angle=0.0)
 
-    recorder = ImitationLearningRecorder(env, iil_algorithm, 'trained_models/upms/cnn_reg_adagrad_1/data.pkl')
+    recorder = ImitationLearningRecorder(env, iil_algorithm, 'trained_models/upms/fort_1e-2_mdn_reg_adagrad_1//data.pkl')
 
     return recorder
 

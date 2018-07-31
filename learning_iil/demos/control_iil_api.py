@@ -7,6 +7,8 @@ from controllers import JoystickController, ParallelController, SharedController
 
 from learning_iil.learners import NeuralNetworkController
 from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
+from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetOneMixture, \
+    MonteCarloDropoutResnetOneRegression, FortifiedResnetOneRegression, FortifiedResnetOneMixture
 
 
 def parse_args():
@@ -40,10 +42,11 @@ def create_dagger_controller(environment, arguments):
     joystick_controller.load_mapping(arguments.controller_mapping)
 
     # nn controller
-    tf_model = ResnetOneMixture()
+
+    tf_model = FortifiedResnetOneMixture()
     tf_controller = NeuralNetworkController(env=environment,
                                             learner=tf_model,
-                                            storage_location='trained_models/upms/cnn_reg_adagrad_1/',
+                                            storage_location='trained_models/upms/fort_1e-2_mdn_reg_adagrad_1/',
                                             training=False)
 
     iil_algorithm = SharedController(env, joystick_controller, tf_controller)

@@ -9,6 +9,7 @@ from controllers import JoystickController
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning
 from learning_iil.learners import UncertaintyAwareRandomController
 from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
+from learning_iil.teachers import UncertaintyAwareHumanController
 
 
 def parse_args():

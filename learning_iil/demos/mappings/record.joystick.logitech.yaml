@@ -4,3 +4,4 @@ buttons:
   8: stop # Back button
   9: record # Start button
   6: exit # LT button
+  1: clean

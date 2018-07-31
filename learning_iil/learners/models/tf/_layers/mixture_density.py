@@ -60,7 +60,7 @@ class MixtureDensityNetwork:
                                                bias_initializer=bias_initializer,
                                                kernel_regularizer=kernel_regularizer)
 
-        variances = tf.exp(variance_activations, name='variances_component')
+        variances = tf.nn.softplus(variance_activations, name='variances_component')
         variances = tf.reshape(variances, shape=(-1, output_dim, number_mixtures))
 
         # TODO: FIX instrumentation code
