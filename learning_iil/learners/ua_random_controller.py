@@ -5,7 +5,7 @@ from controllers import Controller
 
 class UncertaintyAwareRandomController(Controller):
 
-    def __init__(self, env, fake_uncertainty=math.inf):
+    def __init__(self, env, fake_uncertainty=1):
         Controller.__init__(self, env)
         self.uncertainty = fake_uncertainty
 

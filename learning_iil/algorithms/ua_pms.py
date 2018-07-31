@@ -64,10 +64,13 @@ class UPMSLearning(AggreVaTeLearning):
         control_action = None
 
         teacher_action, self.teacher_uncertainty = self.primary._do_update(observation)
-        learner_action, self.learner_uncertainty = self.explorer._do_update(observation)
+        explorer_action, self.learner_uncertainty = self.secondary._do_update(observation)  # FIXME: don't use explorer for now
         control_policy = self._select_exploration()
-        if control_policy is not None:
-            control_action, _ = control_policy._do_update(observation)
+
+        if control_policy == self.primary:
+            control_action = teacher_action
+        elif control_policy == self.explorer:
+            control_action = explorer_action
 
         return control_action, teacher_action
 
@@ -77,7 +80,9 @@ class UPMSLearning(AggreVaTeLearning):
         control_action = None
         teacher_action = None
 
-        self._select_breakpoint()  # t = f(U_learner)
+        # t = f(U_learner)
+        self._select_breakpoint()  # FIXME: working with old uncertainty that does not gets updated when exploring
+
         if self.horizon_count <= self.break_point:
             control_action, teacher_action = self._exploit(observation)
         elif self.horizon_count > self.break_point:

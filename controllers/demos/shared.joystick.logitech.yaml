@@ -5,6 +5,7 @@ buttons:
   3: reset # Y button
   9: share # Start button
   6: exit # Back button
+  1: clean
 modifiers:
   5: boost # RT button
 

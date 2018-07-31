@@ -1,0 +1,6 @@
+controller: "Joystick Logitech"
+buttons:
+  3: reset # Y button
+  8: stop # Back button
+  9: record # Start button
+  6: exit # LT button

@@ -18,7 +18,7 @@ def parse_args():
     parser.add_argument('--env-name', default='SimpleSim-v0')
     parser.add_argument('--map-name', default='udem1')
     parser.add_argument('--controller', default='joystick')
-    parser.add_argument('--controller_mapping', default='demos/shared.joystick.logitech.yaml')
+    parser.add_argument('--controller_mapping', default='shared.joystick.logitech.yaml')
     return parser.parse_args()
 
 

@@ -1,4 +1,5 @@
 import pickle
+from concurrent.futures import ThreadPoolExecutor
 import numpy as np
 
 from controllers import Controller
@@ -11,6 +12,7 @@ class RecordingController(Controller):
         self._recording = False
         self._controller = controller
         self._record_file = open(record_file, 'wb')
+        self._multithreaded_recording = ThreadPoolExecutor(4)
 
         self._episodes_counter = 0
         self._episodes_current = []
@@ -45,7 +47,7 @@ class RecordingController(Controller):
     def step(self, action):
         observation = self.env.unwrapped.render_obs()
         result = self._controller.step(action)
-        self._record(observation, action, result)
+        self._multithreaded_recording.submit(self._record, observation, action, result)
         return result
 
     # extended capability
@@ -85,7 +87,6 @@ class RecordingController(Controller):
                     unwrapped_env.step_count
                 ])
             })
-
             # auto stop at done
             if done and self.stop_on_done:
                 self._stop()
@@ -100,3 +101,4 @@ class RecordingController(Controller):
     def close(self):
         self._record_file.close()
         self._controller.close(self)
+        self._multithreaded_recording.shutdown()

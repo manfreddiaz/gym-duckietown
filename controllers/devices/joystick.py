@@ -5,13 +5,14 @@ from pyglet.input import DeviceOpenException
 from controllers.devices.device_controller import DeviceController
 
 
-# Adapted from Bhairav Mehta initial implementation.
 class JoystickController(DeviceController):
 
     def __init__(self, env, device_id=0):
+        DeviceController.__init__(self, env)
         self.device_id = device_id
         self.joystick = None
-        DeviceController.__init__(self, env)
+        self.x = 0.0
+        self.y = 0.0
 
     def configure(self):
         # enumerate all available joysticks and select the one with id = device_id
@@ -30,24 +31,42 @@ class JoystickController(DeviceController):
             raise ConnectionError('Joystick with id = {} is already in use.'.format(self.device_id))
         # register this controller as a handler
         self.joystick.push_handlers(self.on_joybutton_press, self)
+        self.joystick.push_handlers(self.on_joyaxis_motion, self)
         # call general initialization routine
         DeviceController.configure(self)
 
-    def _do_update(self, dt):
-        if round(self.joystick.x, 2) == 0.0 and round(self.joystick.y, 2) == 0.0:
-            return
+    def on_joyaxis_motion(self, joystick, axis, value):
+        if axis == 'x' and self.x != value:
+            self.x = value
+        if axis == 'y' and self.y != value:
+            self.y = value
 
-        x = round(self.joystick.y, 2)
-        z = round(self.joystick.x, 2)
+    def open(self):
+        pass
+
+    def _do_update(self, dt):
+        clean_x = round(self.y, 2)
+        clean_z = round(self.x, 2)
+
+        if clean_x == 0.0 and clean_z == 0.0:
+            return None
+
+        x = round(clean_x, 2)
+        z = round(clean_z, 2)
 
         action = np.array([-x, -z])
 
         action = self.on_modifier_pressed(self.joystick.buttons, action)
 
+        self.has_input = False
+
         return action
 
     def on_joybutton_press(self, joystick, button):
-        print(button)
         self.on_button_pressed(button)
 
+    def clean(self):
+        self.x = 0.0
+        self.y = 0.0
+        print('Cleaning joystick spurious noise....')
 

@@ -14,7 +14,7 @@ def parse_args():
     parser.add_argument('--env-name', default='SimpleSim-v0')
     parser.add_argument('--map-name', default='udem1')
     parser.add_argument('--controller', default='joystick')
-    parser.add_argument('--controller_mapping', default='demos/shared.joystick.logitech.yaml')
+    parser.add_argument('--controller_mapping', default='mappings/shared.joystick.logitech.yaml')
     return parser.parse_args()
 
 
@@ -43,7 +43,8 @@ def create_dagger_controller(environment, arguments):
     tf_model = ResnetOneMixture()
     tf_controller = NeuralNetworkController(env=environment,
                                             learner=tf_model,
-                                            storage_location='demos/aggrevate/cnn_mdn_adam_1/')
+                                            storage_location='trained_models/upms/cnn_reg_adagrad_1/',
+                                            training=False)
 
     iil_algorithm = SharedController(env, joystick_controller, tf_controller)
 

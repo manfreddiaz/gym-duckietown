@@ -1,13 +1,16 @@
 import argparse
 import math
+import threading
+
 import pyglet
 import gym
 from gym_duckietown.envs import SimpleSimEnv
 from gym_duckietown.wrappers import HeadingWrapper
-from controllers import JoystickController
 
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning
-from learning_iil.learners import UncertaintyAwareRandomController
+from learning_iil.iil_recording_controller import ImitationLearningRecorder
+from learning_iil.learners import UncertaintyAwareRandomController, UncertaintyAwareNNController
+from learning_iil.teachers import UncertaintyAwareHumanController
 from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
 
 
@@ -16,7 +19,7 @@ def parse_args():
     parser.add_argument('--env-name', default='SimpleSim-v0')
     parser.add_argument('--map-name', default='udem1')
     parser.add_argument('--controller', default='joystick')
-    parser.add_argument('--controller_mapping', default='demos/shared.joystick.logitech.yaml')
+    parser.add_argument('--controller_mapping', default='mappings/record.joystick.logitech.yaml')
     return parser.parse_args()
 
 
@@ -40,34 +43,43 @@ def create_learning_algorithm(environment, arguments):
     joystick_controller = UncertaintyAwareHumanController(environment)
     joystick_controller.load_mapping(arguments.controller_mapping)
 
-    # learner
+    tf_learner = ResnetOneMixture()
+    tf_controller = UncertaintyAwareNNController(env=environment,
+                                                 learner=tf_learner,
+                                                 storage_location='trained_models/upms/cnn_reg_adagrad_1/')
+
+    # explorer
     random_controller = UncertaintyAwareRandomController(environment)
 
     iil_algorithm = UPMSLearning(env=environment,
-                                       teacher=joystick_controller,
-                                       learner=random_controller,
-                                        explorer=random_controller,
-                                       horizon=512,
-                                       episodes=10,
-                                       starting_position=(1.5, 0.0, 3.5),
-                                       starting_angle=0.0)
+                                 teacher=joystick_controller,
+                                 learner=tf_controller,
+                                 explorer=random_controller,
+                                 horizon=512,
+                                 episodes=10,
+                                 starting_position=(1.5, 0.0, 3.5),
+                                 starting_angle=0.0)
 
-    return iil_algorithm
+    recorder = ImitationLearningRecorder(env, iil_algorithm, 'trained_models/upms/cnn_reg_adagrad_1/data.pkl')
+
+    return recorder
 
 
 if __name__ == '__main__':
     args = parse_args()
-
+    print(threading.current_thread().name)
     env = create_environment(args)
     env.reset()
     env.render()
 
-    dagger_controller = create_learning_algorithm(environment=env, arguments=args)
-    dagger_controller.configure()
-    dagger_controller.open()
-    dagger_controller.reset()
+    recording = create_learning_algorithm(environment=env, arguments=args)
+    recording.configure()
+    recording.open()
+    recording.reset()
 
+    # print('Press [START] to record....')
+    recording.record(None)
     pyglet.app.run()
 
-    dagger_controller.close()
+    recording.close()
     env.close()

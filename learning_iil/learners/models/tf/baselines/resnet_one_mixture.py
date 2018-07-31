@@ -13,9 +13,10 @@ class ResnetOneMixture(TensorflowOnlineLearner):
         mdn = TensorflowOnlineLearner.predict(self, state)
         # print('prediction')
         # print(mdn)
-        return MixtureDensityNetwork.max_central_value(mixtures=np.squeeze(mdn[0]),
-                                                       means=np.squeeze(mdn[1]),
-                                                       variances=np.squeeze(mdn[2]))
+        prediction = MixtureDensityNetwork.max_central_value(mixtures=np.squeeze(mdn[0]),
+                                                             means=np.squeeze(mdn[1]),
+                                                             variances=np.squeeze(mdn[2]))
+        return prediction[0], np.sum(prediction[1])  # FIXME: Is this the best way to add the variances?
 
     def architecture(self):
         model = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), self.state_tensor)
