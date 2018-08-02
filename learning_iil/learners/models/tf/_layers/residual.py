@@ -21,6 +21,27 @@ def residual_block(x, size, dropout=False):
 
     return residual
 
+def resnet_0(x, keep_prob=0.5):
+    nn = tf.layers.conv2d(x, filters=32, kernel_size=5, strides=2, padding='same',
+                             kernel_initializer=tf.keras.initializers.he_normal(),
+                             kernel_regularizer=tf.keras.regularizers.l2(l2_lambda))
+    nn = tf.layers.max_pooling2d(nn, pool_size=3, strides=2)
+
+    rb_1 = residual_block(nn, 32)
+
+    nn = tf.layers.conv2d(rb_1, filters=32, kernel_size=1, strides=2, padding='same',
+                             kernel_initializer=tf.keras.initializers.he_normal(),
+                             kernel_regularizer=tf.keras.regularizers.l2(l2_lambda))
+    # nn = tf.keras.layers.add([rb_1, nn])
+
+    # TODO: check https://github.com/raghakot/keras-resnet for the absence of RELU after merging
+
+    nn = tf.layers.flatten(nn)
+    nn = tf.nn.relu(nn)
+    nn = tf.layers.dropout(nn, rate=keep_prob)
+
+    return nn
+
 
 def resnet_1(x, keep_prob=0.5):
     nn = tf.layers.conv2d(x, filters=32, kernel_size=5, strides=2, padding='same',
@@ -37,9 +58,13 @@ def resnet_1(x, keep_prob=0.5):
 
     # TODO: check https://github.com/raghakot/keras-resnet for the absence of RELU after merging
 
+    # nn = tf.layers.batch_normalization(nn)
+    # nn = tf.nn.relu(nn)
+    # nn = tf.keras.layers.GlobalAveragePooling2D()(nn)
     nn = tf.layers.flatten(nn)
-    nn = tf.nn.relu(nn)
-    nn = tf.layers.dropout(nn, rate=keep_prob)
+
+    # nn = tf.nn.relu(nn)
+    # nn = tf.layers.dropout(nn, rate=keep_prob)
 
     return nn
 
@@ -52,9 +77,9 @@ def resnet_2(x, keep_prob=0.5):
     residual_net = tf.layers.conv2d(residual_net, filters=32, kernel_size=1, strides=2, padding='same')
     residual_net = tf.keras.layers.add([residual_block_1, residual_net])
 
-    # residual_block_2 = residual_block(residual_net, 64)
-    # residual_net = tf._layers.conv2d(residual_net, filters=64, kernel_size=1, strides=2, padding='same')
-    # residual_net = tf.keras._layers.add([residual_block_2, residual_net])
+    residual_block_2 = residual_block(residual_net, 64)
+    residual_net = tf.layers.conv2d(residual_net, filters=64, kernel_size=1, strides=2, padding='same')
+    residual_net = tf.keras.layers.add([residual_block_2, residual_net])
 
     residual_net = tf.layers.flatten(residual_net)
 

@@ -90,8 +90,8 @@ def update(dt):
 
         if done:
             print('done!')
-            env.reset()
-            env.render()
+            # env.reset()
+            # env.render()
 
     env.render()
 

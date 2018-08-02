@@ -13,7 +13,7 @@ class UncertaintyAwareRandomController(Controller):
         return self.predict(dt)
 
     def predict(self, observation):
-        return np.random.uniform(-1, 1, 2), self.uncertainty
+        return np.random.uniform(0, 1, 2), self.uncertainty
 
     def learn(self, observations, actions):
         pass

@@ -11,6 +11,7 @@ from gym_duckietown.envs import SimpleSimEnv
 from gym_duckietown.wrappers import HeadingWrapper
 
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning
+from learning_iil.iil_control import InteractiveControl
 from learning_iil.iil_recorder import ImitationLearningRecorder
 from learning_iil.learners import UncertaintyAwareRandomController, UncertaintyAwareNNController, NeuralNetworkController
 from learning_iil.teachers import UncertaintyAwareHumanController
@@ -21,16 +22,16 @@ from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetO
 np.random.seed(1234)
 
 TRAINING_STARTING_POSITIONS = [
-    (0.8, 0.0, 1.5),
-    (0.8, 0.0, 2.5),
-    (1.5, 0.0, 3.5),
-    (2.5, 0.0, 3.5),
-    (4.1, 0.0, 2.0),
-    (2.8, 0.0, 0.8),
+    (0.8, 0.0, 1.5, 10.90),
+    (0.8, 0.0, 2.5, 10.90),
+    (1.5, 0.0, 3.5, 12.56),
+    (2.5, 0.0, 3.5, 12.56),
+    (4.1, 0.0, 2.0, 14.14),
+    (2.8, 0.0, 0.8, 15.71),
 ]
 TESTING_STARTING_POSITIONS = [
     (2.2, 0.0, 2.8),
-    (1.4, 0.0, 2.3),
+    (2.2, 0.0, 1.7),
     (2.0, 0.0, 1.4),
     (2.0, 0.0, 2.5)
 ]
@@ -74,7 +75,8 @@ def create_learning_algorithm(environment, arguments):
     tf_model = ResnetOneRegression()
     tf_learner = NeuralNetworkController(env=environment,
                                          learner=tf_model,
-                                         storage_location=base_directory)
+                                         storage_location=base_directory,
+                                         training=False)
 
     # explorer
     # random_controller = UncertaintyAwareRandomController(environment)
@@ -88,16 +90,21 @@ def create_learning_algorithm(environment, arguments):
     #                              starting_position=(1.5, 0.0, 3.5),
     #                              starting_angle=0.0)
 
-    starting_position = TRAINING_STARTING_POSITIONS[np.random.randint(0, len(TRAINING_STARTING_POSITIONS))]
-    iil_learning = SupervisedLearning(env=environment,
-                                      teacher=human_teacher,
-                                      learner=tf_learner,
-                                      horizon=horizon,
-                                      episodes=iterations,
-                                      starting_angle=0,
-                                      starting_position=starting_position)
+    # iil_learning = SupervisedLearning(env=environment,
+    #                                   teacher=human_teacher,
+    #                                   learner=tf_learner,
+    #                                   horizon=horizon,
+    #                                   episodes=iterations,
+    #                                   starting_angle=0,
+    #                                   starting_position=starting_position)
 
-    recorder = ImitationLearningRecorder(env, iil_learning, base_directory + 'training.pkl', horizon=horizon,
+    iil_controller = InteractiveControl(env=environment,
+                                        teacher=human_teacher,
+                                        learner=tf_learner,
+                                        horizon=horizon, episodes=iterations,
+                                        respawn_positions=TRAINING_STARTING_POSITIONS)
+
+    recorder = ImitationLearningRecorder(env, iil_controller, base_directory + 'testing.pkl', horizon=horizon,
                                          iterations=iterations)
 
     return recorder
@@ -117,8 +124,9 @@ if __name__ == '__main__':
 
     # print('Press [START] to record....')
     recording.record(None)
-    pyglet.app.run()
-    recording.stop(None)
 
+    pyglet.app.run()
+
+    recording.stop(None)
     recording.close()
     env.close()

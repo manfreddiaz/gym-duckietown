@@ -44,17 +44,18 @@ class InteractiveImitationLearning(SharedController):
                 print('give me input you idiot :)')
 
     def step(self, action):
-        next_observation, reward, done, info = SharedController.step(self, action)
+        if action is not None:
+            next_observation, reward, done, info = SharedController.step(self, action)
 
-        if done:
-            # self._on_episode_done()
-            self.enabled = False
-            self.reset()
-            self.enabled = True
+            if done:
+                # self._on_episode_done()
+                self.enabled = False
+                self.reset()
+                self.enabled = True
 
-        self._update_horizon_boundaries()
+            self._update_horizon_boundaries()
 
-        return next_observation, reward, done, info
+            return next_observation, reward, done, info
 
     def reset(self):
         unwrapped_env = self.env.unwrapped
@@ -68,7 +69,7 @@ class InteractiveImitationLearning(SharedController):
     def _update_horizon_boundaries(self):
         self.horizon_count += 1
 
-        if self.horizon_count == self.horizon:
+        if self.horizon_count >= self.horizon:
             self.horizon_count = 0
             self.episodes_count += 1
             self._on_episode_done()
@@ -101,4 +102,3 @@ class InteractiveImitationLearning(SharedController):
     def _on_training_done(self):
         self.enabled = False
         print('[DONE] episode: {}/{}, alpha: {}'.format(self.episodes_count, self.episodes, self.alpha_episode))
-        self.exit()

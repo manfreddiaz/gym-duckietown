@@ -3,9 +3,11 @@ import tensorflow as tf
 from .._layers.autoencoders.denoising import DenoisingAutoencoder
 from learning_iil.learners.models.tf.tf_online_learner import TensorflowOnlineLearner
 
-from .._layers import resnet_1, resnet_1_dropout
+from .._layers import resnet_1, resnet_1_dropout, resnet_0, resnet_2
 
 tf.set_random_seed(1234)
+
+lamb = 0.05
 
 
 class FortifiedResnetOneRegression(TensorflowOnlineLearner):
@@ -19,25 +21,23 @@ class FortifiedResnetOneRegression(TensorflowOnlineLearner):
 
     def predict(self, state, horizon=1):
         regression = TensorflowOnlineLearner.predict(self, state)
-        return np.squeeze(regression), 0.0
+        return np.squeeze(regression), self.fortified_loss
 
     def architecture(self):
         model = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), self.state_tensor)
         model = resnet_1(model)
-        model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
-                                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-                                kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01))
+        denoising_autoencoder = DenoisingAutoencoder(model, latent_size=10)
+        self.fortified_loss = denoising_autoencoder.loss
 
-        fortified_layer = DenoisingAutoencoder(model)
-        self.fortified_loss = fortified_layer.loss
+        model = tf.layers.dense(denoising_autoencoder.decoder, units=64, activation=tf.nn.relu)
 
-        model = tf.layers.dense(fortified_layer.decoder, self.action_tensor.shape[1])
+        model = tf.layers.dense(model, self.action_tensor.shape[1])
         with tf.name_scope('losses'):
-            loss = tf.losses.mean_squared_error(model, self.action_tensor)
+            loss = tf.reduce_mean(tf.square(model - self.action_tensor), axis=1)
+            loss = tf.reduce_mean(loss + lamb * self.fortified_loss)
             tf.summary.scalar('mse', loss)
 
-        return [model], loss + 0.01 * fortified_layer.loss
+        return [model], loss
 
     def get_optimizer(self, loss):
         return tf.train.AdagradOptimizer(1e-3).minimize(loss, global_step=self.global_step)

@@ -38,7 +38,7 @@ class UPMSLearning(AggreVaTeLearning):
     def _select_exploration(self):
         teacher_preference = UPMSLearning.control_coefficient(self.teacher_uncertainty)
 
-        exploration_control = np.random.choice(a=[self.primary, self.secondary],
+        exploration_control = np.random.choice(a=[self.primary, self.explorer],
                                                p=[teacher_preference, 1. - teacher_preference])
 
         return exploration_control
@@ -64,12 +64,12 @@ class UPMSLearning(AggreVaTeLearning):
         control_action = None
 
         teacher_action, self.teacher_uncertainty = self.primary._do_update(observation)
-        explorer_action, self.learner_uncertainty = self.secondary._do_update(observation)  # FIXME: don't use explorer for now
+        explorer_action, self.learner_uncertainty = self.explorer._do_update(observation)
         control_policy = self._select_exploration()
 
         if control_policy == self.primary:
             control_action = teacher_action
-        elif control_policy == self.secondary:
+        elif control_policy == self.explorer:
             control_action = explorer_action
 
         return control_action, teacher_action

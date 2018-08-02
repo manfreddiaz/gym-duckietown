@@ -1,4 +1,4 @@
-from learning_iil.iil_controller import InteractiveImitationLearning
+from learning_iil.iil_learning import InteractiveImitationLearning
 
 
 class SupervisedLearning(InteractiveImitationLearning):
@@ -8,8 +8,10 @@ class SupervisedLearning(InteractiveImitationLearning):
     def _select_policy(self):
         return self.primary
 
+    def _on_episode_done(self):
+        pass
+
     def _on_training_done(self):
         self._learn()
         InteractiveImitationLearning._on_training_done(self)
-
 

@@ -25,26 +25,18 @@ class FortifiedResnetOneMixture(TensorflowOnlineLearner):
 
     def architecture(self):
         model = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), self.state_tensor)
-        model = resnet_1(model, keep_prob=1.0)
-        # TRY: tanh + 64 or change to (relu, crelu), without dense
-        # model = tf.layers.dense(model, units=512, activation=tf.nn.relu,
-        #                         kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01))
-        # model = tf.layers.dense(model, units=100, activation=tf.nn.relu,
-        #                         kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01))
-        model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
+        model = resnet_1(model)
+
+        fortified_layer = DenoisingAutoencoder(model, latent_size=512)
+        self.fortified_loss = fortified_layer.loss
+
+        model = tf.layers.dense(fortified_layer.decoder, units=64, activation=tf.nn.relu,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                 kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01))
 
-        fortified_layer = DenoisingAutoencoder(model)
-        self.fortified_loss = fortified_layer.loss
-
         loss, components, _ = MixtureDensityNetwork.create(model, self.action_tensor, number_mixtures=3)
-        return components, loss + 1e-2 * self.fortified_loss
+        return components, loss + self.fortified_loss
 
     def get_optimizer(self, loss):
         return tf.train.AdagradOptimizer(1e-3).minimize(loss, global_step=self.global_step)

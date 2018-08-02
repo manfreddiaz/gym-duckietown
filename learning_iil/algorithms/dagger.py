@@ -1,5 +1,5 @@
 import numpy as np
-from ..iil_controller import InteractiveImitationLearning
+from ..iil_learning import InteractiveImitationLearning
 
 np.random.seed(1234)
 

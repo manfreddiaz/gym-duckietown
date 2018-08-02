@@ -45,10 +45,16 @@ class RecordingController(Controller):
             self._stop()
 
     def step(self, action):
-        observation = self.env.unwrapped.render_obs()
-        result = self._controller.step(action)
-        self._multithreaded_recording.submit(self._record, observation, action, result)
-        return result
+        if action is not None:
+            observation = self.env.unwrapped.render_obs()
+            result = self._controller.step(action)
+            self._multithreaded_recording.submit(self._record, observation, action, result)
+            return result
+
+        return None
+
+    def _on_data_added(self, what):
+        print('data')
 
     # extended capability
     def record(self, _):
@@ -59,10 +65,8 @@ class RecordingController(Controller):
 
     # extended capability
     def stop(self, _):
-        if self._recording:
-            self._stop()
+        self._stop()
 
-    # could be parallel at some point
     def _record(self, observation, action, result):
 
         if self._recording:
@@ -92,6 +96,7 @@ class RecordingController(Controller):
                 self._stop()
 
     def _stop(self):
+        print(len(self._episodes_current))
         if len(self._episodes_current) > 0:
             pickle.dump(self._episodes_current, self._record_file)
             print('[RECORDED] Episode {}, Horizon: {}'.format(self._episodes_counter, len(self._episodes_current)))
@@ -100,5 +105,5 @@ class RecordingController(Controller):
 
     def close(self):
         self._record_file.close()
-        self._controller.close(self)
+        self._controller.close()
         self._multithreaded_recording.shutdown()

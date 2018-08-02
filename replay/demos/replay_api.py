@@ -39,7 +39,7 @@ if __name__ == '__main__':
     env.reset()
     env.render()
 
-    replay_controller = ReplayController(env, 'upms.pkl')
+    replay_controller = ReplayController(env, 'training.pkl')
     replay_controller.configure()
     replay_controller.open()
 
