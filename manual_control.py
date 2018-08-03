@@ -17,7 +17,7 @@ from gym_duckietown.wrappers import HeadingWrapper
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env-name', default='SimpleSim-v0')
-parser.add_argument('--map-name', default='udem1')
+parser.add_argument('--map-name', default='small_loop')
 parser.add_argument('--draw-curve', action='store_true', help='draw the lane following curve')
 parser.add_argument('--draw-bbox', action='store_true', help='draw collision detection bounding boxes')
 parser.add_argument('--domain-rand', action='store_true', help='enable domain randomization')

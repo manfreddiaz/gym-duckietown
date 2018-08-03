@@ -24,12 +24,13 @@ class ImitationLearningRecorder(RecordingController):
         self._controller.reset(**kwargs)
 
     def step(self, action):
-        RecordingController.step(self, action)
-        self.count += 1
-        if self.count == self.horizon * self.iterations:
-            print('finishing')
-            self.stop(None)
-            self.exit()
+        if action is not None:
+            RecordingController.step(self, action)
+            self.count += 1
+            if self.count == self.horizon * self.iterations:
+                print('finishing')
+                self.stop(None)
+                self.exit()
 
     def _record(self, observation, action, result):
         if self._recording:

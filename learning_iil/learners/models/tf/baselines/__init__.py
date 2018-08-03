@@ -1,0 +1,2 @@
+from .resnet_one_regression import ResnetOneRegression
+from .resnet_one_mixture import ResnetOneMixture

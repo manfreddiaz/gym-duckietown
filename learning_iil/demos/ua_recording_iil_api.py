@@ -63,11 +63,11 @@ def create_environment(args, with_heading=True):
 
 def create_learning_algorithm(environment, arguments):
     iteration = 1
-    base_directory = 'trained_models/supervised/{}/ror_adag/'.format(iteration)
+    base_directory = 'trained_models/supervised/{}/ror_adag_64/'.format(iteration)
     horizon = 512
     iterations = 10
 
-    # human controller
+    # human controllder
     human_teacher = JoystickController(environment)
     human_teacher.load_mapping(arguments.controller_mapping)
 
@@ -77,18 +77,18 @@ def create_learning_algorithm(environment, arguments):
                                          storage_location=base_directory)
 
     # explorer
-    # random_controller = UncertaintyAwareRandomController(environment)
-    #
-    # iil_algorithm = UPMSLearning(env=environment,
+    random_controller = UncertaintyAwareRandomController(environment)
+
+    starting_position = TRAINING_STARTING_POSITIONS[np.random.randint(0, len(TRAINING_STARTING_POSITIONS))]
+    # iil_learning = UPMSLearning(env=environment,
     #                              teacher=human_teacher,
     #                              learner=tf_learner,
     #                              explorer=random_controller,
-    #                              horizon=512,
-    #                              episodes=10,
-    #                              starting_position=(1.5, 0.0, 3.5),
+    #                              horizon=horizon,
+    #                              episodes=iterations,
+    #                              starting_position=starting_position,
     #                              starting_angle=0.0)
 
-    starting_position = TRAINING_STARTING_POSITIONS[np.random.randint(0, len(TRAINING_STARTING_POSITIONS))]
     iil_learning = SupervisedLearning(env=environment,
                                       teacher=human_teacher,
                                       learner=tf_learner,

@@ -30,12 +30,12 @@ TRAINING_STARTING_POSITIONS = [
     (2.8, 0.0, 0.8, 15.71),
 ]
 TESTING_STARTING_POSITIONS = [
-    (2.2, 0.0, 2.8),
-    (2.2, 0.0, 1.7),
-    (2.0, 0.0, 1.4),
-    (2.0, 0.0, 2.5)
+    (2.2, 0.0, 2.8, 20.38),
+    (2.2, 0.0, 1.7, 20.38),
+    (2.0, 0.0, 1.4, 4.67),
+    (2.0, 0.0, 2.5, 4.67)
 ]
-TESTING_STARTING_POSITIONS.extend(TRAINING_STARTING_POSITIONS)
+# TESTING_STARTING_POSITIONS.extend(TRAINING_STARTING_POSITIONS)
 
 
 def parse_args():
@@ -52,7 +52,8 @@ def create_environment(args, with_heading=True):
         environment = SimpleSimEnv(
             max_steps=math.inf,
             domain_rand=False,
-            draw_curve=False
+            draw_curve=False,
+            map_name='small_loop'
         )
     else:
         environment = gym.make(args.env_name)
@@ -64,7 +65,7 @@ def create_environment(args, with_heading=True):
 
 def create_learning_algorithm(environment, arguments):
     iteration = 1
-    base_directory = 'trained_models/supervised/{}/ror_adag/'.format(iteration)
+    base_directory = 'trained_models/supervised/{}/rom_adag_64_32_m3/'.format(iteration)
     horizon = 512
     iterations = 10
 
@@ -72,7 +73,7 @@ def create_learning_algorithm(environment, arguments):
     human_teacher = JoystickController(environment)
     human_teacher.load_mapping(arguments.controller_mapping)
 
-    tf_model = ResnetOneRegression()
+    tf_model = ResnetOneMixture()
     tf_learner = NeuralNetworkController(env=environment,
                                          learner=tf_model,
                                          storage_location=base_directory,
@@ -102,7 +103,7 @@ def create_learning_algorithm(environment, arguments):
                                         teacher=human_teacher,
                                         learner=tf_learner,
                                         horizon=horizon, episodes=iterations,
-                                        respawn_positions=TRAINING_STARTING_POSITIONS)
+                                        respawn_positions=TESTING_STARTING_POSITIONS)
 
     recorder = ImitationLearningRecorder(env, iil_controller, base_directory + 'testing.pkl', horizon=horizon,
                                          iterations=iterations)
