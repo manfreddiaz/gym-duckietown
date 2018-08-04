@@ -6,11 +6,16 @@ from .._layers import resnet_1, MixtureDensityNetwork
 
 
 class MonteCarloDropoutResnetOneMixture(TensorflowOnlineLearner):
-    def __init__(self):
+    def explore(self, state, horizon=1):
+        pass
+
+    def __init__(self, mixtures=3):
         TensorflowOnlineLearner.__init__(self)
+        self.mixtures = mixtures
 
     def predict(self, state, horizon=1):
         mdn = TensorflowOnlineLearner.predict(self, np.repeat(state, 16, axis=0))
+        mdn = mdn[0]
         # print('prediction')
         # print(mdn)
         mixtures = np.mean(mdn[0], axis=0)
@@ -22,23 +27,20 @@ class MonteCarloDropoutResnetOneMixture(TensorflowOnlineLearner):
         return prediction[0], np.sum(prediction[1])  # FIXME: Is this the best way to add the variances?
 
     def architecture(self):
-        model = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), self.state_tensor)
+        model = tf.map_fn(lambda frame: tf.image.resize_images(frame, (60, 80)), self.state_tensor)
+        model = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), model)
+
         model = resnet_1(model, keep_prob=1.0)
-        # TRY: tanh + 64 or change to (relu, crelu), without dense
-        # model = tf.layers.dense(model, units=512, activation=tf.nn.relu,
-        #                         kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01))
-        # model = tf.layers.dense(model, units=100, activation=tf.nn.relu,
-        #                         kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01))
+        # model = tf.nn.dropout(model, keep_prob=0.5)
         model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-                                kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01))
-
-        loss, components, _ = MixtureDensityNetwork.create(model, self.action_tensor, number_mixtures=3)
+                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+        # model = tf.nn.dropout(model, keep_prob=0.5)
+        model = tf.layers.dense(model, units=32, activation=tf.nn.relu,
+                                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
+                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+        # model = tf.nn.dropout(model, keep_prob=0.5)
+        loss, components, _ = MixtureDensityNetwork.create(model, self.action_tensor, number_mixtures=self.mixtures)
         return components, loss
 
     def get_optimizer(self, loss):

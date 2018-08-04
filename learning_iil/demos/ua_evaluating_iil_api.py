@@ -53,7 +53,7 @@ def create_environment(args, with_heading=True):
             max_steps=math.inf,
             domain_rand=False,
             draw_curve=False,
-            map_name='small_loop'
+            # map_name='small_loop'
         )
     else:
         environment = gym.make(args.env_name)
@@ -65,7 +65,7 @@ def create_environment(args, with_heading=True):
 
 def create_learning_algorithm(environment, arguments):
     iteration = 1
-    base_directory = 'trained_models/supervised/{}/rom_adag_64_32_m3/'.format(iteration)
+    base_directory = 'trained_models/supervised/{}/fo_rom_adag_64_32/'.format(iteration)
     horizon = 512
     iterations = 10
 
@@ -73,31 +73,11 @@ def create_learning_algorithm(environment, arguments):
     human_teacher = JoystickController(environment)
     human_teacher.load_mapping(arguments.controller_mapping)
 
-    tf_model = ResnetOneMixture()
+    tf_model = FortifiedResnetOneMixture()
     tf_learner = NeuralNetworkController(env=environment,
                                          learner=tf_model,
                                          storage_location=base_directory,
                                          training=False)
-
-    # explorer
-    # random_controller = UncertaintyAwareRandomController(environment)
-    #
-    # iil_algorithm = UPMSLearning(env=environment,
-    #                              teacher=human_teacher,
-    #                              learner=tf_learner,
-    #                              explorer=random_controller,
-    #                              horizon=512,
-    #                              episodes=10,
-    #                              starting_position=(1.5, 0.0, 3.5),
-    #                              starting_angle=0.0)
-
-    # iil_learning = SupervisedLearning(env=environment,
-    #                                   teacher=human_teacher,
-    #                                   learner=tf_learner,
-    #                                   horizon=horizon,
-    #                                   episodes=iterations,
-    #                                   starting_angle=0,
-    #                                   starting_position=starting_position)
 
     iil_controller = InteractiveControl(env=environment,
                                         teacher=human_teacher,

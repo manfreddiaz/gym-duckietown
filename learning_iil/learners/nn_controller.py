@@ -31,8 +31,8 @@ class NeuralNetworkController(Controller):
                 batch_observations = observations[iteration:iteration + self.batch_size]
                 batch_actions = actions[iteration:iteration + self.batch_size]
                 self.leaner.learn(batch_observations, batch_actions)
-            if iteration < self.batch_size:
-                remainder = len(observations) - iteration
+            if iteration + self.batch_size < data_size:
+                remainder = data_size - iteration
                 batch_observations = observations[iteration:remainder]
                 batch_actions = actions[iteration:remainder]
                 self.leaner.learn(batch_observations, batch_actions)

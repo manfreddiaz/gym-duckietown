@@ -117,7 +117,7 @@ class MixtureDensityNetwork:
         aleatoric = variances[:, max_mixture] # ** 2
         epistemic = (mean - conditional_average) ** 2
 
-        print(aleatoric, epistemic)
+        # print(aleatoric + epistemic)
 
         return mean, aleatoric + epistemic, epistemic, mixtures[max_mixture], max_mixture
 

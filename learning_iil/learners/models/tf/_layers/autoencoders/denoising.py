@@ -17,7 +17,7 @@ class DenoisingAutoencoder(Autoencoder):
         nn = self.x + tf.random_normal(shape=tf.shape(self.x), stddev=self.noise)
         nn = tf.layers.dense(inputs=nn,
                              units=self.latent_size,
-                             activation=tf.nn.leaky_relu)
+                             activation=tf.nn.tanh)
         return nn
 
     def _decoder(self, z):
@@ -29,9 +29,11 @@ class DenoisingAutoencoder(Autoencoder):
 
     def _loss(self):
         if self.loss_function == 'cross_entropy':
-            reconstruction_loss = tf.losses.sigmoid_cross_entropy(self.x, self.decoder)
+            reconstruction_loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=self.x, logits=self.decoder)
         elif self.loss_function == 'mse':
             reconstruction_loss = tf.reduce_mean(tf.square(self.x - self.decoder), axis=1)
+            # reconstruction_loss = tf.norm(self.x - self.decoder)
+            tf.summary.scalar('rec_loss', tf.reduce_mean(reconstruction_loss))
         else:
             raise NotImplementedError()
 

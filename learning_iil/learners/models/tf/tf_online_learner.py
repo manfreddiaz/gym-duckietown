@@ -13,6 +13,7 @@ class TensorflowOnlineLearner:
         self.optimization_algorithm = None
         self.loss_function = None
         self.global_step = tf.Variable(0, trainable=False, name='global_step')
+        self.training = True
 
         # saving, restoring &  logging
         self.tf_session = tf.InteractiveSession()
@@ -23,9 +24,11 @@ class TensorflowOnlineLearner:
         self.last_loss = None
 
     def predict(self, state, horizon=1):
-        action = self.tf_session.run([self.policy_model], feed_dict={
+        action, loss, vector_field = self.tf_session.run([self.policy_model, self.fortified_loss, self.vector_field],  feed_dict={
             self.state_tensor: state,
         })
+        print(loss)
+        # print(vector_field)
         # action = np.squeeze(action)
         return action
 
@@ -51,6 +54,7 @@ class TensorflowOnlineLearner:
         raise NotImplementedError()
 
     def init_train(self, state_dims, action_dims, storage_location):
+        self.training = True
         if not self.policy_model:
             self._state_action_tensors(state_dims, action_dims)
             self.policy_model, self.loss_function = self.architecture()
@@ -68,6 +72,7 @@ class TensorflowOnlineLearner:
             self.summary_writer = tf.summary.FileWriter(storage_location, self.tf_session.graph)
 
     def init_test(self, state_dims, action_dims, storage_location):
+        self.training = False
         if not self.policy_model:
             self._state_action_tensors(state_dims, action_dims)
             self.policy_model, self.loss_function = self.architecture()
@@ -78,6 +83,7 @@ class TensorflowOnlineLearner:
                 self.tf_saver.restore(self.tf_session, self.tf_checkpoint)
             else:
                 print("NO TRAINING!")
+
 
     def _state_action_tensors(self, input_shape=(None, 1), output_shape=(1, 2)):
         if len(input_shape) == 3:

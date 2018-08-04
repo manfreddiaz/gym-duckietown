@@ -46,7 +46,7 @@ def create_dagger_controller(environment, arguments):
     tf_model = FortifiedResnetOneRegression()
     tf_controller = NeuralNetworkController(env=environment,
                                             learner=tf_model,
-                                            storage_location='trained_models/upms/fort_cnn_reg_adagrad_1/',
+                                            storage_location='trained_models/supervised/1/fo_ror_adag_64_32/',
                                             training=False)
 
     iil_algorithm = SharedController(env, joystick_controller, tf_controller)
