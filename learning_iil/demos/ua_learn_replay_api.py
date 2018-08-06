@@ -9,9 +9,9 @@ tf.set_random_seed(1234)
 recording_file_name = 'trained_models/supervised/1/ror_adag_64/training.pkl'
 
 iteration = 1
-base_directory = 'trained_models/supervised/{}/fo_rom_adag_64_32/'.format(iteration)
+base_directory = 'trained_models/supervised/{}/ror_64_32_fo_1e-2_adam/'.format(iteration)
 
-tf_model = FortifiedResnetOneMixture()
+tf_model = FortifiedResnetOneRegression()
 tf_learner = NeuralNetworkController(env=None,
                                      learner=tf_model,
                                      storage_location=base_directory)

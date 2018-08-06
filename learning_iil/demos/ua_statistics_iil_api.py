@@ -1,6 +1,6 @@
 import pickle
 
-recording_file_name = 'trained_models/upms/1/rom_adag/testing.pkl'
+recording_file_name = 'trained_models/upms/1/ror_64_32_fo_1e-1_adag/training.pkl'
 
 cumulative_reward = 0
 negative_reward = 0
@@ -17,7 +17,6 @@ if __name__ == '__main__':
         for index, sample in enumerate(episode):
             env = sample['env']
             hidden = sample['hidden']
-
             cumulative_reward += env[1]
             if env[2] and index < total_samples:
                 risk += 1

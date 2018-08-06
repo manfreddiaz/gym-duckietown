@@ -63,39 +63,38 @@ def create_environment(args, with_heading=True):
 
 def create_learning_algorithm(environment, arguments):
     iteration = 1
-    base_directory = 'trained_models/supervised/{}/ror_adag_64/'.format(iteration)
+    base_directory = 'trained_models/upms/{}/ror_64_32_fo_1e-1_adag/'.format(iteration)
     horizon = 512
     iterations = 10
 
     # human controllder
-    human_teacher = JoystickController(environment)
+    human_teacher = UncertaintyAwareHumanController(environment)
     human_teacher.load_mapping(arguments.controller_mapping)
 
-    tf_model = ResnetOneRegression()
-    tf_learner = NeuralNetworkController(env=environment,
-                                         learner=tf_model,
-                                         storage_location=base_directory)
-
+    tf_model = FortifiedResnetOneRegression()
+    tf_learner = UncertaintyAwareNNController(env=environment,
+                                              learner=tf_model,
+                                              storage_location=base_directory)
     # explorer
     random_controller = UncertaintyAwareRandomController(environment)
 
     starting_position = TRAINING_STARTING_POSITIONS[np.random.randint(0, len(TRAINING_STARTING_POSITIONS))]
-    # iil_learning = UPMSLearning(env=environment,
-    #                              teacher=human_teacher,
-    #                              learner=tf_learner,
-    #                              explorer=random_controller,
-    #                              horizon=horizon,
-    #                              episodes=iterations,
-    #                              starting_position=starting_position,
-    #                              starting_angle=0.0)
+    iil_learning = UPMSLearning(env=environment,
+                                teacher=human_teacher,
+                                learner=tf_learner,
+                                explorer=random_controller,
+                                horizon=horizon,
+                                episodes=iterations,
+                                starting_position=starting_position,
+                                starting_angle=0.0)
 
-    iil_learning = SupervisedLearning(env=environment,
-                                      teacher=human_teacher,
-                                      learner=tf_learner,
-                                      horizon=horizon,
-                                      episodes=iterations,
-                                      starting_angle=0,
-                                      starting_position=starting_position)
+    # iil_learning = SupervisedLearning(env=environment,
+    #                                   teacher=human_teacher,
+    #                                   learner=tf_learner,
+    #                                   horizon=horizon,
+    #                                   episodes=iterations,
+    #                                   starting_angle=0,
+    #                                   starting_position=starting_position)
 
     recorder = ImitationLearningRecorder(env, iil_learning, base_directory + 'training.pkl', horizon=horizon,
                                          iterations=iterations)

@@ -26,7 +26,7 @@ def loss(y, mixtures, means, variances, dims):
 
     log_likelihood = term1 + term2 + term3 + term4
     log_sum_exp = -tf.reduce_logsumexp(log_likelihood, axis=2)
-    final_loss = tf.reduce_mean(log_sum_exp, axis=(0, 1))
+    final_loss = tf.reduce_mean(log_sum_exp, axis=(1, 0))
     tf.summary.scalar('loss', final_loss)
     return final_loss
 

@@ -65,16 +65,16 @@ def create_environment(args, with_heading=True):
 
 def create_learning_algorithm(environment, arguments):
     iteration = 1
-    base_directory = 'trained_models/supervised/{}/fo_rom_adag_64_32/'.format(iteration)
+    base_directory = 'trained_models/upms/{}/ror_64_32_fo_1e-1_adag/'.format(iteration)
     horizon = 512
     iterations = 10
 
     # human controller
-    human_teacher = JoystickController(environment)
+    human_teacher = UncertaintyAwareHumanController(environment)
     human_teacher.load_mapping(arguments.controller_mapping)
 
-    tf_model = FortifiedResnetOneMixture()
-    tf_learner = NeuralNetworkController(env=environment,
+    tf_model = FortifiedResnetOneRegression(noise=1e-1)
+    tf_learner = UncertaintyAwareNNController(env=environment,
                                          learner=tf_model,
                                          storage_location=base_directory,
                                          training=False)

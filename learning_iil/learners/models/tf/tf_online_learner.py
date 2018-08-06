@@ -27,8 +27,9 @@ class TensorflowOnlineLearner:
         action, loss, vector_field = self.tf_session.run([self.policy_model, self.fortified_loss, self.vector_field],  feed_dict={
             self.state_tensor: state,
         })
-        print(loss)
-        # print(vector_field)
+        # print(loss / 0.01)
+        self.vector_field_value = vector_field
+        # print('h: {}'.format(hessian))
         # action = np.squeeze(action)
         return action
 

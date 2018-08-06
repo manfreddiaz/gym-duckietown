@@ -5,7 +5,7 @@ from gym_duckietown.envs import SimpleSimEnv
 from gym_duckietown.wrappers import HeadingWrapper
 from controllers import JoystickController, ParallelController, SharedController
 
-from learning_iil.learners import NeuralNetworkController
+from learning_iil.learners import NeuralNetworkController, UncertaintyAwareNNController
 from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
 from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetOneMixture, \
     MonteCarloDropoutResnetOneRegression, FortifiedResnetOneRegression, FortifiedResnetOneMixture
@@ -43,10 +43,10 @@ def create_dagger_controller(environment, arguments):
 
     # nn controller
 
-    tf_model = FortifiedResnetOneRegression()
-    tf_controller = NeuralNetworkController(env=environment,
+    tf_model = FortifiedResnetOneRegression(noise=1e-1)
+    tf_controller = UncertaintyAwareNNController(env=environment,
                                             learner=tf_model,
-                                            storage_location='trained_models/supervised/1/fo_ror_adag_64_32/',
+                                            storage_location='trained_models/upms/1/ror_64_32_fo_1e-1_adam/',
                                             training=False)
 
     iil_algorithm = SharedController(env, joystick_controller, tf_controller)

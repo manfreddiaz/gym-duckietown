@@ -26,7 +26,7 @@ class NeuralNetworkController(Controller):
         observations = np.array(observations)
         actions = np.array(expert_actions)
         iteration = 0
-        for epoch in range(5):
+        for epoch in range(20):
             for iteration in range(0, data_size, self.batch_size):
                 batch_observations = observations[iteration:iteration + self.batch_size]
                 batch_actions = actions[iteration:iteration + self.batch_size]
