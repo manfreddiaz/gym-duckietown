@@ -19,21 +19,12 @@ class ResnetOneMixture(TensorflowOnlineLearner):
         prediction = MixtureDensityNetwork.max_central_value(mixtures=np.squeeze(mdn[0]),
                                                              means=np.squeeze(mdn[1]),
                                                              variances=np.squeeze(mdn[2]))
-        return prediction[0], np.sum(prediction[1])  # FIXME: Is this the best way to add the variances?
+        return prediction[0]
 
     def architecture(self):
         model = tf.map_fn(lambda frame: tf.image.resize_images(frame, (60, 80)), self.state_tensor)
         model = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), model)
-        model = resnet_1(model, keep_prob=1.0)
-        # TRY: tanh + 64 or change to (relu, crelu), without dense
-        # model = tf.layers.dense(model, units=512, activation=tf.nn.relu,
-        #                         kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01))
-        # model = tf.layers.dense(model, units=256, activation=tf.nn.relu,
-        #                         kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01))
+        model = resnet_1(model, keep_prob=0.5 if self.training else 1.0)
         model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),

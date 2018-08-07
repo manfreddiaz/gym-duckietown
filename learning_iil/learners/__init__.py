@@ -1,3 +1,4 @@
 from .nn_controller import NeuralNetworkController
+from .random_controller import RandomController
 from .ua_nn_controller import UncertaintyAwareNNController
 from .ua_random_controller import UncertaintyAwareRandomController

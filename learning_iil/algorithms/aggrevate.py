@@ -4,10 +4,11 @@ from learning_iil.algorithms.dagger import DAggerLearning
 
 class AggreVaTeLearning(DAggerLearning):
 
-    def __init__(self, env, teacher, learner, horizon, episodes, starting_position, starting_angle, alpha=0.99):
+    def __init__(self, env, teacher, learner, explorer, horizon, episodes, starting_position, starting_angle, alpha=0.99):
         DAggerLearning.__init__(self, env, teacher, learner, horizon, episodes, starting_position, starting_angle, alpha)
         # self._select_breakpoint()
         self.break_point = None
+        self.explorer = explorer
 
     def _select_breakpoint(self):
         self.break_point = np.random.randint(1, self.horizon)  # t in AggreVaTeSampling()
@@ -20,7 +21,9 @@ class AggreVaTeLearning(DAggerLearning):
             self._select_breakpoint()
         if self.horizon_count < self.break_point:
             control_policy = self._select_policy()
-        elif self.horizon_count >= self.break_point:  # FIXME: exploration step
+        elif self.horizon_count == self.break_point:
+            control_policy = self.explorer
+        else:
             control_policy = self.primary
 
         control_action = control_policy._do_update(observation)

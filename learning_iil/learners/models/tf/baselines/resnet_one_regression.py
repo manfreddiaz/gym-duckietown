@@ -18,16 +18,12 @@ class ResnetOneRegression(TensorflowOnlineLearner):
 
     def predict(self, state, horizon=1):
         regression = TensorflowOnlineLearner.predict(self, state)
-        return np.squeeze(regression), math.inf
+        return np.squeeze(regression)
 
     def architecture(self):
         model = tf.map_fn(lambda frame: tf.image.resize_images(frame, (60, 80)), self.state_tensor)
         model = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), model)
-        model = resnet_1(model, keep_prob=1.0)
-        # model = tf.layers.dense(model, units=256, activation=tf.nn.relu,
-        #                         kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-        #                         kernel_regularizer=tf.contrib.layers.l2_regularizer(scale=0.01))
+        model = resnet_1(model, keep_prob=0.5 if self.training else 1.0)
         model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False),

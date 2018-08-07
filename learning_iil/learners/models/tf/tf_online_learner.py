@@ -24,13 +24,9 @@ class TensorflowOnlineLearner:
         self.last_loss = None
 
     def predict(self, state, horizon=1):
-        action, loss, vector_field = self.tf_session.run([self.policy_model, self.fortified_loss, self.vector_field],  feed_dict={
+        action = self.tf_session.run([self.policy_model],  feed_dict={
             self.state_tensor: state,
         })
-        # print(loss / 0.01)
-        self.vector_field_value = vector_field
-        # print('h: {}'.format(hessian))
-        # action = np.squeeze(action)
         return action
 
     def explore(self, state, horizon=1):

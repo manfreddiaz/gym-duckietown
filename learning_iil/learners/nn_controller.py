@@ -40,7 +40,7 @@ class NeuralNetworkController(Controller):
 
     def predict(self, observation):
         action = self.leaner.predict([observation])
-        return action[0]
+        return action
 
     def save(self):
         self.leaner.commit()

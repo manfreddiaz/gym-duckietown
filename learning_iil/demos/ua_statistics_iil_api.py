@@ -1,6 +1,6 @@
 import pickle
 
-recording_file_name = 'trained_models/upms/1/ror_64_32_fo_1e-1_adag/training.pkl'
+recording_file_name = 'trained_models/upms/1/on_ror_64_32_adag/training.pkl'
 
 cumulative_reward = 0
 negative_reward = 0

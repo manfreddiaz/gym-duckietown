@@ -65,7 +65,7 @@ def create_environment(args, with_heading=True):
 
 def create_learning_algorithm(environment, arguments):
     iteration = 1
-    base_directory = 'trained_models/upms/{}/ror_64_32_fo_1e-1_adag/'.format(iteration)
+    base_directory = 'trained_models/upms/{}/on_ror_64_32_adag/'.format(iteration)
     horizon = 512
     iterations = 10
 
