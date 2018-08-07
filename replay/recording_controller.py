@@ -1,3 +1,4 @@
+import os
 import pickle
 from concurrent.futures import ThreadPoolExecutor
 import numpy as np
@@ -11,6 +12,7 @@ class RecordingController(Controller):
         # recording configuration
         self._recording = False
         self._controller = controller
+        self._record_file_path = record_file
         self._record_file = open(record_file, 'wb')
         self._multithreaded_recording = ThreadPoolExecutor(4)
 
@@ -52,9 +54,6 @@ class RecordingController(Controller):
             return result
 
         return None
-
-    def _on_data_added(self, what):
-        print('data')
 
     # extended capability
     def record(self, _):
@@ -105,5 +104,7 @@ class RecordingController(Controller):
 
     def close(self):
         self._record_file.close()
+        # make file read-only after finishing
+        os.chmod(self._record_file_path, 0o444)
         self._controller.close()
         self._multithreaded_recording.shutdown()

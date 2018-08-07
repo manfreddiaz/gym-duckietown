@@ -7,12 +7,12 @@ from learning_iil.learners.models.tf.uncertainty import FortifiedResnetOneMixtur
 
 tf.set_random_seed(1234)
 
-recording_file_name = 'trained_models/supervised/1/ror_adag_64/training.pkl'
+recording_file_name = 'trained_models/supervised/1/ror_64_32_adag/training.pkl'
 
 iteration = 1
-base_directory = 'trained_models/supervised/{}/mcd_last-layer-0.5_ror_64_32_adag/'.format(iteration)
+base_directory = 'trained_models/supervised/{}/ror_64_32_adag/'.format(iteration)
 
-tf_model = MonteCarloDropoutResnetOneRegression()
+tf_model = ResnetOneRegression()
 tf_learner = NeuralNetworkController(env=None,
                                      learner=tf_model,
                                      storage_location=base_directory)

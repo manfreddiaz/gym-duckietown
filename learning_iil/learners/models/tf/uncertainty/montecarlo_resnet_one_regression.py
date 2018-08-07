@@ -8,13 +8,15 @@ tf.set_random_seed(1234)
 
 
 class MonteCarloDropoutResnetOneRegression(TensorflowOnlineLearner):
+
     def explore(self, state, horizon=1):
         pass
 
-    def __init__(self, name=None, samples=16):
+    def __init__(self, name=None, samples=16, dropout_prob=0.5):
         TensorflowOnlineLearner.__init__(self)
         self.name = name
         self.samples = samples
+        self.dropout_prob = dropout_prob
 
     def predict(self, state, horizon=1):
         regression = TensorflowOnlineLearner.predict(self, np.repeat(state, self.samples, axis=0))
@@ -33,7 +35,8 @@ class MonteCarloDropoutResnetOneRegression(TensorflowOnlineLearner):
         model = tf.layers.dense(model, units=32, activation=tf.nn.relu,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
-        model = tf.nn.dropout(model, keep_prob=0.5)
+        model = tf.nn.dropout(model, keep_prob=self.dropout_prob)
+
         model = tf.layers.dense(model, self.action_tensor.shape[1])
         with tf.name_scope('losses'):
             loss = tf.losses.mean_squared_error(model, self.action_tensor)

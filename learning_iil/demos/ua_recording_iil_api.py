@@ -1,6 +1,7 @@
 import argparse
 import math
 import threading
+import inspect
 
 import numpy as np
 import pyglet
@@ -19,31 +20,42 @@ from learning_iil.learners.models.tf.baselines import ResnetOneRegression, Resne
 from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetOneRegression, \
     MonteCarloDropoutResnetOneMixture, FortifiedResnetOneRegression, FortifiedResnetOneMixture
 
+SEEDS = [123, 1234, 2345, 3456, 4567, 5678, 6789, 7890, 8901, 9012]
+
 np.random.seed(1234)
 
 TRAINING_STARTING_POSITIONS = [
-    (0.8, 0.0, 1.5),
-    (0.8, 0.0, 2.5),
-    (1.5, 0.0, 3.5),
-    (2.5, 0.0, 3.5),
-    (4.1, 0.0, 2.0),
-    (2.8, 0.0, 0.8),
+    [(0.8, 0.0, 1.5), 10.90],
+    [(0.8, 0.0, 2.5), 10.90],
+    [(1.5, 0.0, 3.5), 12.56],
+    [(2.5, 0.0, 3.5), 12.56],
+    [(4.1, 0.0, 2.0), 14.14],
+    [(2.8, 0.0, 0.8), 15.71],
 ]
-TESTING_STARTING_POSITIONS = [
-    (2.2, 0.0, 2.8),
-    (1.4, 0.0, 2.3),
-    (2.0, 0.0, 1.4),
-    (2.0, 0.0, 2.5)
-]
-TESTING_STARTING_POSITIONS.extend(TRAINING_STARTING_POSITIONS)
+
+DEFAULT_ITERATION = 1
+base_directory = 'trained_models/supervised/{}/ror_64_32_adag/'.format(DEFAULT_ITERATION)
+DEFAULT_HORIZON_LENGTH = 512
+DEFAULT_EPISODES = 10
 
 
-def parse_args():
+def primary_parser():
     parser = argparse.ArgumentParser()
+
+    # training arguments
+    # parser.add_argument('--algorithm', choices=[algorithm for algorithm in ALGORITHMS.keys()])
+    # parser.add_argument('--model', choices=[model for model in PARAMETRIZATIONS.keys()])
+    # parser.add_argument('--episodes', default=DEFAULT_EPISODES)
+    # parser.add_argument('--horizon', default=DEFAULT_HORIZON_LENGTH)
+    # parser.add_argument('--iteration', default=1)
+    #
+    # simulator arguments
     parser.add_argument('--env-name', default='SimpleSim-v0')
     parser.add_argument('--map-name', default='udem1')
+    parser.add_argument('--domain-rand', default=False, action='store_true')
     parser.add_argument('--controller', default='joystick')
     parser.add_argument('--controller_mapping', default='mappings/record.joystick.logitech.yaml')
+
     return parser.parse_args()
 
 
@@ -51,8 +63,9 @@ def create_environment(args, with_heading=True):
     if args.env_name == 'SimpleSim-v0':
         environment = SimpleSimEnv(
             max_steps=math.inf,
-            domain_rand=False,
-            draw_curve=False
+            domain_rand=args.domain_rand,
+            draw_curve=False,
+            map_name=args.map_name
         )
     else:
         environment = gym.make(args.env_name)
@@ -63,31 +76,26 @@ def create_environment(args, with_heading=True):
 
 
 def create_learning_algorithm(environment, arguments):
-    iteration = 1
-    base_directory = 'trained_models/dropout_dagger/{}/on_mcd_last-layer-0.5_ror_64_32_adag/'.format(iteration)
-    horizon = 512
-    iterations = 10
 
     # human controller
-    human_teacher = UncertaintyAwareHumanController(environment)
+    human_teacher = JoystickController(environment)
     human_teacher.load_mapping(arguments.controller_mapping)
 
-    tf_model = MonteCarloDropoutResnetOneRegression()
-    tf_learner = UncertaintyAwareNNController(env=environment,
+    tf_model = ResnetOneRegression()
+    tf_learner = NeuralNetworkController(env=environment,
                                               learner=tf_model,
                                               storage_location=base_directory)
     # explorer
     random_controller = RandomController(environment)
 
     starting_position = TRAINING_STARTING_POSITIONS[np.random.randint(0, len(TRAINING_STARTING_POSITIONS))]
-    iil_learning = DropoutDAggerLearning(env=environment,
+    iil_learning = SupervisedLearning(env=environment,
                                          teacher=human_teacher,
                                          learner=tf_learner,
-                                         threshold=0.1,
-                                         horizon=horizon,
-                                         episodes=iterations,
-                                         starting_position=starting_position,
-                                         starting_angle=0.0)
+                                         horizon=DEFAULT_HORIZON_LENGTH,
+                                         episodes=DEFAULT_EPISODES,
+                                         starting_position=starting_position[0],
+                                         starting_angle=starting_position[1])
 
     # iil_learning = SupervisedLearning(env=environment,
     #                                   teacher=human_teacher,
@@ -97,14 +105,15 @@ def create_learning_algorithm(environment, arguments):
     #                                   starting_angle=0,
     #                                   starting_position=starting_position)
 
-    recorder = ImitationLearningRecorder(env, iil_learning, base_directory + 'training.pkl', horizon=horizon,
-                                         iterations=iterations)
+    recorder = ImitationLearningRecorder(env, iil_learning, base_directory + 'training.pkl', horizon=DEFAULT_HORIZON_LENGTH,
+                                         iterations=DEFAULT_EPISODES)
 
     return recorder
 
 
 if __name__ == '__main__':
-    args = parse_args()
+    # train(primary_parser())
+    args = primary_parser()
     print(threading.current_thread().name)
     env = create_environment(args)
     env.reset()

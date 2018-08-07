@@ -1,7 +1,7 @@
 import pickle
 
-recording_file_name = 'trained_models/supervised/1/rom_adag/training.pkl'
-
+recording_file_name = 'trained_models/supervised/1/ror_64_32_adag/training.pkl'
+# statistics_file = open('trained_models/aggravate/experiments.pkl', mode='xab')
 HORIZON = 512
 EPISODES = 10
 
@@ -10,18 +10,21 @@ def empty_statistics():
     return {
         'risk': 0,
         'reward': 0,
-        'interventions': 0
+        'interventions': 0,
+        'disengagements': 0
     }
 
 
 if __name__ == '__main__':
     recording_file = open(recording_file_name, 'rb')
 
-    iterations_statistics = []
+    episodes_stats = []
     try:
         episode_data = pickle.load(recording_file)
         total_samples = len(episode_data)
         statistics = empty_statistics()
+        sum_interventions = 0
+        sum_disengagements = 0
         for index, sample in enumerate(episode_data):
             env = sample['env']
             hidden = sample['hidden']
@@ -29,15 +32,22 @@ if __name__ == '__main__':
             if env[2] and index < total_samples:
                 statistics['risk'] += 1
             if index % (HORIZON - 1) == 0 and index / (HORIZON - 1) > 0:
-                statistics['interventions'] = hidden[4]
-                iterations_statistics.append(statistics)
+                statistics['interventions'] = hidden[4] - sum_interventions
+                statistics['disengagements'] = hidden[5] - sum_disengagements
+                sum_interventions += statistics['interventions']
+                sum_disengagements += statistics['disengagements']
+                episodes_stats.append(statistics)
                 statistics = empty_statistics()
+
+        print(episodes_stats)
     except EOFError:
         print('Finishing analysis...')
+    except:
+        print('?')
 
     # print('cummulative reward: {}, negative reward: {}, expert intervention: {}, risk: {}'.format(cumulative_reward,
     #                                                                                               negative_reward,
     #                                                                                               expert_intervention,
     #                                                                                               risk))
 
-    print(len(iterations_statistics))
+    # pickle.dump(final_stats, statistics_file)
