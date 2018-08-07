@@ -11,8 +11,8 @@ class DropoutDAggerLearning(DAggerLearning):
         self.threshold = threshold
         self.learner_uncertainty = math.inf
 
-    def _select_policy(self):
-        if self.episodes_count == 0:  # check DAgger definition (initial policy equals expert)
+    def _active_policy(self):
+        if self._current_episode == 0:  # check DAgger definition (initial policy equals expert)
             return self.primary
 
         if self.learner_uncertainty > self.threshold:
@@ -24,12 +24,13 @@ class DropoutDAggerLearning(DAggerLearning):
         observation = self.env.unwrapped.render_obs()
         learner_action, self.learner_uncertainty = self.secondary._do_update(observation)
         # print(learner_action, self.learner_uncertainty)
-        control_policy = self._select_policy()
+        control_policy = self._active_policy()
 
         if control_policy == self.primary:
             control_action, _ = self.primary._do_update(observation)
-            self._record(control_policy, control_action, observation)
         else:
             control_action = learner_action
+
+        self._on_expert_input(control_policy, control_action, observation)
 
         return control_action

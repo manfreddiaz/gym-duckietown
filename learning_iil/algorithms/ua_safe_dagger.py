@@ -8,5 +8,5 @@ class SafeDAggerLearning(DAggerLearning):
                                 learner, horizon, episodes, starting_position, starting_angle, alpha)
         self.threshold = threshold
 
-    def _select_policy(self):
+    def _active_policy(self):
         pass

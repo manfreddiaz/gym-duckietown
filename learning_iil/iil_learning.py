@@ -6,42 +6,48 @@ class InteractiveImitationLearning(SharedController):
         SharedController.__init__(self, env, teacher, learner)
 
         # from IIL
-        self.horizon = horizon
-        self.alpha = alpha
-        self.episodes = episodes
-        self.observations = []
-        self.expert_actions = []
+        self._horizon = horizon
+        self._alpha = alpha
+        self._episodes = episodes
+
+        # data
+        self._observations = []
+        self._expert_actions = []
+
+        # statistics
+        self._expert_interventions = 0
+        self._expert_disengagement = 0
 
         # internal count
-        self.horizon_count = 0
-        self.episodes_count = 0
-        self.alpha_episode = self.alpha
+        self._current_horizon = 0
+        self._current_episode = 0
+        self._current_alpha = self._alpha
 
         # starting pose
-        self.starting_position = starting_position
-        self.starting_angle = starting_angle
+        self._starting_position = starting_position
+        self._starting_angle = starting_angle
 
     # execute current control policy
     def _do_update(self, dt):
         observation = self.env.unwrapped.render_obs()
 
-        control_policy = self._select_policy()
+        control_policy = self._active_policy()
         control_action = control_policy._do_update(observation)
 
-        self._record(control_policy, control_action, observation)
+        self._on_expert_input(control_policy, control_action, observation)
 
         return control_action
 
-    def _record(self, control_policy, control_action, observation):
+    def _on_expert_input(self, control_policy, control_action, observation):
         if control_policy == self.primary:
-            if control_action is not None:
-                self._aggregate(observation, control_action)
+            expert_action = control_action
         else:
             expert_action = self.primary._do_update(observation)
-            if expert_action is not None:
-                self._aggregate(observation, expert_action)
-            else:
-                print('give me input you idiot :)')
+        if expert_action is not None:
+            self._aggregate(observation, expert_action)
+        else:
+            self._expert_disengagement += 1
+            print('give me input you idiot :)')
 
     def step(self, action):
         if action is not None:
@@ -53,52 +59,56 @@ class InteractiveImitationLearning(SharedController):
                 self.reset()
                 self.enabled = True
 
-            self._update_horizon_boundaries()
+            self._update_task_boundaries()
 
             return next_observation, reward, done, info
 
     def reset(self):
         unwrapped_env = self.env.unwrapped
-        unwrapped_env.cur_pos = self.starting_position
-        unwrapped_env.cur_angle = self.starting_angle
+        unwrapped_env.cur_pos = self._starting_position
+        unwrapped_env.cur_angle = self._starting_angle
         self.env.render()
 
-    def _select_policy(self):
+    def _active_policy(self):
         raise NotImplementedError()
 
-    def _update_horizon_boundaries(self):
-        self.horizon_count += 1
+    def _update_task_boundaries(self):
+        self._current_horizon += 1
 
-        if self.horizon_count >= self.horizon:
-            self.horizon_count = 0
-            self.episodes_count += 1
+        if self._current_horizon > self._horizon:
+            self._current_horizon = 0
+            self._current_episode += 1
             self._on_episode_done()
 
-        if self.episodes_count >= self.episodes:
-            self._on_training_done()
+        if self._current_episode > self._episodes:
+            self._on_process_done()
 
     def _aggregate(self, observation, action):
-        self.observations.append(observation)
-        self.expert_actions.append(action)
-
-    def _on_episode_done(self):
-        self._learn()
-        print('[FINISHED] Episode: {}/{}'.format(self.episodes_count, self.episodes))
+        self._observations.append(observation)
+        self._expert_actions.append(action)
+        self._expert_interventions += 1
 
     def _learn(self):
         self.enabled = False
         try:
             print('[START] Learning....')
-            self.secondary.learn(self.observations, self.expert_actions)
+            self.secondary.learn(self._observations, self._expert_actions)
             self.secondary.save()
-            self._on_episode_learning_done()
+            self._on_learning_done()
             print('[FINISHED] Learning')
         finally:
             self.enabled = True
 
-    def _on_episode_learning_done(self):
+    # triggered after an episode of learning is done
+    def _on_episode_done(self):
+        self._learn()
+        print('[FINISHED] Episode: {}/{}'.format(self._current_episode, self._episodes))
+
+    # triggered when the learning step after an episode is done
+    def _on_learning_done(self):
         pass
 
-    def _on_training_done(self):
+    # triggered when the whole training is done
+    def _on_process_done(self):
         self.enabled = False
-        print('[DONE] episode: {}/{}, alpha: {}'.format(self.episodes_count, self.episodes, self.alpha_episode))
+        print('[DONE] episode: {}/{}, alpha: {}'.format(self._current_episode, self._episodes, self._current_alpha))

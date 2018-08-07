@@ -14,8 +14,8 @@ class DAggerLearning(InteractiveImitationLearning):
         # internal count
         self.alpha_episode = self.alpha
 
-    def _select_policy(self):
-        if self.episodes_count == 0:  # check DAgger definition (initial policy equals expert)
+    def _active_policy(self):
+        if self._current_episode == 0:  # check DAgger definition (initial policy equals expert)
             return self.primary
         expert_control_decay = np.random.choice(
             a=[self.primary, self.secondary],
@@ -25,5 +25,5 @@ class DAggerLearning(InteractiveImitationLearning):
 
     def _on_episode_done(self):
         # decay expert probability of control after each episode
-        self.alpha_episode = self.alpha_episode ** self.episodes_count
+        self.alpha_episode = self.alpha_episode ** self._current_episode
         InteractiveImitationLearning._on_episode_done(self)

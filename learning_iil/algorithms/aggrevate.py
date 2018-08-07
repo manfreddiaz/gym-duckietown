@@ -11,7 +11,7 @@ class AggreVaTeLearning(DAggerLearning):
         self.explorer = explorer
 
     def _select_breakpoint(self):
-        self.break_point = np.random.randint(1, self.horizon)  # t in AggreVaTeSampling()
+        self.break_point = np.random.randint(1, self._horizon)  # t in AggreVaTeSampling()
         print('t: {}'.format(self.break_point))
 
     def _do_update(self, dt):
@@ -19,15 +19,15 @@ class AggreVaTeLearning(DAggerLearning):
 
         if self.break_point is None:
             self._select_breakpoint()
-        if self.horizon_count < self.break_point:
-            control_policy = self._select_policy()
-        elif self.horizon_count == self.break_point:
+        if self._current_horizon < self.break_point:
+            control_policy = self._active_policy()
+        elif self._current_horizon == self.break_point:
             control_policy = self.explorer
         else:
             control_policy = self.primary
 
         control_action = control_policy._do_update(observation)
-        self._record(control_policy, control_action, observation)
+        self._on_expert_input(control_policy, control_action, observation)
 
         return control_action
 
@@ -35,6 +35,6 @@ class AggreVaTeLearning(DAggerLearning):
         self._select_breakpoint()
         DAggerLearning._on_episode_done(self)
 
-    def _on_episode_learning_done(self):
-        self.observations.clear()
-        self.expert_actions.clear()
+    def _on_learning_done(self):
+        self._observations.clear()
+        self._expert_actions.clear()

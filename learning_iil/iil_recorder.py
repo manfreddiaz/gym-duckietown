@@ -28,7 +28,7 @@ class ImitationLearningRecorder(RecordingController):
             RecordingController.step(self, action)
             self.count += 1
             if self.count == self.horizon * self.iterations:
-                print('finishing')
+                print('[DONE] Recording')
                 self.stop(None)
                 self.exit()
 
@@ -52,6 +52,7 @@ class ImitationLearningRecorder(RecordingController):
                     unwrapped_env.cur_angle,
                     unwrapped_env.step_count,
                     unwrapped_env._proximity_penalty(),
-                    self._controller.secondary.seen_samples
+                    self._controller._expert_interventions,
+                    self._controller._expert_disengagement
                 ])
             })

@@ -36,6 +36,7 @@ class NeuralNetworkController(Controller):
                 batch_observations = observations[iteration:remainder]
                 batch_actions = actions[iteration:remainder]
                 self.leaner.learn(batch_observations, batch_actions)
+
         self.seen_samples += len(observations)
 
     def predict(self, observation):
