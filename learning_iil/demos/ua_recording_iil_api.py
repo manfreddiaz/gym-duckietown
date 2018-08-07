@@ -10,7 +10,7 @@ from controllers import JoystickController
 from gym_duckietown.envs import SimpleSimEnv
 from gym_duckietown.wrappers import HeadingWrapper
 
-from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning
+from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning, DropoutDAggerLearning
 from learning_iil.iil_recorder import ImitationLearningRecorder
 from learning_iil.learners import UncertaintyAwareRandomController, UncertaintyAwareNNController, \
     NeuralNetworkController, RandomController
@@ -64,29 +64,30 @@ def create_environment(args, with_heading=True):
 
 def create_learning_algorithm(environment, arguments):
     iteration = 1
-    base_directory = 'trained_models/dagger/{}/on_ror_64_32_adag/'.format(iteration)
+    base_directory = 'trained_models/dropout_dagger/{}/on_mcd_last-layer-0.5_ror_64_32_adag/'.format(iteration)
     horizon = 512
     iterations = 10
 
     # human controller
-    human_teacher = JoystickController(environment)
+    human_teacher = UncertaintyAwareHumanController(environment)
     human_teacher.load_mapping(arguments.controller_mapping)
 
-    tf_model = ResnetOneRegression()
-    tf_learner = NeuralNetworkController(env=environment,
+    tf_model = MonteCarloDropoutResnetOneRegression()
+    tf_learner = UncertaintyAwareNNController(env=environment,
                                               learner=tf_model,
                                               storage_location=base_directory)
     # explorer
     random_controller = RandomController(environment)
 
     starting_position = TRAINING_STARTING_POSITIONS[np.random.randint(0, len(TRAINING_STARTING_POSITIONS))]
-    iil_learning = DAggerLearning(env=environment,
-                                  teacher=human_teacher,
-                                  learner=tf_learner,
-                                  horizon=horizon,
-                                  episodes=iterations,
-                                  starting_position=starting_position,
-                                  starting_angle=0.0)
+    iil_learning = DropoutDAggerLearning(env=environment,
+                                         teacher=human_teacher,
+                                         learner=tf_learner,
+                                         threshold=0.1,
+                                         horizon=horizon,
+                                         episodes=iterations,
+                                         starting_position=starting_position,
+                                         starting_angle=0.0)
 
     # iil_learning = SupervisedLearning(env=environment,
     #                                   teacher=human_teacher,
