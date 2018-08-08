@@ -6,37 +6,37 @@ from learning_iil.algorithms import AggreVaTeLearning
 
 class UPMSLearning(AggreVaTeLearning):
 
-    def __init__(self, env, teacher, learner, explorer, horizon, episodes, starting_position, starting_angle):
-        AggreVaTeLearning.__init__(self, env, teacher, learner, horizon, episodes, starting_position, starting_angle)
+    def __init__(self, env, teacher, learner, explorer, safety_coefficient,
+                 horizon, episodes, starting_position, starting_angle):
+        AggreVaTeLearning.__init__(self, env, teacher, learner, explorer,
+                                   horizon, episodes, starting_position, starting_angle)
         self.explorer = explorer
         self._teacher_uncertainty = math.inf
         self._learner_uncertainty = math.inf
+        self._safety_coefficient = safety_coefficient
 
-    @staticmethod
-    def control_coefficient(uncertainty):
-        return 1. - np.tanh(uncertainty)
+    def control_coefficient(self, uncertainty):
+        return 1. - np.tanh(self._safety_coefficient * uncertainty)
 
-    @staticmethod
-    def exploration_coefficient(uncertainty):
-        return np.tanh(uncertainty)
+    def exploration_coefficient(self, uncertainty):
+        return np.tanh(self._safety_coefficient * uncertainty)
 
     def _active_policy(self):
-        teacher_preference = UPMSLearning.control_coefficient(self._teacher_uncertainty)
-        learner_preference = UPMSLearning.control_coefficient(self._learner_uncertainty)
+        teacher_preference = self.control_coefficient(self._teacher_uncertainty)
+        learner_preference = self.control_coefficient(self._learner_uncertainty)
         normalization_factor = teacher_preference + learner_preference
 
         # rationality
         mixing_proportions = [teacher_preference / normalization_factor, learner_preference / normalization_factor]
         if math.isnan(mixing_proportions[0]) and math.isnan(mixing_proportions[1]): # impossibility
             self._emergency_action()
+            return None
         else:
             selected_policy = np.random.choice(a=[self.primary, self.secondary], p=mixing_proportions)
             return selected_policy
 
-        return None
-
     def _active_exploration(self):
-        teacher_preference = UPMSLearning.control_coefficient(self._teacher_uncertainty)
+        teacher_preference = self.control_coefficient(self._teacher_uncertainty)
 
         exploration_control = np.random.choice(a=[self.primary, self.explorer],
                                                p=[teacher_preference, 1. - teacher_preference])
@@ -44,7 +44,7 @@ class UPMSLearning(AggreVaTeLearning):
         return exploration_control
 
     def _select_breakpoint(self):
-        self.break_point = math.floor(self._horizon * UPMSLearning.exploration_coefficient(self._learner_uncertainty))
+        self.break_point = math.floor(self._horizon * self.exploration_coefficient(self._learner_uncertainty))
 
     def _exploit(self, observation):
         control_action = None
@@ -88,7 +88,8 @@ class UPMSLearning(AggreVaTeLearning):
         elif self._current_horizon > self.break_point:
             control_policy, control_action = self._explore(observation)
 
-        self._on_expert_input(control_policy, control_action, observation)
+        if control_policy is not None:
+            self._on_expert_input(control_policy, control_action, observation)
 
         return control_action
 

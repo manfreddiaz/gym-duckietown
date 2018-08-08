@@ -1,6 +1,6 @@
 import pickle
 
-recording_file_name = 'trained_models/supervised/1/ror_64_32_adag/training.pkl'
+recording_file_name = 'trained_models/upms_ne/1/ror_64_32_adag/training.pkl'
 # statistics_file = open('trained_models/aggravate/experiments.pkl', mode='xab')
 HORIZON = 512
 EPISODES = 10
@@ -38,7 +38,6 @@ if __name__ == '__main__':
                 sum_disengagements += statistics['disengagements']
                 episodes_stats.append(statistics)
                 statistics = empty_statistics()
-
         print(episodes_stats)
     except EOFError:
         print('Finishing analysis...')

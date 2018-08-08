@@ -42,9 +42,12 @@ class InteractiveImitationLearning(SharedController):
         if control_policy == self.primary:
             expert_action = control_action
         else:
-            expert_action = self.primary._do_update(observation)
+            expert_action = self.primary._do_update(observation)  # if we have uncertainty as input, we do not record it
+            if isinstance(expert_action, tuple):
+                expert_action, _ = expert_action
         if expert_action is not None:
             self._aggregate(observation, expert_action)
+            self._expert_interventions += 1
         else:
             self._expert_disengagement += 1
             print('give me input you idiot :)')
@@ -86,7 +89,6 @@ class InteractiveImitationLearning(SharedController):
     def _aggregate(self, observation, action):
         self._observations.append(observation)
         self._expert_actions.append(action)
-        self._expert_interventions += 1
 
     def _learn(self):
         self.enabled = False
