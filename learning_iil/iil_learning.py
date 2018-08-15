@@ -43,8 +43,8 @@ class InteractiveImitationLearning(SharedController):
             expert_action = control_action
         else:
             expert_action = self.primary._do_update(observation)  # if we have uncertainty as input, we do not record it
-            if isinstance(expert_action, tuple):
-                expert_action, _ = expert_action
+        if isinstance(expert_action, tuple):
+            expert_action, _ = expert_action
         if expert_action is not None:
             self._aggregate(observation, expert_action)
             self._expert_interventions += 1
@@ -94,6 +94,7 @@ class InteractiveImitationLearning(SharedController):
         self.enabled = False
         try:
             print('[START] Learning....')
+            print('observations: {}'.format(len(self._observations)))
             self.secondary.learn(self._observations, self._expert_actions)
             self.secondary.save()
             self._on_learning_done()
@@ -108,7 +109,7 @@ class InteractiveImitationLearning(SharedController):
 
     # triggered when the learning step after an episode is done
     def _on_learning_done(self):
-        pass
+        raise NotImplementedError()
 
     # triggered when the whole training is done
     def _on_process_done(self):

@@ -1,6 +1,6 @@
 import pickle
 
-recording_file_name = 'trained_models/upms_ne/1/ror_64_32_adag/training.pkl'
+recording_file_name = 'trained_models/upms_da/0/ror_64_32_adag/training.pkl'
 # statistics_file = open('trained_models/aggravate/experiments.pkl', mode='xab')
 HORIZON = 512
 EPISODES = 10
@@ -11,7 +11,8 @@ def empty_statistics():
         'risk': 0,
         'reward': 0,
         'interventions': 0,
-        'disengagements': 0
+        'disengagements': 0,
+        'negative_reward': 0,
     }
 
 
@@ -29,6 +30,8 @@ if __name__ == '__main__':
             env = sample['env']
             hidden = sample['hidden']
             statistics['reward'] += env[1]
+            if -1000 < env[1] < 0:
+                statistics['negative_reward'] += env[1]
             if env[2] and index < total_samples:
                 statistics['risk'] += 1
             if index % (HORIZON - 1) == 0 and index / (HORIZON - 1) > 0:

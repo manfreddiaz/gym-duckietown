@@ -11,8 +11,8 @@ from controllers import JoystickController
 from gym_duckietown.envs import SimpleSimEnv
 from gym_duckietown.wrappers import HeadingWrapper
 
-from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning, DropoutDAggerLearning
-from learning_iil.algorithms.ua_pms_sl import UPMSSelfLearning
+from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning, \
+    DropoutDAggerLearning, UPMSSelfLearning, UPMSDataAggregationLearning
 from learning_iil.iil_recorder import ImitationLearningRecorder
 from learning_iil.learners import UncertaintyAwareRandomController, UncertaintyAwareNNController, \
     NeuralNetworkController, RandomController
@@ -23,8 +23,6 @@ from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetO
 
 SEEDS = [123, 1234, 2345, 3456, 4567, 5678, 6789, 7890, 8901, 9012]
 
-np.random.seed(1234)
-
 TRAINING_STARTING_POSITIONS = [
     [(0.8, 0.0, 1.5), 10.90],
     [(0.8, 0.0, 2.5), 10.90],
@@ -34,10 +32,12 @@ TRAINING_STARTING_POSITIONS = [
     [(2.8, 0.0, 0.8), 15.71],
 ]
 
-DEFAULT_ITERATION = 1
-base_directory = 'trained_models/upms_ne/{}/ror_64_32_adag/'.format(DEFAULT_ITERATION)
+DEFAULT_ITERATION = 0
+base_directory = 'trained_models/upms_da/{}/ror_64_32_adag/'.format(DEFAULT_ITERATION)
 DEFAULT_HORIZON_LENGTH = 512
 DEFAULT_EPISODES = 10
+
+np.random.seed(SEEDS[DEFAULT_ITERATION])
 
 
 def primary_parser():
@@ -90,23 +90,41 @@ def create_learning_algorithm(environment, arguments):
     random_controller = UncertaintyAwareRandomController(environment)
 
     starting_position = TRAINING_STARTING_POSITIONS[np.random.randint(0, len(TRAINING_STARTING_POSITIONS))]
-    iil_learning = UPMSLearning(env=environment,
+    iil_learning = UPMSDataAggregationLearning(env=environment,
                                 teacher=human_teacher,
                                 learner=tf_learner,
-                                explorer=tf_learner,
+                                explorer=random_controller,
                                 horizon=DEFAULT_HORIZON_LENGTH,
                                 episodes=DEFAULT_EPISODES,
                                 starting_position=starting_position[0],
                                 starting_angle=starting_position[1],
                                 safety_coefficient=30)
 
+    # iil_learning = DropoutDAggerLearning(env=environment,
+    #                             teacher=human_teacher,
+    #                             learner=tf_learner,
+    #                             horizon=DEFAULT_HORIZON_LENGTH,
+    #                             episodes=DEFAULT_EPISODES,
+    #                             starting_position=starting_position[0],
+    #                             starting_angle=starting_position[1],
+    #                             threshold=0.1)
+
     # iil_learning = SupervisedLearning(env=environment,
     #                                   teacher=human_teacher,
     #                                   learner=tf_learner,
-    #                                   horizon=horizon,
-    #                                   episodes=iterations,
-    #                                   starting_angle=0,
-    #                                   starting_position=starting_position)
+    #                                   horizon=DEFAULT_HORIZON_LENGTH,
+    #                                   episodes=DEFAULT_EPISODES,
+    #                                   starting_position=starting_position[0],
+    #                                   starting_angle=starting_position[1])
+
+    # iil_learning = AggreVaTeLearning(env=environment,
+    #                               teacher=human_teacher,
+    #                               learner=tf_learner,
+    #                               explorer=random_controller,
+    #                               horizon=DEFAULT_HORIZON_LENGTH,
+    #                               episodes=DEFAULT_EPISODES,
+    #                               starting_position=starting_position[0],
+    #                               starting_angle=starting_position[1])
 
     recorder = ImitationLearningRecorder(env, iil_learning, base_directory + 'training.pkl', horizon=DEFAULT_HORIZON_LENGTH,
                                          iterations=DEFAULT_EPISODES)
