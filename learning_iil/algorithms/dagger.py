@@ -5,6 +5,9 @@ np.random.seed(1234)
 
 
 class DAggerLearning(InteractiveImitationLearning):
+    def _on_learning_done(self):
+        pass
+
     def __init__(self, env, teacher, learner, horizon, episodes, starting_position, starting_angle, alpha=0.99):
         InteractiveImitationLearning.__init__(self, env, teacher, learner,
                                               horizon, episodes, starting_position, starting_angle)
@@ -27,3 +30,5 @@ class DAggerLearning(InteractiveImitationLearning):
         # decay expert probability of control after each episode
         self.alpha_episode = self.alpha_episode ** self._current_episode
         InteractiveImitationLearning._on_episode_done(self)
+
+

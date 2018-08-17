@@ -1,6 +1,6 @@
 import pickle
 
-recording_file_name = 'trained_models/upms_da/0/ror_64_32_adag/training.pkl'
+recording_file_name = 'trained_models/upms_da_ne/2/ror_64_32_adag/training.pkl'
 # statistics_file = open('trained_models/aggravate/experiments.pkl', mode='xab')
 HORIZON = 512
 EPISODES = 10

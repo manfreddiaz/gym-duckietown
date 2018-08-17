@@ -13,6 +13,7 @@ from gym_duckietown.wrappers import HeadingWrapper
 
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning, \
     DropoutDAggerLearning, UPMSSelfLearning, UPMSDataAggregationLearning
+from learning_iil.algorithms.ua_pms_da_sl import UPMSDataAggregationSelfLearning
 from learning_iil.iil_recorder import ImitationLearningRecorder
 from learning_iil.learners import UncertaintyAwareRandomController, UncertaintyAwareNNController, \
     NeuralNetworkController, RandomController
@@ -32,8 +33,8 @@ TRAINING_STARTING_POSITIONS = [
     [(2.8, 0.0, 0.8), 15.71],
 ]
 
-DEFAULT_ITERATION = 0
-base_directory = 'trained_models/upms_da/{}/ror_64_32_adag/'.format(DEFAULT_ITERATION)
+DEFAULT_ITERATION = 2
+base_directory = 'trained_models/upms_dasl/{}/ror_64_32_adag/'.format(DEFAULT_ITERATION)
 DEFAULT_HORIZON_LENGTH = 512
 DEFAULT_EPISODES = 10
 
@@ -83,14 +84,12 @@ def create_learning_algorithm(environment, arguments):
     human_teacher.load_mapping(arguments.controller_mapping)
 
     tf_model = MonteCarloDropoutResnetOneRegression()
-    tf_learner = UncertaintyAwareNNController(env=environment,
-                                              learner=tf_model,
-                                              storage_location=base_directory)
+    tf_learner = UncertaintyAwareNNController(env=environment, learner=tf_model, storage_location=base_directory)
     # explorer
     random_controller = UncertaintyAwareRandomController(environment)
 
     starting_position = TRAINING_STARTING_POSITIONS[np.random.randint(0, len(TRAINING_STARTING_POSITIONS))]
-    iil_learning = UPMSDataAggregationLearning(env=environment,
+    iil_learning = UPMSDataAggregationSelfLearning(env=environment,
                                 teacher=human_teacher,
                                 learner=tf_learner,
                                 explorer=random_controller,
@@ -117,17 +116,17 @@ def create_learning_algorithm(environment, arguments):
     #                                   starting_position=starting_position[0],
     #                                   starting_angle=starting_position[1])
 
-    # iil_learning = AggreVaTeLearning(env=environment,
+    # iil_learning = DAggerLearning(env=environment,
     #                               teacher=human_teacher,
     #                               learner=tf_learner,
-    #                               explorer=random_controller,
+    #                               # explorer=random_controller,
     #                               horizon=DEFAULT_HORIZON_LENGTH,
     #                               episodes=DEFAULT_EPISODES,
     #                               starting_position=starting_position[0],
     #                               starting_angle=starting_position[1])
 
-    recorder = ImitationLearningRecorder(env, iil_learning, base_directory + 'training.pkl', horizon=DEFAULT_HORIZON_LENGTH,
-                                         iterations=DEFAULT_EPISODES)
+    recorder = ImitationLearningRecorder(env, iil_learning, base_directory + 'training.pkl',
+                                         horizon=DEFAULT_HORIZON_LENGTH, iterations=DEFAULT_EPISODES)
 
     return recorder
 
