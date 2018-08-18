@@ -10,7 +10,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import numpy as np
-from scipy.signal import medfilt
 matplotlib.rcParams.update({'font.size': 8})
 
 
@@ -78,9 +77,7 @@ def load_data(indir, smooth, bin_size):
 
     if smooth == 1:
         x, y = smooth_reward_curve(x, y)
-
-    if smooth == 2:
-        y = medfilt(y, kernel_size=9)
+    assert smooth != 2
 
     x, y = fix_point(x, y, bin_size)
     return [x, y]
@@ -96,7 +93,7 @@ color_defaults = [
     '#e377c2',  # raspberry yogurt pink
     '#7f7f7f',  # middle gray
     '#bcbd22',  # curry yellow-green
-    '#17becf'  # blue-teal
+    '#17becf'   # blue-teal
 ]
 
 
