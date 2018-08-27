@@ -41,6 +41,7 @@ class NeuralNetworkController(Controller):
 
     def predict(self, observation):
         action = self.leaner.predict([observation])
+        print(action[1])
         return action[0]
 
     def save(self):
