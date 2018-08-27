@@ -22,6 +22,9 @@ class UPMSLearning(AggreVaTeLearning):
         return np.tanh(self._safety_coefficient * uncertainty)
 
     def _active_policy(self):
+        if self._current_episode == 0:
+            return self.primary
+
         teacher_preference = self.control_coefficient(self._teacher_uncertainty)
         learner_preference = self.control_coefficient(self._learner_uncertainty)
         normalization_factor = teacher_preference + learner_preference
@@ -49,12 +52,13 @@ class UPMSLearning(AggreVaTeLearning):
     def _exploit(self, observation):
         control_action = None
 
-        teacher_action, self._teacher_uncertainty = self.primary._do_update(observation)
+        teacher_action, self._teacher_uncertainty = self.primary._do_update(self._current_episode)
         learner_action, self._learner_uncertainty = self.secondary._do_update(observation)
         control_policy = self._active_policy()
 
         if control_policy == self.primary:
             control_action = teacher_action
+
         elif control_policy == self.secondary:
             control_action = learner_action
 
@@ -63,7 +67,7 @@ class UPMSLearning(AggreVaTeLearning):
     def _explore(self, observation):
         control_action = None
 
-        teacher_action, self._teacher_uncertainty = self.primary._do_update(observation)
+        teacher_action, self._teacher_uncertainty = self.primary._do_update(self._current_episode)
         explorer_action, self._learner_uncertainty = self.explorer._do_update(observation)
         control_policy = self._active_exploration()
 
@@ -94,13 +98,21 @@ class UPMSLearning(AggreVaTeLearning):
         return control_action
 
     def _emergency_action(self):
-        self.secondary.enabled = False  # disable the learner, allows the teacher to control back
+        # self.secondary.enabled = False  # disable the learner, allows the teacher to control back
         print('emergency action applied')
 
     def reset(self):
+        self.primary.reset()
+        self.secondary.reset()
+
         self.primary.enabled = True
         self.secondary.enabled = True
+
         AggreVaTeLearning.reset(self)
 
     def _on_episode_done(self):
         self._learn()
+        self.reset()
+
+    def _on_learning_done(self):
+        pass

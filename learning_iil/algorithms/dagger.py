@@ -1,7 +1,8 @@
+import math
 import numpy as np
 from ..iil_learning import InteractiveImitationLearning
 
-np.random.seed(1234)
+# np.random.seed(1234)
 
 
 class DAggerLearning(InteractiveImitationLearning):
@@ -28,7 +29,9 @@ class DAggerLearning(InteractiveImitationLearning):
 
     def _on_episode_done(self):
         # decay expert probability of control after each episode
-        self.alpha_episode = self.alpha_episode ** self._current_episode
+        self.alpha_episode = math.exp(-self._current_episode / 10)
+        print('ALPHA: {}'.format(self.alpha_episode))
         InteractiveImitationLearning._on_episode_done(self)
+        self.env.reset()
 
 

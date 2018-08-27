@@ -7,14 +7,13 @@ import pyglet
 import gym
 
 from controllers import JoystickController
-from gym_duckietown.envs import SimpleSimEnv
-from gym_duckietown.wrappers import HeadingWrapper
+from gym_duckietown.envs import DuckietownEnv
 
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning
 from learning_iil.iil_control import InteractiveControl
 from learning_iil.iil_recorder import ImitationLearningRecorder
 from learning_iil.learners import UncertaintyAwareRandomController, UncertaintyAwareNNController, NeuralNetworkController
-from learning_iil.teachers import UncertaintyAwareHumanController
+from learning_iil.teachers import UncertaintyAwareHumanController, UncertaintyAwarePurePursuitController
 from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
 from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetOneRegression, \
     MonteCarloDropoutResnetOneMixture, FortifiedResnetOneRegression, FortifiedResnetOneMixture
@@ -49,35 +48,39 @@ def parse_args():
 
 def create_environment(args, with_heading=True):
     if args.env_name == 'SimpleSim-v0':
-        environment = SimpleSimEnv(
+        environment = DuckietownEnv(
             max_steps=math.inf,
             domain_rand=False,
             draw_curve=False,
-            # map_name='small_loop'
+            map_name='small_loop'
         )
     else:
         environment = gym.make(args.env_name)
-    if with_heading:
-        environment = HeadingWrapper(environment)
 
     return environment
 
 
 def create_learning_algorithm(environment, arguments):
-    iteration = 1
-    base_directory = 'trained_models/upms/{}/on_ror_64_32_adag/'.format(iteration)
-    horizon = 512
+    iteration = 3
+    base_directory = 'trained_models/alg_upms/{}/ror_64_32_adag'.format(iteration)
+    horizon = 1024
     iterations = 10
 
     # human controller
     human_teacher = UncertaintyAwareHumanController(environment)
     human_teacher.load_mapping(arguments.controller_mapping)
+    tf_model = MonteCarloDropoutResnetOneRegression()
+    tf_learner = NeuralNetworkController(env=environment, learner=tf_model, storage_location=base_directory, training=False)
+    # tf_model = FortifiedResnetOneRegression(noise=1e-1)
+    # tf_learner = UncertaintyAwareNNController(env=environment,
+    #                                      learner=tf_model,
+    #                                      storage_location=base_directory,
+    #                                      training=False)
 
-    tf_model = FortifiedResnetOneRegression(noise=1e-1)
-    tf_learner = UncertaintyAwareNNController(env=environment,
-                                         learner=tf_model,
-                                         storage_location=base_directory,
-                                         training=False)
+    # tf_model = FortifiedResnetOneRegression(noise=1e-1)
+    # tf_learner = UncertaintyAwarePurePursuitController(env=environment,
+    #                                                    following_distance=0.4,
+    #                                                    )
 
     iil_controller = InteractiveControl(env=environment,
                                         teacher=human_teacher,

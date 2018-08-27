@@ -12,3 +12,6 @@ class UncertaintyAwareNNController(NeuralNetworkController):
         prediction = self.leaner.predict([observation])
         print(prediction)
         return prediction[0], prediction[1]
+
+    def reset(self):
+        pass

@@ -30,8 +30,8 @@ class InteractiveControl(SharedController):
 
         control_policy = self._select_policy()
         control_action = control_policy._do_update(observation)
-        if len(control_action) == 2:
-            control_action, uncertainty = control_action
+        # if len(control_action) == 2:
+        #     control_action, uncertainty = control_action
 
         return control_action
 

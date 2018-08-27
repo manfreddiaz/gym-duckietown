@@ -1,1 +1,2 @@
 from .ua_human_controller import UncertaintyAwareHumanController
+from .ua_purpusuit_controller import UncertaintyAwarePurePursuitController

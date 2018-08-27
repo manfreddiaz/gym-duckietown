@@ -1,3 +1,4 @@
+import numpy as np
 from controllers import SharedController
 
 
@@ -42,7 +43,7 @@ class InteractiveImitationLearning(SharedController):
         if control_policy == self.primary:
             expert_action = control_action
         else:
-            expert_action = self.primary._do_update(observation)  # if we have uncertainty as input, we do not record it
+            expert_action = self.primary._do_update(self._current_episode)  # if we have uncertainty as input, we do not record it
         if isinstance(expert_action, tuple):
             expert_action, _ = expert_action
         if expert_action is not None:
@@ -67,8 +68,9 @@ class InteractiveImitationLearning(SharedController):
             return next_observation, reward, done, info
 
     def reset(self):
+        self.env.reset()
         unwrapped_env = self.env.unwrapped
-        unwrapped_env.cur_pos = self._starting_position
+        unwrapped_env.cur_pos = np.array(self._starting_position)
         unwrapped_env.cur_angle = self._starting_angle
         self.env.render()
 

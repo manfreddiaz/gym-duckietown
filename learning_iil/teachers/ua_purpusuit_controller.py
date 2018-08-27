@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from controllers import Controller
 
@@ -8,10 +9,24 @@ class UncertaintyAwarePurePursuitController(Controller):
         self.following_distance = following_distance
         self.max_iterations = max_iterations
 
-    def _do_update(self, dt):
-        return self.predict()
+        # state
+        self.position = self.env.cur_pos
+        self.velocity = self.env.speed
+        self.d_position = None
+        self.d_velocity = None
+        self.time_step = 0
 
-    def predict(self):
+    def _do_update(self, dt):
+        return self.predict(dt)
+
+    def predict(self, dt):
+        self.d_position = self.env.cur_pos - self.position
+        self.position = self.env.cur_pos
+
+        self.d_velocity = self.env.speed - self.velocity
+        self.velocity = self.env.speed
+        self.time_step += 1
+
         closest_point, closest_tangent = self.env.closest_curve_point(self.env.cur_pos)
         iterations = 0
         lookup_distance = self.following_distance
@@ -23,8 +38,10 @@ class UncertaintyAwarePurePursuitController(Controller):
 
             # If we have a valid point on the curve, stop
             if curve_point is not None:
+                # print('found at: {}'.format(iterations))
                 break
 
+            iterations += 1
             lookup_distance *= 0.5
 
         if iterations == self.max_iterations:  # if cannot find a curve point in max iterations
@@ -32,13 +49,35 @@ class UncertaintyAwarePurePursuitController(Controller):
 
         # Compute a normalized vector to the curve point
         point_vec = curve_point - self.env.cur_pos
-        point_vec /= np.linalg.norm(point_vec)
-
-        print(point_vec)
+        norm = np.linalg.norm(point_vec)
+        point_vec /= norm
 
         dot = np.dot(self.env.get_right_vec(), point_vec)
-        velocity = 0.35
+        velocity = 0.5
 
-        steering = 2 * -dot
+        steering = 8 * -dot
 
-        return [velocity, steering], 0.0
+        position_diff = np.abs(norm - self.following_distance)
+        e_v = velocity - self.env.speed
+        velocity_diff = np.abs(e_v)
+
+        action = [velocity + 2 * e_v, steering]
+
+        print(position_diff, velocity_diff, self.d_velocity, self.time_step, self.env.step_count)
+
+        if position_diff > 0.1 or velocity_diff > 0.5 or abs(self.env.step_count - self.time_step) > 3:
+            uncertainty = 0
+            self.time_step = self.env.step_count
+            print('taking control')
+            return action, uncertainty
+        else:
+            if dt == 0:
+                return action, 0
+            else:
+                print('ceding control')
+                return None, math.inf
+
+    def reset(self):
+        Controller.reset(self)
+        self.time_step = self.env.step_count
+

@@ -22,7 +22,7 @@ class MonteCarloDropoutResnetOneMixture(TensorflowOnlineLearner):
         prediction = MixtureDensityNetwork.max_central_value(mixtures=np.squeeze(mixtures),
                                                              means=np.squeeze(means),
                                                              variances=np.squeeze(variances))
-        return prediction[0], np.sum(prediction[1])  # FIXME: Is this the best way to add the variances?
+        return prediction[0], np.mean(prediction[1])  # FIXME: Is this the best way to add the variances?
 
     def architecture(self):
         model = tf.map_fn(lambda frame: tf.image.resize_images(frame, (60, 80)), self.state_tensor)
