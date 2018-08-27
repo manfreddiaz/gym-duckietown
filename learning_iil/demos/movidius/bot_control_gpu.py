@@ -6,10 +6,7 @@ learning, and visualize the result.
 """
 
 import time
-import argparse
-
 import numpy as np
-import cv2
 
 from learning_iil.demos.movidius.bot_differential_env import DifferentialDuckiebotEnv
 from learning_iil.learners import NeuralNetworkController, UncertaintyAwareNNController

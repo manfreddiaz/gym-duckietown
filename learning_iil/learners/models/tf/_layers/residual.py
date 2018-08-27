@@ -4,14 +4,14 @@ l2_lambda = 1e-04
 
 
 def residual_block(x, size, dropout=False, dropout_prob=0.5):
-    # residual = tf.layers.batch_normalization(x)  # TODO: check if the defaults in Tf are the same as in Keras
-    residual = tf.nn.relu(x)
+    residual = tf.layers.batch_normalization(x)  # TODO: check if the defaults in Tf are the same as in Keras
+    residual = tf.nn.relu(residual)
     residual = tf.layers.conv2d(residual, filters=size, kernel_size=3, strides=2, padding='same',
                                 kernel_initializer=tf.keras.initializers.he_normal(),
                                 kernel_regularizer=tf.keras.regularizers.l2(l2_lambda))
     if dropout:
         residual = tf.nn.dropout(residual, dropout_prob)
-    # residual = tf.layers.batch_normalization(residual)
+    residual = tf.layers.batch_normalization(residual)
     residual = tf.nn.relu(residual)
     residual = tf.layers.conv2d(residual, filters=size, kernel_size=3, padding='same',
                                 kernel_initializer=tf.keras.initializers.he_normal(),
