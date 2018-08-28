@@ -30,23 +30,12 @@ tf_controller = UncertaintyAwareNNController(env=env,
 while True:
     start_time = time.time()
 
-    # obs = cv2.resize(obs, (80, 60), interpolation=cv2.INTER_NEAREST)
-
     obs = np.flipud(obs)
-    # cv2.imwrite('output.jpeg', obs)
-    # obs = obs.transpose(2, 0, 1)
 
     vels = tf_controller.predict(observation=obs)
-    print(vels)
 
-    if vels[1] < .5:
-        print('here: {}'.format(vels[1]))
     obs, reward, done, info = env.step(vels[0])
-    #print('stepCount = %s, reward=%.3f' % (env.stepCount, reward))
-
-
     env.render()
-
 
     end_time = time.time()
     frame_time = 1000 * (end_time - start_time)
