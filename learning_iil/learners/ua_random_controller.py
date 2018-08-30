@@ -20,3 +20,6 @@ class UncertaintyAwareRandomController(Controller):
 
     def save(self):
         print('I didn\'t learn a thing...')
+
+    def reset(self):
+        pass

@@ -12,7 +12,7 @@ class MonteCarloDropoutResnetOneRegression(TensorflowOnlineLearner):
     def explore(self, state, horizon=1):
         pass
 
-    def __init__(self, name=None, samples=16, dropout_prob=0.5):
+    def __init__(self, name=None, samples=25, dropout_prob=0.9):
         TensorflowOnlineLearner.__init__(self)
         self.name = name
         self.samples = samples

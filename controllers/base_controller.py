@@ -7,7 +7,7 @@ import yaml
 
 class Controller:
 
-    def __init__(self, env, refresh_rate=0.1):
+    def __init__(self, env, refresh_rate=1/30):
         self.enabled = True
         self.env = env
         self.mapping = None

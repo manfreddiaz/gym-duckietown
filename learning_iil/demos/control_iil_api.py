@@ -1,8 +1,7 @@
 import argparse
 import pyglet
 import gym
-from gym_duckietown.envs import SimpleSimEnv
-from gym_duckietown.wrappers import HeadingWrapper
+from gym_duckietown.envs import DuckietownEnv, MultiMapEnv
 from controllers import JoystickController, ParallelController, SharedController
 
 from learning_iil.learners import NeuralNetworkController, UncertaintyAwareNNController
@@ -22,16 +21,14 @@ def parse_args():
 
 def create_environment(args, with_heading=True):
     if args.env_name == 'SimpleSim-v0':
-        environment = SimpleSimEnv(
+        environment = DuckietownEnv(
             map_name=args.map_name,
             max_steps=5000,
-            domain_rand=False,
+            domain_rand=True,
             draw_curve=False
         )
     else:
         environment = gym.make(args.env_name)
-    if with_heading:
-        environment = HeadingWrapper(environment)
 
     return environment
 
@@ -43,10 +40,10 @@ def create_dagger_controller(environment, arguments):
 
     # nn controller
 
-    tf_model = FortifiedResnetOneRegression(noise=1e-1)
-    tf_controller = UncertaintyAwareNNController(env=environment,
+    tf_model = MonteCarloDropoutResnetOneRegression()
+    tf_controller = NeuralNetworkController(env=environment,
                                             learner=tf_model,
-                                            storage_location='trained_models/upms/1/ror_64_32_fo_1e-1_adam/',
+                                            storage_location='trained_models/alg_upms/3/ror_64_32_adag',
                                             training=False)
 
     iil_algorithm = SharedController(env, joystick_controller, tf_controller)
