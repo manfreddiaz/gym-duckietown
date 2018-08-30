@@ -119,7 +119,7 @@ def main():
     for j in range(num_updates):
         for step in range(args.num_steps):
             # Sample actions
-            value, action, action_log_prob, states = actor_critic.act(
+            value, action, action_log_prob, states = actor_critic._act(
                 Variable(rollouts.observations[step]),
                 Variable(rollouts.states[step]),
                 Variable(rollouts.masks[step])

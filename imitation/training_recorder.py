@@ -3,7 +3,7 @@ from controllers import Controller
 from replay import RecordingController
 
 
-class IILTrainingLogger(RecordingController):
+class IILTrainingLogger():
 
     def __init__(self, env, algorithm, log_file, horizon, episodes):
         RecordingController.__init__(self, env, algorithm, record_file=log_file,

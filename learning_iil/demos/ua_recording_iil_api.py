@@ -13,10 +13,10 @@ from controllers import JoystickController
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning, \
     DropoutDAggerLearning, UPMSSelfLearning, UPMSDataAggregationLearning
 from learning_iil.algorithms.ua_pms_da_sl import UPMSDataAggregationSelfLearning
-from learning_iil.iil_recorder import ImitationLearningRecorder
+from learning_iil.iil_recorder import IILTrainingLogger
 from learning_iil.learners import UARandomExploration, UANeuralNetworkPolicy, \
     NeuralNetworkPolicy, RandomExploration
-from learning_iil.teachers import UncertaintyAwareHumanController, UncertaintyAwarePurePursuitController
+from learning_iil.teachers import UncertaintyAwareHumanController, UAPurePursuitPolicy
 from learning_iil.learners.parametrizations.tf.baselines import ResnetOneRegression, ResnetOneMixture
 from learning_iil.learners.parametrizations.tf.uncertainty import MonteCarloDropoutResnetOneRegression, \
     MonteCarloDropoutResnetOneMixture, FortifiedResnetOneRegression, FortifiedResnetOneMixture
@@ -120,8 +120,8 @@ def create_algorithmic_training(environment, arguments):
     #                               starting_position=starting_position[0],
     #                               starting_angle=starting_position[1])
 
-    recorder = ImitationLearningRecorder(env, iil_learning, base_directory + 'training.pkl',
-                                         horizon=DEFAULT_HORIZON_LENGTH, iterations=DEFAULT_EPISODES)
+    recorder = IILTrainingLogger(env, iil_learning, base_directory + 'training.pkl',
+                                 horizon=DEFAULT_HORIZON_LENGTH, episodes=DEFAULT_EPISODES)
 
     return recorder
 

@@ -33,7 +33,7 @@ class InteractiveImitationLearning(SharedController):
         observation = self.env.unwrapped.render_obs()
 
         control_policy = self._active_policy()
-        control_action = control_policy._do_update(observation)
+        control_action = control_policy.predict(observation)
 
         self._on_expert_input(control_policy, control_action, observation)
 
@@ -72,7 +72,7 @@ class InteractiveImitationLearning(SharedController):
         unwrapped_env = self.env.unwrapped
         unwrapped_env.cur_pos = np.array(self._starting_position)
         unwrapped_env.cur_angle = self._starting_angle
-        self.env.render()
+        self.env.render(mode='rgb_array')
 
     def _active_policy(self):
         raise NotImplementedError()
@@ -95,9 +95,7 @@ class InteractiveImitationLearning(SharedController):
     def _learn(self):
         self.enabled = False
         try:
-            print('[START] Learning....')
-            print('observations: {}'.format(len(self._observations)))
-            self.secondary.learn(self._observations, self._expert_actions)
+            self.secondary.optimize(self._observations, self._expert_actions)
             self.secondary.save()
             self._on_learning_done()
             print('[FINISHED] Learning')

@@ -32,6 +32,6 @@ if __name__ == '__main__':
         print('Finishing analysis...')
 
     print('LEARNING...')
-    tf_learner.learn(observations, actions)
+    tf_learner.optimize(observations, actions)
     tf_learner.save()
     print('DONE')

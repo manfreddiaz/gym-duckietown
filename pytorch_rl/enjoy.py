@@ -62,7 +62,7 @@ def on_key_press(symbol, modifiers):
 
 try:
     while True:
-        value, action, _, states = actor_critic.act(
+        value, action, _, states = actor_critic._act(
             Variable(current_obs),
             Variable(states),
             Variable(masks),

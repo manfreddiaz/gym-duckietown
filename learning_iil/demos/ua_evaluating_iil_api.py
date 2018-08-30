@@ -11,9 +11,9 @@ from gym_duckietown.envs import DuckietownEnv
 
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning
 from learning_iil.iil_control import InteractiveControl
-from learning_iil.iil_recorder import ImitationLearningRecorder
+from learning_iil.iil_recorder import IILTrainingLogger
 from learning_iil.learners import UARandomExploration, UANeuralNetworkPolicy, NeuralNetworkPolicy
-from learning_iil.teachers import UncertaintyAwareHumanController, UncertaintyAwarePurePursuitController
+from learning_iil.teachers import UncertaintyAwareHumanController, UAPurePursuitPolicy
 from learning_iil.learners.parametrizations.tf.baselines import ResnetOneRegression, ResnetOneMixture
 from learning_iil.learners.parametrizations.tf.uncertainty import MonteCarloDropoutResnetOneRegression, \
     MonteCarloDropoutResnetOneMixture, FortifiedResnetOneRegression, FortifiedResnetOneMixture
@@ -88,8 +88,8 @@ def create_learning_algorithm(environment, arguments):
                                         horizon=horizon, episodes=iterations,
                                         respawn_positions=TESTING_STARTING_POSITIONS)
 
-    recorder = ImitationLearningRecorder(env, iil_controller, base_directory + 'testing.pkl', horizon=horizon,
-                                         iterations=iterations)
+    recorder = IILTrainingLogger(env, iil_controller, base_directory + 'testing.pkl', horizon=horizon,
+                                 episodes=iterations)
 
     return recorder
 

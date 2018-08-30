@@ -3,7 +3,7 @@ import numpy as np
 from controllers import Controller
 
 
-class UncertaintyAwarePurePursuitController(Controller):
+class UAPurePursuitPolicy(Controller):
     def __init__(self, env, following_distance, max_iterations=1000, refresh_rate=0.1):
         Controller.__init__(self, env, refresh_rate)
         self.following_distance = following_distance
@@ -15,9 +15,6 @@ class UncertaintyAwarePurePursuitController(Controller):
         self.d_position = None
         self.d_velocity = None
         self.time_step = 0
-
-    def _do_update(self, dt):
-        return self.predict(dt)
 
     def predict(self, dt):
         self.d_position = self.env.cur_pos - self.position
