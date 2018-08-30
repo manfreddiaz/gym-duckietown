@@ -1,5 +1,6 @@
-from learning_iil.demos.movidius.sim2real import model
 import tensorflow as tf
+
+from learning_iil.demos.movidius.trained_models.sim2real import model
 
 x = tf.placeholder('float', [None, 60, 80, 3], name='input')
 #

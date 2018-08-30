@@ -5,44 +5,39 @@ Control the simulator or Duckiebot using a model trained with imitation
 learning, and visualize the result.
 """
 
+# pass: 6ol4mv8&3
+
+
 import time
 import numpy as np
 
 from learning_iil.demos.movidius.bot_differential_env import DifferentialDuckiebotEnv
-from learning_iil.learners import NeuralNetworkController, UncertaintyAwareNNController
+from learning_iil.learners import UncertaintyAwareNNController
 from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetOneRegression
 
-
+# declare remote Duckiebot control environment
 env = DifferentialDuckiebotEnv()
 env.max_steps = np.inf
 
-obs = env.reset()
+# policy parametrization and agent
+model = MonteCarloDropoutResnetOneRegression()
+controller = UncertaintyAwareNNController(env=env,
+                                          learner=model,
+                                          storage_location='trained_models/sim2real/',
+                                          training=False)
+
+observation = env.reset()
 env.render()
 
-avg_frame_time = 0
-max_frame_time = 0
+if __name__ == '__main__':
+    print('Environment running...')
+    while True:
+        start_time = time.time()
 
-tf_model = MonteCarloDropoutResnetOneRegression()
-tf_controller = UncertaintyAwareNNController(env=env,
-                                        learner=tf_model,
-                                        storage_location='trained_models/sim2real/',
-                                        training=False)
-while True:
-    start_time = time.time()
+        observation = np.flipud(observation)
 
-    obs = np.flipud(obs)
+        action = controller.predict(observation=observation)
 
-    vels = tf_controller.predict(observation=obs)
+        observation, reward, done, info = env.step(action[0])
 
-    obs, reward, done, info = env.step(vels[0])
-    env.render()
-
-    end_time = time.time()
-    frame_time = 1000 * (end_time - start_time)
-    avg_frame_time = avg_frame_time * 0.95 + frame_time * 0.05
-    max_frame_time = 0.99 * max(max_frame_time, frame_time) + 0.01 * frame_time
-    fps = 1 / (frame_time / 1000)
-
-    print('avg frame time: %d' % int(avg_frame_time))
-    print('max frame time: %d' % int(max_frame_time))
-    print('fps: %.1f' % fps)
+        env.render()
