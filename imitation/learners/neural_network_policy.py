@@ -4,13 +4,8 @@ from tqdm import tqdm
 
 class NeuralNetworkPolicy():
 
-    def __init__(self, parametrization,
-                 input_shape=(None, 120, 160, 3),
-                 output_shape=(None, 2),
-                 batch_size=16,
-                 epochs=20,
-                 storage_location='./model.ckpt',
-                 training=True):
+    def __init__(self, parametrization, input_shape=(None, 120, 160, 3), output_shape=(None, 2), batch_size=16,
+                 epochs=20, storage_location='./model.ckpt', training=True):
 
         self.seen_samples = 0
         self.parametrization = parametrization
@@ -25,7 +20,7 @@ class NeuralNetworkPolicy():
     def optimize(self, observations, expert_actions):
         observations = np.array(observations)
         actions = np.array(expert_actions)
-        data_size = observations.shape[3]
+        data_size = observations.shape[0]
 
         print('Optimizing policy...')
         for _ in tqdm(range(self.epochs)):
@@ -43,7 +38,7 @@ class NeuralNetworkPolicy():
         self.seen_samples += data_size
 
 
-    def predict(self, observation):
+    def predict(self, observation, metadata):
         action = self.parametrization.predict([observation])
         if isinstance(action, tuple): # use it with UA parametrization
             action, _ = action

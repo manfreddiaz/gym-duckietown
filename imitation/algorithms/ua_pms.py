@@ -6,13 +6,13 @@ from .aggrevate import AggreVaTe
 
 class UPMSLearning(AggreVaTe):
 
-    def __init__(self, env, teacher, learner, explorer, safety_coefficient,
-                 horizon, episodes):
-        AggreVaTe.__init__(self, env, teacher, learner, explorer,
-                                   horizon, episodes)
+    def __init__(self, env, teacher, learner, explorer, safety_coefficient, horizon, episodes):
+        AggreVaTe.__init__(self, env, teacher, learner, explorer, horizon, episodes)
         self.explorer = explorer
+
         self._teacher_uncertainty = math.inf
         self._learner_uncertainty = math.inf
+
         self._safety_coefficient = safety_coefficient
 
     def preferential_coefficient(self, uncertainty):
@@ -53,6 +53,8 @@ class UPMSLearning(AggreVaTe):
         control_action = control_policy.predict(observation)
 
         self._query_expert(control_policy, control_action, observation)
+
+        self._active_policy = control_policy == self.teacher
 
         return control_action
 

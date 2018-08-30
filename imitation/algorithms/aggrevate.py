@@ -27,6 +27,8 @@ class AggreVaTe(DAgger):
 
         self._query_expert(control_policy, control_action, observation)
 
+        self._active_policy = control_policy == self.teacher
+
         return control_action
 
 

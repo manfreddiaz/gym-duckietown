@@ -1,11 +1,10 @@
 import math
 import numpy as np
-from controllers import Controller
 
 
-class UAPurePursuitPolicy(Controller):
+class UAPurePursuitPolicy:
     def __init__(self, env, following_distance, max_iterations=1000, refresh_rate=0.1):
-        Controller.__init__(self, env, refresh_rate)
+        self.env = env
         self.following_distance = following_distance
         self.max_iterations = max_iterations
 
@@ -16,7 +15,7 @@ class UAPurePursuitPolicy(Controller):
         self.d_velocity = None
         self.time_step = 0
 
-    def predict(self, dt):
+    def predict(self, observation, metadata):
         self.d_position = self.env.cur_pos - self.position
         self.position = self.env.cur_pos
 
@@ -62,19 +61,12 @@ class UAPurePursuitPolicy(Controller):
 
         print(position_diff, velocity_diff, self.d_velocity, self.time_step, self.env.step_count)
 
-        if position_diff > 0.1 or velocity_diff > 0.5 or abs(self.env.step_count - self.time_step) > 3:
+        if position_diff > 0.1 or velocity_diff > 0.5 or metadata[1] is None:
             uncertainty = 0
             self.time_step = self.env.step_count
-            print('taking control')
             return action, uncertainty
         else:
-            if dt == 0:
+            if metadata[0] == 0:
                 return action, 0
-            else:
-                print('ceding control')
-                return None, math.inf
 
-    def reset(self):
-        Controller.reset(self)
-        self.time_step = self.env.step_count
-
+        return None, math.inf
