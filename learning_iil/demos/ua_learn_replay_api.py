@@ -1,8 +1,8 @@
 import pickle
 import tensorflow as tf
-from learning_iil.learners import NeuralNetworkController
-from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
-from learning_iil.learners.models.tf.uncertainty import FortifiedResnetOneMixture, MonteCarloDropoutResnetOneMixture, \
+from learning_iil.learners import NeuralNetworkPolicy
+from learning_iil.learners.parametrizations.tf.baselines import ResnetOneRegression, ResnetOneMixture
+from learning_iil.learners.parametrizations.tf.uncertainty import FortifiedResnetOneMixture, MonteCarloDropoutResnetOneMixture, \
     FortifiedResnetOneRegression, MonteCarloDropoutResnetOneRegression
 
 tf.set_random_seed(1234)
@@ -13,9 +13,9 @@ iteration = 0
 base_directory = 'trained_models/supervised/{}/ror_64_32_adag/'.format(iteration)
 
 tf_model = MonteCarloDropoutResnetOneRegression()
-tf_learner = NeuralNetworkController(env=None,
-                                     learner=tf_model,
-                                     storage_location=base_directory)
+tf_learner = NeuralNetworkPolicy(env=None,
+                                 parametrization=tf_model,
+                                 storage_location=base_directory)
 
 if __name__ == '__main__':
     recording_file = open(recording_file_name, 'rb')

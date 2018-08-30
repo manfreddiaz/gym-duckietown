@@ -5,21 +5,21 @@ from controllers import Controller
 tf.set_random_seed(1234)
 
 
-class NeuralNetworkController(Controller):
+class NeuralNetworkPolicy(Controller):
 
     def _do_update(self, dt):
         return self.predict(dt)
 
-    def __init__(self, env, learner, input_shape=(None, 120, 160, 3), output_shape=(None, 2), batch_size=16,
+    def __init__(self, env, parametrization, input_shape=(None, 120, 160, 3), output_shape=(None, 2), batch_size=16,
                  storage_location='./model.ckpt', training=True):
         Controller.__init__(self, env)
         self.seen_samples = 0
-        self.leaner = learner
+        self.parametrization = parametrization
         self.batch_size = batch_size
         if training:
-            self.leaner.init_train(input_shape, output_shape, storage_location)
+            self.parametrization.init_train(input_shape, output_shape, storage_location)
         else:
-            self.leaner.init_test(input_shape, output_shape, storage_location)
+            self.parametrization.init_test(input_shape, output_shape, storage_location)
 
     def learn(self, observations, expert_actions):
         data_size = len(observations)
@@ -30,23 +30,24 @@ class NeuralNetworkController(Controller):
             for iteration in range(0, data_size, self.batch_size):
                 batch_observations = observations[iteration:iteration + self.batch_size]
                 batch_actions = actions[iteration:iteration + self.batch_size]
-                self.leaner.learn(batch_observations, batch_actions)
+                self.parametrization.learn(batch_observations, batch_actions)
             if iteration + self.batch_size < data_size:
                 remainder = data_size - iteration
                 batch_observations = observations[iteration:remainder]
                 batch_actions = actions[iteration:remainder]
-                self.leaner.learn(batch_observations, batch_actions)
+                self.parametrization.learn(batch_observations, batch_actions)
 
         self.seen_samples += len(observations)
 
     def predict(self, observation):
-        action = self.leaner.predict([observation])
-        print(action[1])
-        return action[0]
+        action = self.parametrization.predict([observation])
+        if isinstance(action, tuple): # use it even with UA parametrization
+            action, _ = action
+        return action
 
     def save(self):
-        self.leaner.commit()
+        self.parametrization.commit()
 
     def close(self):
         Controller.close(self)
-        self.leaner.close()
+        self.parametrization.close()

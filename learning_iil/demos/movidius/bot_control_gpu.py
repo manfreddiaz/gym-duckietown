@@ -9,8 +9,8 @@ import time
 import numpy as np
 
 from learning_iil.demos.movidius.bot_differential_env import DifferentialDuckiebotEnv
-from learning_iil.learners import NeuralNetworkController, UncertaintyAwareNNController
-from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetOneRegression
+from learning_iil.learners import NeuralNetworkPolicy, UANeuralNetworkPolicy
+from learning_iil.learners.parametrizations.tf.uncertainty import MonteCarloDropoutResnetOneRegression
 
 
 env = DifferentialDuckiebotEnv()
@@ -23,10 +23,10 @@ avg_frame_time = 0
 max_frame_time = 0
 
 tf_model = MonteCarloDropoutResnetOneRegression()
-tf_controller = UncertaintyAwareNNController(env=env,
-                                        learner=tf_model,
-                                        storage_location='trained_models/sim2real/',
-                                        training=False)
+tf_controller = UANeuralNetworkPolicy(env=env,
+                                      parametrization=tf_model,
+                                      storage_location='trained_models/sim2real/',
+                                      training=False)
 while True:
     start_time = time.time()
 

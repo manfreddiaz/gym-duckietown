@@ -2,7 +2,7 @@ from math import cos, sin
 
 import numpy as np
 import tensorflow as tf
-from learning_iil.learners.models.tf.tf_online_learner import TensorflowOnlineLearner
+from learning_iil.learners.parametrizations.tf.tf_online_learner import TensorflowOnlineLearner
 
 tf.set_random_seed(1234)
 

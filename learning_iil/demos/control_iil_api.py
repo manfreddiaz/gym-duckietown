@@ -4,9 +4,9 @@ import gym
 from gym_duckietown.envs import DuckietownEnv, MultiMapEnv
 from controllers import JoystickController, ParallelController, SharedController
 
-from learning_iil.learners import NeuralNetworkController, UncertaintyAwareNNController
-from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
-from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetOneMixture, \
+from learning_iil.learners import NeuralNetworkPolicy, UANeuralNetworkPolicy
+from learning_iil.learners.parametrizations.tf.baselines import ResnetOneRegression, ResnetOneMixture
+from learning_iil.learners.parametrizations.tf.uncertainty import MonteCarloDropoutResnetOneMixture, \
     MonteCarloDropoutResnetOneRegression, FortifiedResnetOneRegression, FortifiedResnetOneMixture
 
 
@@ -41,10 +41,10 @@ def create_dagger_controller(environment, arguments):
     # nn controller
 
     tf_model = MonteCarloDropoutResnetOneRegression()
-    tf_controller = NeuralNetworkController(env=environment,
-                                            learner=tf_model,
-                                            storage_location='trained_models/alg_upms/3/ror_64_32_adag',
-                                            training=False)
+    tf_controller = NeuralNetworkPolicy(env=environment,
+                                        parametrization=tf_model,
+                                        storage_location='trained_models/alg_upms/3/ror_64_32_adag',
+                                        training=False)
 
     iil_algorithm = SharedController(env, joystick_controller, tf_controller)
 

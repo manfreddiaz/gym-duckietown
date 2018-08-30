@@ -7,9 +7,9 @@ from gym_duckietown.wrappers import HeadingWrapper
 from controllers import JoystickController
 
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning
-from learning_iil.learners import UncertaintyAwareRandomController, NeuralNetworkController
-from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
-from learning_iil.learners.models.tf.uncertainty import FortifiedResnetOneRegression
+from learning_iil.learners import UARandomExploration, NeuralNetworkPolicy
+from learning_iil.learners.parametrizations.tf.baselines import ResnetOneRegression, ResnetOneMixture
+from learning_iil.learners.parametrizations.tf.uncertainty import FortifiedResnetOneRegression
 from learning_iil.teachers import UncertaintyAwareHumanController
 
 
@@ -43,12 +43,12 @@ def create_learning_algorithm(environment, arguments):
     joystick_controller.load_mapping(arguments.controller_mapping)
 
     # learner
-    random_controller = UncertaintyAwareRandomController(environment)
+    random_controller = UARandomExploration(environment)
 
     tf_model = FortifiedResnetOneRegression()
-    tf_learner = NeuralNetworkController(env=None,
-                                         learner=tf_model,
-                                         storage_location=base_directory)
+    tf_learner = NeuralNetworkPolicy(env=None,
+                                     parametrization=tf_model,
+                                     storage_location=base_directory)
     iil_algorithm = UPMSLearning(env=environment,
                                        teacher=joystick_controller,
                                        learner=random_controller,

@@ -1,32 +1,32 @@
 import numpy as np
 import tensorflow as tf
-from .._layers.autoencoders.denoising import DenoisingAutoencoder
-from learning_iil.learners.models.tf.tf_online_learner import TensorflowOnlineLearner
+from learning_iil.learners.parametrizations.tf._layers.autoencoders.denoising import DenoisingAutoencoder
+from learning_iil.learners.parametrizations.tf.tf_online_learner import TensorflowOnlineLearner
 
-from .._layers import resnet_1, resnet_1_dropout, resnet_0, resnet_2
-
-tf.set_random_seed(1234)
-
-lamb = 1
+from .._layers import resnet_1, MixtureDensityNetwork
 
 
-class FortifiedResnetOneRegression(TensorflowOnlineLearner):
+class FortifiedResnetOneMixture(TensorflowOnlineLearner):
     def explore(self, state, horizon=1):
         pass
 
-    def __init__(self, name=None, noise=1e-2):
+    def __init__(self, noise=0.1):
         TensorflowOnlineLearner.__init__(self)
-        self.name = name
         self.fortified_loss = None
-        self.noise = noise
+        self.manifold_loss = None
         self.vector_field = None
         self.vector_field_value = None
+        self.noise = noise
 
     def predict(self, state, horizon=1):
-        regression = TensorflowOnlineLearner.predict(self, state)
-        return np.squeeze(regression), np.abs(self.vector_field_value)
+        mdn = TensorflowOnlineLearner.predict(self, state)
+        prediction = MixtureDensityNetwork.max_central_value(mixtures=np.squeeze(mdn[0]),
+                                                             means=np.squeeze(mdn[1]),
+                                                             variances=np.squeeze(mdn[2]))
+        return prediction[0], np.sum(prediction[1])  # FIXME: Is this the best way to add the variances?
 
     def architecture(self):
+
         model = tf.map_fn(lambda frame: tf.image.resize_images(frame, (60, 80)), self.state_tensor)
         model = tf.map_fn(lambda frame: tf.image.per_image_standardization(frame), model)
 
@@ -53,15 +53,10 @@ class FortifiedResnetOneRegression(TensorflowOnlineLearner):
         # self.hessian = tf.reduce_mean(tf.subtract(tf.gradients(denoising_autoencoder.loss, model), 1))
         self.fortified_loss = denoising_autoencoder.loss
 
-        model = tf.layers.dense(denoising_autoencoder.decoder, self.action_tensor.shape[1])
-
-        with tf.name_scope('losses'):
-            loss = tf.reduce_mean(tf.square(model - self.action_tensor), axis=1)
-            tf.summary.scalar('regression', tf.reduce_mean(loss))
-            loss = tf.reduce_mean(loss + self.fortified_loss)
-            tf.summary.scalar('total_loss', loss)
-
-        return [model], loss
+        loss, components, _ = MixtureDensityNetwork.create(denoising_autoencoder.decoder, self.action_tensor, number_mixtures=3)
+        final_loss = tf.reduce_mean(loss + denoising_autoencoder.loss)
+        tf.summary.scalar('total_loss', final_loss)
+        return components, final_loss
 
     def get_optimizer(self, loss):
         return tf.train.AdagradOptimizer(1e-3).minimize(loss, global_step=self.global_step)

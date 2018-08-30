@@ -12,10 +12,10 @@ from gym_duckietown.envs import DuckietownEnv
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning, UPMSLearning
 from learning_iil.iil_control import InteractiveControl
 from learning_iil.iil_recorder import ImitationLearningRecorder
-from learning_iil.learners import UncertaintyAwareRandomController, UncertaintyAwareNNController, NeuralNetworkController
+from learning_iil.learners import UARandomExploration, UANeuralNetworkPolicy, NeuralNetworkPolicy
 from learning_iil.teachers import UncertaintyAwareHumanController, UncertaintyAwarePurePursuitController
-from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
-from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetOneRegression, \
+from learning_iil.learners.parametrizations.tf.baselines import ResnetOneRegression, ResnetOneMixture
+from learning_iil.learners.parametrizations.tf.uncertainty import MonteCarloDropoutResnetOneRegression, \
     MonteCarloDropoutResnetOneMixture, FortifiedResnetOneRegression, FortifiedResnetOneMixture
 
 np.random.seed(1234)
@@ -70,7 +70,7 @@ def create_learning_algorithm(environment, arguments):
     human_teacher = UncertaintyAwareHumanController(environment)
     human_teacher.load_mapping(arguments.controller_mapping)
     tf_model = MonteCarloDropoutResnetOneRegression()
-    tf_learner = NeuralNetworkController(env=environment, learner=tf_model, storage_location=base_directory, training=False)
+    tf_learner = NeuralNetworkPolicy(env=environment, parametrization=tf_model, storage_location=base_directory, training=False)
     # tf_model = FortifiedResnetOneRegression(noise=1e-1)
     # tf_learner = UncertaintyAwareNNController(env=environment,
     #                                      learner=tf_model,

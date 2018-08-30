@@ -14,11 +14,11 @@ from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, Supervise
     DropoutDAggerLearning, UPMSSelfLearning, UPMSDataAggregationLearning
 from learning_iil.algorithms.ua_pms_da_sl import UPMSDataAggregationSelfLearning
 from learning_iil.iil_recorder import ImitationLearningRecorder
-from learning_iil.learners import UncertaintyAwareRandomController, UncertaintyAwareNNController, \
-    NeuralNetworkController, RandomController
+from learning_iil.learners import UARandomExploration, UANeuralNetworkPolicy, \
+    NeuralNetworkPolicy, RandomExploration
 from learning_iil.teachers import UncertaintyAwareHumanController, UncertaintyAwarePurePursuitController
-from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
-from learning_iil.learners.models.tf.uncertainty import MonteCarloDropoutResnetOneRegression, \
+from learning_iil.learners.parametrizations.tf.baselines import ResnetOneRegression, ResnetOneMixture
+from learning_iil.learners.parametrizations.tf.uncertainty import MonteCarloDropoutResnetOneRegression, \
     MonteCarloDropoutResnetOneMixture, FortifiedResnetOneRegression, FortifiedResnetOneMixture
 
 SEEDS = [123, 1234, 2345, 3456, 4567, 5678, 6789, 7890, 8901, 9012]
@@ -75,13 +75,13 @@ def create_environment(args):
 def create_algorithmic_training(environment, arguments):
 
     # human controller
-    human_teacher = UncertaintyAwarePurePursuitController(environment, following_distance=0.3, refresh_rate=1/30)
+
     # human_teacher.load_mapping(arguments.controller_mapping)
 
     tf_model = MonteCarloDropoutResnetOneRegression()
-    tf_learner = UncertaintyAwareNNController(env=environment, learner=tf_model, storage_location=base_directory)
+    tf_learner = UANeuralNetworkPolicy(env=environment, parametrization=tf_model, storage_location=base_directory)
     # explorer
-    random_controller = UncertaintyAwareRandomController(environment)
+    random_controller = UARandomExploration(environment)
 
     starting_position = TRAINING_STARTING_POSITIONS[np.random.randint(0, len(TRAINING_STARTING_POSITIONS))]
     iil_learning = UPMSLearning(env=environment,
@@ -133,9 +133,9 @@ def create_learning_algorithm(environment, arguments):
     human_teacher.load_mapping(arguments.controller_mapping)
 
     tf_model = MonteCarloDropoutResnetOneRegression()
-    tf_learner = UncertaintyAwareNNController(env=environment, learner=tf_model, storage_location=base_directory)
+    tf_learner = UANeuralNetworkPolicy(env=environment, parametrization=tf_model, storage_location=base_directory)
     # explorer
-    random_controller = UncertaintyAwareRandomController(environment)
+    random_controller = UARandomExploration(environment)
 
     starting_position = TRAINING_STARTING_POSITIONS[np.random.randint(0, len(TRAINING_STARTING_POSITIONS))]
     iil_learning = UPMSDataAggregationSelfLearning(env=environment,

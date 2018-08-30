@@ -7,8 +7,8 @@ from gym_duckietown.wrappers import HeadingWrapper
 from controllers import JoystickController
 
 from learning_iil.algorithms import DAggerLearning, AggreVaTeLearning, SupervisedLearning
-from learning_iil.learners import NeuralNetworkController
-from learning_iil.learners.models.tf.baselines import ResnetOneRegression, ResnetOneMixture
+from learning_iil.learners import NeuralNetworkPolicy
+from learning_iil.learners.parametrizations.tf.baselines import ResnetOneRegression, ResnetOneMixture
 
 
 def parse_args():
@@ -42,9 +42,9 @@ def create_dagger_controller(environment, arguments):
 
     # nn controller
     tf_model = ResnetOneMixture()
-    tf_controller = NeuralNetworkController(env=environment,
-                                            learner=tf_model,
-                                            storage_location='demos/supervised/cnn_mdn_adam_1/')
+    tf_controller = NeuralNetworkPolicy(env=environment,
+                                        parametrization=tf_model,
+                                        storage_location='demos/supervised/cnn_mdn_adam_1/')
 
     iil_algorithm = SupervisedLearning(env=env,
                                       teacher=joystick_controller,

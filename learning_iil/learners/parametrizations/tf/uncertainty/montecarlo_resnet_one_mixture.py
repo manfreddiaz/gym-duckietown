@@ -1,6 +1,6 @@
 import numpy as np
 import tensorflow as tf
-from learning_iil.learners.models.tf.tf_online_learner import TensorflowOnlineLearner
+from learning_iil.learners.parametrizations.tf.tf_online_learner import TensorflowOnlineLearner
 
 from .._layers import resnet_1_dropout, MixtureDensityNetwork
 
@@ -9,9 +9,10 @@ class MonteCarloDropoutResnetOneMixture(TensorflowOnlineLearner):
     def explore(self, state, horizon=1):
         pass
 
-    def __init__(self, mixtures=3):
+    def __init__(self, optimizer, mixtures=3):
         TensorflowOnlineLearner.__init__(self)
         self.mixtures = mixtures
+        self.optimizer = optimizer
 
     def predict(self, state, horizon=1):
         mdn = TensorflowOnlineLearner.predict(self, np.repeat(state, 16, axis=0))
@@ -43,5 +44,5 @@ class MonteCarloDropoutResnetOneMixture(TensorflowOnlineLearner):
         return components, loss
 
     def get_optimizer(self, loss):
-        return tf.train.AdagradOptimizer(1e-3).minimize(loss, global_step=self.global_step)
+        return self.optimizer.minimize(loss, global_step=self.global_step)
 
