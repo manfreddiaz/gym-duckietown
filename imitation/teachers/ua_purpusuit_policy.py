@@ -8,20 +8,8 @@ class UAPurePursuitPolicy:
         self.following_distance = following_distance
         self.max_iterations = max_iterations
 
-        # state
-        self.position = self.env.cur_pos
-        self.velocity = self.env.speed
-        self.d_position = None
-        self.d_velocity = None
-        self.time_step = 0
 
     def predict(self, observation, metadata):
-        self.d_position = self.env.cur_pos - self.position
-        self.position = self.env.cur_pos
-
-        self.d_velocity = self.env.speed - self.velocity
-        self.velocity = self.env.speed
-        self.time_step += 1
 
         closest_point, closest_tangent = self.env.closest_curve_point(self.env.cur_pos)
         iterations = 0
@@ -59,7 +47,7 @@ class UAPurePursuitPolicy:
 
         action = [velocity + 2 * e_v, steering]
 
-        print(position_diff, velocity_diff, self.d_velocity, self.time_step, self.env.step_count)
+        # print(position_diff, velocity_diff, self.d_velocity, self.time_step, self.env.step_count)
 
         if position_diff > 0.1 or velocity_diff > 0.5 or metadata[1] is None:
             uncertainty = 0

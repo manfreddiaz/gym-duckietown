@@ -88,9 +88,9 @@ class InteractiveImitationLearning:
         self._expert_actions.append(action)
 
     def _optimize(self):
-        self.learner.optimize(self._observations, self._expert_actions)
+        loss = self.learner.optimize(self._observations, self._expert_actions)
         self.learner.save()
-        self._on_optimization_done()
+        self._on_optimization_done(loss)
 
     # TRAINING EVENTS
 
@@ -100,7 +100,7 @@ class InteractiveImitationLearning:
 
     def _on_episode_done(self):
         for listener in self._episode_done_listeners:
-            listener.on_episode_done(self._current_episode)
+            listener.episode_done(self._current_episode)
 
     # triggered when the learning step after an episode is done
     def on_optimization_done(self, listener):
@@ -123,5 +123,5 @@ class InteractiveImitationLearning:
 
     def _on_step_done(self, observation, action, reward, done, info):
         for listener in self._step_done_listeners:
-            listener.step(observation, action, reward, done)
+            listener.step_done(observation, action, reward, done, info)
 
