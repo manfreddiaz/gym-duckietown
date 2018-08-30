@@ -12,13 +12,13 @@ from gym import error, spaces, utils
 from gym.utils import seeding
 
 # Graphics utility code
-from ..utils import *
-from ..graphics import *
-from ..objmesh import *
-from ..collision import *
+from .utils import *
+from .graphics import *
+from .objmesh import *
+from .collision import *
 
 # Objects utility code
-from ..objects import WorldObj, DuckieObj
+from .objects import WorldObj, DuckieObj, TrafficLightObj
 
 # Rendering window size
 WINDOW_WIDTH = 800
@@ -81,12 +81,9 @@ MIN_SPAWN_OBJ_DIST = 0.25
 ROAD_TILE_SIZE = 0.61
 
 # Maximum forward robot speed in meters/second
-ROBOT_SPEED = 0.45
+ROBOT_SPEED = 0.40
 
-# Length of one time step in the simulator
-TIME_STEP = 0.1
-
-class SimpleSimEnv(gym.Env):
+class Simulator(gym.Env):
     """
     Simple road simulator to test RL training.
     Draws a road with turns using OpenGL, and simulates
@@ -101,12 +98,19 @@ class SimpleSimEnv(gym.Env):
     def __init__(
         self,
         map_name='udem1',
-        max_steps=600,
+        max_steps=1500,
         draw_curve=False,
         draw_bbox=False,
         domain_rand=True,
+        frame_rate=30,
         frame_skip=1
     ):
+        # Map name, set in _load_map()
+        self.map_name = None
+
+        # Full map file path, set in _load_map()
+        self.map_file_path = None
+
         # Maximum number of steps per episode
         self.max_steps = max_steps
 
@@ -118,6 +122,9 @@ class SimpleSimEnv(gym.Env):
 
         # Flag to enable/disable domain randomization
         self.domain_rand = domain_rand
+
+        # Frame rate to run at
+        self.frame_rate = frame_rate
 
         # Number of frames to skip per action
         self.frame_skip = frame_skip
@@ -163,7 +170,7 @@ class SimpleSimEnv(gym.Env):
         self.multi_fbo, self.final_fbo = create_frame_buffers(
             CAMERA_WIDTH,
             CAMERA_HEIGHT,
-            32
+            16
         )
 
         # Array to render the image into (for observation rendering)
@@ -268,11 +275,14 @@ class SimpleSimEnv(gym.Env):
         # Distance bewteen camera and ground
         self.cam_height = self._perturb(CAMERA_FLOOR_DIST, 0.08)
 
-        # Angle at which the camera is pitched downwards
-        self.cam_angle = self._perturb(CAMERA_ANGLE, 0.2)
+        # Angle at which the camera is rotated
+        self.cam_angle = [self._perturb(CAMERA_ANGLE, 0.2), 0, 0]
 
         # Field of view angle of the camera
         self.cam_fov_y = self._perturb(CAMERA_FOV_Y, 0.2)
+
+        # Camera offset for use in free camera mode
+        self.cam_offset = [0, 0, 0]
 
         # Create the vertex list for the ground/noise triangles
         # These are distractors, junk on the floor
@@ -352,11 +362,15 @@ class SimpleSimEnv(gym.Env):
         Load the map layout from a CSV file
         """
 
-        file_path = get_file_path('maps', map_name, 'yaml')
+        # Store the map name
+        self.map_name = map_name
 
-        print('loading map file "%s"' % file_path)
+        # Get the full map file path
+        self.map_file_path = get_file_path('maps', map_name, 'yaml')
 
-        with open(file_path, 'r') as f:
+        print('loading map file "%s"' % self.map_file_path)
+
+        with open(self.map_file_path, 'r') as f:
             map_data = yaml.load(f)
 
         tiles = map_data['tiles']
@@ -441,11 +455,11 @@ class SimpleSimEnv(gym.Env):
         # For each object
         for obj_idx, desc in enumerate(map_data.get('objects', [])):
             kind = desc['kind']
-            x, z = desc['pos']
+            x, z, *y = desc['pos']
             rotate = desc['rotate']
             optional = desc.get('optional', False)
 
-            pos = ROAD_TILE_SIZE * np.array((x, 0, z))
+            pos = ROAD_TILE_SIZE * np.array((x, y[0] if len(y) else 0, z))
 
             # Load the mesh
             mesh = ObjMesh.get(kind)
@@ -471,7 +485,10 @@ class SimpleSimEnv(gym.Env):
 
             obj = None
             if static:
-                obj = WorldObj(obj_desc, self.domain_rand, SAFETY_RAD_MULT)
+                if kind == "trafficlight":
+                    obj = TrafficLightObj(obj_desc, self.domain_rand, SAFETY_RAD_MULT)
+                else:
+                    obj = WorldObj(obj_desc, self.domain_rand, SAFETY_RAD_MULT)
             else:
                 obj = DuckieObj(obj_desc, self.domain_rand, SAFETY_RAD_MULT, ROAD_TILE_SIZE)
 
@@ -485,7 +502,7 @@ class SimpleSimEnv(gym.Env):
             possible_tiles = find_candidate_tiles(obj.obj_corners, ROAD_TILE_SIZE)
 
             # If the object intersects with a drivable tile
-            if static and self._collidable_object(
+            if static and kind != "trafficlight" and self._collidable_object(
                 obj.obj_corners, obj.obj_norm, possible_tiles
             ):
                 self.collidable_centers.append(pos)
@@ -552,7 +569,7 @@ class SimpleSimEnv(gym.Env):
         drivable tiles, which would mean our agent could run into them.
         Helps optimize collision checking with agent during runtime
         """
-        
+
         if possible_tiles.shape == 0:
             return False
 
@@ -593,7 +610,7 @@ class SimpleSimEnv(gym.Env):
         # Only add it if one of the vertices is on a drivable tile
         return intersects(obj_corners, drivable_tiles, obj_norm, tile_norms)
 
-    def _get_grid_coords(self, abs_pos):
+    def get_grid_coords(self, abs_pos):
         """
         Compute the tile indices (i,j) for a given (x,_,z) world position
 
@@ -670,21 +687,37 @@ class SimpleSimEnv(gym.Env):
         z = math.cos(self.cur_angle)
         return np.array([x, 0, z])
 
+    def closest_curve_point(self, pos):
+        """
+        Get the closest point on the curve to a given point
+        Also returns the tangent at that point
+        """
+
+        i, j = self.get_grid_coords(pos)
+        tile = self._get_tile(i, j)
+
+        if tile is None or not tile['drivable']:
+            return None, None
+
+        cps = self._get_curve(i, j)
+        t = bezier_closest(cps, pos)
+        point = bezier_point(cps, t)
+        tangent = bezier_tangent(cps, t)
+
+        return point, tangent
+
     def get_lane_pos(self):
         """
         Get the position of the agent relative to the center of the right lane
         """
 
-        i, j = self._get_grid_coords(self.cur_pos)
-
-        # Get the closest point along the right lane's Bezier curve
-        cps = self._get_curve(i, j)
-        t = bezier_closest(cps, self.cur_pos)
-        point = bezier_point(cps, t)
+        # Get the closest point along the right lane's Bezier curve,
+        # and the tangent at that point
+        point, tangent = self.closest_curve_point(self.cur_pos)
+        assert point is not None
 
         # Compute the alignment of the agent direction with the curve tangent
         dirVec = self.get_dir_vec()
-        tangent = bezier_tangent(cps, t)
         dotDir = np.dot(dirVec, tangent)
         dotDir = max(-1, min(1, dotDir))
 
@@ -742,7 +775,7 @@ class SimpleSimEnv(gym.Env):
         Check that the given (x,y,z) position is on a drivable tile
         """
 
-        coords = self._get_grid_coords(pos)
+        coords = self.get_grid_coords(pos)
         tile = self._get_tile(*coords)
         return tile != None and tile['drivable']
 
@@ -820,7 +853,7 @@ class SimpleSimEnv(gym.Env):
 
         if collision:
             return True
-        
+
         # Check collisions with Dynamic Objects
         for obj in self.objects:
             if obj.check_collision(self.agent_corners, self.agent_norm):
@@ -863,22 +896,26 @@ class SimpleSimEnv(gym.Env):
         )
 
     def step(self, action):
-        action = np.array(action) # just making sure, because this could theoretically be a python list
+        # Actions could be a Python list
+        action = np.array(action)
 
-        self.step_count += 1
+        delta_time = 1 / self.frame_rate
 
         for _ in range(self.frame_skip):
+            self.step_count += 1
+
             prev_pos = self.cur_pos
 
             # Update the robot's position
-            self._update_pos(action * ROBOT_SPEED * 1, TIME_STEP)
+            self._update_pos(action * ROBOT_SPEED * 1, delta_time)
 
             # Compute the robot's speed
             delta_pos = self.cur_pos - prev_pos
-            self.speed = np.linalg.norm(delta_pos) / TIME_STEP
-            
+            self.speed = np.linalg.norm(delta_pos) / delta_time
+
+            # Update world objects
             for obj in self.objects:
-                obj.step()
+                obj.step(delta_time)
 
         # Generate the current camera image
         obs = self.render_obs()
@@ -896,29 +933,27 @@ class SimpleSimEnv(gym.Env):
             return obs, reward, done, {}
 
         # Compute the collision avoidance penalty
-        penalty = self._proximity_penalty()
+        col_penalty = self._proximity_penalty()
 
         # Get the position relative to the right lane tangent
         dist, dot_dir, angle = self.get_lane_pos()
-        reward = 1.0 * dot_dir - 10.00 * np.abs(dist) + 40 * penalty
+
+        # Compute the reward
+        reward = (
+            +1.0 * self.speed * dot_dir +
+            -10 * np.abs(dist) +
+            +40 * col_penalty
+        )
         done = False
 
         return obs, reward, done, {}
 
-    def render_obs(self):
-        """
-        Render an observation from the point of view of the agent
-        """
-
-        return self._render_img(
-            CAMERA_WIDTH,
-            CAMERA_HEIGHT,
-            self.multi_fbo,
-            self.final_fbo,
-            self.img_array
-        )
-
     def _render_img(self, width, height, multi_fbo, final_fbo, img_array):
+        """
+        Render an image of the environment into a frame buffer
+        Produce a numpy RGB array image as output
+        """
+
         if self.graphics == False:
             return
 
@@ -952,7 +987,7 @@ class SimpleSimEnv(gym.Env):
         pos = self.cur_pos
         if self.domain_rand:
             pos = pos + self.np_random.uniform(low=-0.005, high=0.005, size=(3,))
-        x, y, z = pos
+        x, y, z = pos + self.cam_offset
         dx, dy, dz = self.get_dir_vec()
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
@@ -961,8 +996,10 @@ class SimpleSimEnv(gym.Env):
             y += 0.8
             glRotatef(90, 1, 0, 0)
         else:
-            y += CAMERA_FLOOR_DIST
-            glRotatef(self.cam_angle, 1, 0, 0)
+            y += self.cam_height
+            glRotatef(self.cam_angle[0], 1, 0, 0)
+            glRotatef(self.cam_angle[1], 0, 1, 0)
+            glRotatef(self.cam_angle[2], 0, 0, 1)
             glTranslatef(0, 0, self._perturb(CAMERA_FORWARD_DIST))
 
         gluLookAt(
@@ -1074,7 +1111,24 @@ class SimpleSimEnv(gym.Env):
 
         return img_array
 
+    def render_obs(self):
+        """
+        Render an observation from the point of view of the agent
+        """
+
+        return self._render_img(
+            CAMERA_WIDTH,
+            CAMERA_HEIGHT,
+            self.multi_fbo,
+            self.final_fbo,
+            self.img_array
+        )
+
     def render(self, mode='human', close=False):
+        """
+        Render the environment for human viewing
+        """
+
         if close:
             if self.window:
                 self.window.close()
@@ -1135,14 +1189,15 @@ class SimpleSimEnv(gym.Env):
         )
 
         # Display position/state information
-        x, y, z = self.cur_pos
-        self.text_label.text = "pos: (%.2f, %.2f, %.2f), angle: %d, steps: %d, speed: %.2f m/s" % (
-            x, y, z,
-            int(self.cur_angle * 180 / math.pi),
-            self.step_count,
-            self.speed
-        )
-        self.text_label.draw()
+        if mode != "free_cam":
+            x, y, z = self.cur_pos
+            self.text_label.text = "pos: (%.2f, %.2f, %.2f), angle: %d, steps: %d, speed: %.2f m/s" % (
+                x, y, z,
+                int(self.cur_angle * 180 / math.pi),
+                self.step_count,
+                self.speed
+            )
+            self.text_label.draw()
 
         # Force execution of queued commands
         glFlush()

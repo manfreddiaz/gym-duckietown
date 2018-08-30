@@ -1,6 +1,7 @@
 # Gym-Duckietown
 
-[![Build Status](https://circleci.com/gh/duckietown/gym-duckietown/tree/master.svg?style=shield)](https://circleci.com/gh/duckietown/gym-duckietown/tree/master)
+[![Build Status](https://circleci.com/gh/duckietown/gym-duckietown/tree/master.svg?style=shield)](https://circleci.com/gh/duckietown/gym-duckietown/tree/master) [![Docker Hub](https://img.shields.io/docker/pulls/duckietown/gym-duckietown.svg)](https://hub.docker.com/r/duckietown/gym-duckietown)
+
 
 [Duckietown](http://duckietown.org/) self-driving car simulator environments for OpenAI Gym.
 
@@ -17,22 +18,35 @@ Please use this bibtex if you want to cite this repository in your publications:
 }
 ```
 
-This simulator was created as part of work done at the [MILA](https://mila.quebec/).
+This simulator was created as part of work done at [Mila](https://mila.quebec/).
 
 ## Introduction
 
-This repository contains three gym environments: `SimpleSim-v0`, `Duckiebot-v0` and `MultiMap-v0`.
-
 <p align="center">
 <img src="media/simplesim_1.png" width="300px"><br>
-SimpleSim-v0
+Gym-duckietown
 </p>
 
-The `SimpleSim-v0` environment is a simple lane-following simulator
-written in Python/OpenGL (Pyglet). It draws a loop of road with left and right turns,
+Gym-duckietown is a lane-following simulator written in pure Python/OpenGL (Pyglet).
+It draws a loop of road with left and right turns,
 along with objects in the background. It implements various forms of
 [domain-randomization](https://blog.openai.com/spam-detection-in-the-physical-world/)
 and basic differential-drive physics (without acceleration).
+
+There are multiple registered gym environments, each corresponding to a different [map file](https://github.com/duckietown/gym-duckietown/tree/master/gym_duckietown/maps):
+- `Duckietown-straight_road-v0`
+- `Duckietown-4way-v0`
+- `Duckietown-udem1-v0`
+- `Duckietown-small_loop-v0`
+- `Duckietown-small_loop_cw-v0`
+- `Duckietown-zigzag_dists-v0`
+- `Duckietown-loop_obstacles-v0` (static obstacles in the road)
+- `Duckietown-loop_pedestrians-v0` (moving obstacles in the road)
+
+The `MultiMap-v0` environment is essentially a [wrapper](https://github.com/duckietown/gym-duckietown/blob/master/gym_duckietown/envs/multimap_env.py) for the simulator which
+will automatically cycle through all available [map files](https://github.com/duckietown/gym-duckietown/tree/master/gym_duckietown/maps). This makes it possible to train on
+a variety of different maps at the same time, with the idea that training on a variety of
+different scenarios will make for a more robust policy/model.
 
 <p align="center">
 <img src="media/duckiebot_1.png" width="300px"><br>
@@ -46,18 +60,12 @@ control your robot remotely with the `Duckiebot-v0` environment, you will need t
 install the software found in the [duck-remote-iface](https://github.com/maximecb/duck-remote-iface)
 repository on your Duckiebot.
 
-The `MultiMap-v0` environment is essentially a [wrapper](https://github.com/duckietown/gym-duckietown/blob/master/gym_duckietown/envs/multimap_env.py) for `SimpleSim-v0` which
-will automatically cycle through all available [map files](https://github.com/duckietown/gym-duckietown/tree/master/gym_duckietown/maps). This makes it possible to train on
-a variety of different maps at the same time, with the idea that training on a variety of
-different scenarios will make for a more robust policy/model.
-
 ## Installation
 
 Requirements:
 - Python 3.5+
 - OpenAI gym
 - NumPy
-- SciPy
 - Pyglet
 - PyYAML
 - cloudpickle
@@ -94,28 +102,54 @@ export PYTHONPATH="${PYTHONPATH}:`pwd`"
 
 ### Docker Image
 
-There is a pre-built Docker image available [on Docker Hub](https://hub.docker.com/r/maximecb/gym-duckietown/), which also contains an installation of PyTorch. Alternatively, you can also build an image from the latest version of this repository as follows:
+There is a pre-built Docker image available [on Docker Hub](https://hub.docker.com/r/duckietown/gym-duckietown), which also contains an installation of PyTorch.
+
+*Note that in order to get GPU acceleration, you should install and use [nvidia-docker 2.0](https://github.com/nvidia/nvidia-docker/wiki/Installation-(version-2.0)).*
+
+To get started, pull the `duckietown/gym-duckietown` image from Docker Hub and open a shell in the container:
 
 ```
-sudo docker build --file ./docker/standalone/Dockerfile --no-cache=true --network=host --tag gym-duckietown .
+nvidia-docker pull duckietown/gym-duckietown && \
+nvidia-docker run -it duckietown/gym-duckietown bash
 ```
 
-Note that in order to get GPU acceleration, you should install and use [nvidia-docker](https://github.com/NVIDIA/nvidia-docker).
+Then create a virtual display:
+
+```
+Xvfb :0 -screen 0 1024x768x24 -ac +extension GLX +render -noreset &> xvfb.log &
+export DISPLAY=:0
+```
+
+Now, you are ready to start training a policy using RL:
+
+```
+python3 pytorch_rl/main.py \
+        --algo a2c \
+        --env-name Duckietown-loop_obstacles-v0 \
+        --lr 0.0002 \
+        --max-grad-norm 0.5 \
+        --no-vis \
+        --num-steps 20
+```
+
+If you need to do so, you can build a Docker image by running the following command from the root directory of this repository:
+
+```
+docker build . \
+       --file ./docker/standalone/Dockerfile \
+       --no-cache=true \
+       --network=host \
+       --tag <YOUR_TAG_GOES_HERE>
+```
 
 ## Usage
 
 ### Testing
 
-There is a simple UI application which allows you to control the simulation or real robot manually:
+There is a simple UI application which allows you to control the simulation or real robot manually. The `manual_control.py` application will launch the Gym environment, display camera images and send actions (keyboard commands) back to the simulator or robot. You can specify which map file to load with the `--map-name` argument:
 
 ```
-./manual_control.py --env-name SimpleSim-v0
-```
-
-The `manual_control.py` application will launch the Gym environment, display camera images and send actions (keyboard commands) back to the simulator or robot. You can specify which map file to load with the `--map-name` argument:
-
-```
-./manual_control.py --env-name SimpleSim-v0 --map-name small_loop
+./manual_control.py --env-name Duckietown-udem1-v0
 ```
 
 There is also a script to run automated tests (`run_tests.py`) and a script to gather performance metrics (`benchmark.py`).
@@ -125,13 +159,13 @@ There is also a script to run automated tests (`run_tests.py`) and a script to g
 To train a reinforcement learning agent, you can use the code provided under [/pytorch_rl](/pytorch_rl). I recommend using the A2C or ACKTR algorithms. A sample command to launch training is:
 
 ```
-python3 pytorch_rl/main.py --no-vis --env-name Duckie-SimpleSim-Discrete-v0 --algo a2c --lr 0.0002 --max-grad-norm 0.5 --num-steps 20
+python3 pytorch_rl/main.py --no-vis --env-name Duckietown-small_loop-v0 --algo a2c --lr 0.0002 --max-grad-norm 0.5 --num-steps 20
 ```
 
 Then, to visualize the results of training, you can run the following command. Note that you can do this while the training process is still running. Also note that if you are running this through SSH, you will need to enable X forwarding to get a display:
 
 ```
-python3 pytorch_rl/enjoy.py --env-name Duckie-SimpleSim-Discrete-v0 --num-stack 1 --load-dir trained_models/a2c
+python3 pytorch_rl/enjoy.py --env-name Duckietown-small_loop-v0 --num-stack 1 --load-dir trained_models/a2c
 ```
 
 ### Imitation Learning
@@ -196,7 +230,7 @@ the images. The choice of 8-bit integer values over floating-point values was ma
 
 ### Actions
 
-The Duckiebot is a differential drive robot. Actions passed to the `step()` function should be numpy arrays containining two numbers between -1 and 1. These two numbers correspond to velocities for the left and right wheel motors of the robot, respectively. There is also a [Gym wrapper class](https://github.com/duckietown/gym-duckietown/blob/master/gym_duckietown/wrappers.py#L42) named `DiscreteWrapper` which allows you to use discrete actions (turn left, move forward, turn right) instead of continuous actions if you prefer.
+The simulator uses continuous actions by default. Actions passed to the `step()` function should be numpy arrays containining two numbers between -1 and 1. These two numbers correspond to forward velocity, and a steering angle, respectively. A positive velocity makes the robot go forward, and a positive steering angle makes the robot turn left. There is also a [Gym wrapper class](https://github.com/duckietown/gym-duckietown/blob/master/gym_duckietown/wrappers.py) named `DiscreteWrapper` which allows you to use discrete actions (turn left, move forward, turn right) instead of continuous actions if you prefer.
 
 ### Reward Function
 
