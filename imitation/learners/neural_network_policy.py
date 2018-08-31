@@ -4,18 +4,17 @@ from tqdm import tqdm
 
 class NeuralNetworkPolicy():
 
-    def __init__(self, parametrization, input_shape=(None, 120, 160, 3), output_shape=(None, 2), batch_size=16,
-                 epochs=10, storage_location='./model.ckpt', training=True):
+    def __init__(self, parametrization, optimizer, input_shape=(None, 120, 160, 3), output_shape=(None, 2),
+                 batch_size=16, epochs=10, storage_location=None, training=True):
 
-        self.seen_samples = 0
         self.parametrization = parametrization
         self.batch_size = batch_size
         self.epochs = epochs
 
         if training:
-            self.parametrization.init_train(input_shape, output_shape, storage_location)
+            self.parametrization.prepare_for_train(input_shape, output_shape, optimizer, storage_location)
         else:
-            self.parametrization.init_test(input_shape, output_shape, storage_location)
+            self.parametrization.prepare_for_test(input_shape, output_shape, storage_location)
 
     def optimize(self, observations, expert_actions):
         observations = np.array(observations)
@@ -26,14 +25,12 @@ class NeuralNetworkPolicy():
             for iteration in range(0, data_size, self.batch_size):
                 batch_observations = observations[iteration:iteration + self.batch_size]
                 batch_actions = actions[iteration:iteration + self.batch_size]
-                self.parametrization.learn(batch_observations, batch_actions)
+                self.parametrization.train(batch_observations, batch_actions)
             if iteration + self.batch_size < data_size:
                 remainder = data_size - iteration
                 batch_observations = observations[iteration:remainder]
                 batch_actions = actions[iteration:remainder]
-                self.parametrization.learn(batch_observations, batch_actions)
-
-        self.seen_samples += data_size
+                self.parametrization.train(batch_observations, batch_actions)
 
 
     def predict(self, observation, metadata):
