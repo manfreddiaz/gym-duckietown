@@ -37,7 +37,6 @@ def sgd_wr(learning_rate, global_step, first_decay_steps):
         learning_rate=learning_rate,
         global_step=global_step,
         first_decay_steps=first_decay_steps,
-        alpha=learning_rate / 10.,
         name='lr_wr'
     )
 
