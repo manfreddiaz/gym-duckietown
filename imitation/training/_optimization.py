@@ -33,11 +33,17 @@ def ggt(learning_rate):
     )
 
 def sgd_wr(learning_rate, global_step, first_decay_steps):
-    learning_rate_warm_restarts = tf.train.cosine_decay_restarts(learning_rate=learning_rate,
-                                   global_step=global_step,
-                                   first_decay_steps=first_decay_steps,
-                                   name='lr_wr')
+    learning_rate_warm_restarts = tf.train.cosine_decay_restarts(
+        learning_rate=learning_rate,
+        global_step=global_step,
+        first_decay_steps=first_decay_steps,
+        alpha=learning_rate / 10.,
+        name='lr_wr'
+    )
+
+    # logging
     tf.summary.scalar('lr_wr', learning_rate_warm_restarts)
+
     return tf.train.GradientDescentOptimizer(
         learning_rate=learning_rate_warm_restarts
     )
