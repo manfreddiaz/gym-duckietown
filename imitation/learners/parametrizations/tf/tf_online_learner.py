@@ -40,7 +40,7 @@ class TensorflowOnlineLearner:
                 self.action_tensor: action
             }
         )
-        self.summary_writer.add_summary(summary, step)
+        self.summary_writer.add_episode_summary(summary, step)
         self.last_loss = learning_loss
         return learning_loss
 
@@ -53,15 +53,20 @@ class TensorflowOnlineLearner:
     def init_train(self, state_dims, action_dims, storage_location):
         self.training = True
         if not self.policy_model:
+            # initialization
             self._state_action_tensors(state_dims, action_dims)
             self.policy_model, self.loss_function = self.architecture()
             self.optimization_algorithm = self.get_optimizer(self.loss_function)
             self.tf_session.run(tf.global_variables_initializer())
             tf.train.global_step(self.tf_session, self.global_step)
+
+            # logging
             self.summary_merge = tf.summary.merge_all()
             self.last_loss = float('inf')
+
+            # storing
             self.tf_checkpoint = tf.train.latest_checkpoint(storage_location)
-            self.tf_saver = tf.train.Saver(filename='model')
+            self.tf_saver = tf.train.Saver(filename='model', max_to_keep=2)
             if self.tf_checkpoint:
                 self.tf_saver.restore(self.tf_session, self.tf_checkpoint)
             else:

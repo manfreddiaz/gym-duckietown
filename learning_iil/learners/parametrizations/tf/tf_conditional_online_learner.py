@@ -37,7 +37,7 @@ class GoalOrientedTensorflowOnlineLearner(TensorflowOnlineLearner):
                 self.goal_tensor: [goal]
             }
         )
-        self.summary_writer.add_summary(summary, step)
+        self.summary_writer.add_episode_summary(summary, step)
         self.last_loss = learning_loss
         return learning_loss
 

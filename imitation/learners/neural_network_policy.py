@@ -5,7 +5,7 @@ from tqdm import tqdm
 class NeuralNetworkPolicy():
 
     def __init__(self, parametrization, input_shape=(None, 120, 160, 3), output_shape=(None, 2), batch_size=16,
-                 epochs=20, storage_location='./model.ckpt', training=True):
+                 epochs=10, storage_location='./model.ckpt', training=True):
 
         self.seen_samples = 0
         self.parametrization = parametrization
@@ -22,7 +22,6 @@ class NeuralNetworkPolicy():
         actions = np.array(expert_actions)
         data_size = observations.shape[0]
 
-        print('Optimizing policy...')
         for _ in tqdm(range(self.epochs)):
             for iteration in range(0, data_size, self.batch_size):
                 batch_observations = observations[iteration:iteration + self.batch_size]
@@ -33,7 +32,6 @@ class NeuralNetworkPolicy():
                 batch_observations = observations[iteration:remainder]
                 batch_actions = actions[iteration:remainder]
                 self.parametrization.learn(batch_observations, batch_actions)
-        print('Optimization done.')
 
         self.seen_samples += data_size
 

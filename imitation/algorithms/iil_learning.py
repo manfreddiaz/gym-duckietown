@@ -27,8 +27,10 @@ class InteractiveImitationLearning:
         self._step_done_listeners = []
         self._optimization_done_listener = []
         self._episode_done_listeners = []
+        self._process_done_listeners = []
 
-    def train(self, samples=1):
+    def train(self, samples=1, debug=False):
+        self._debug = debug
         for episode in range(self._episodes):
             self._current_episode = episode
             self._sampling(samples)
@@ -43,6 +45,8 @@ class InteractiveImitationLearning:
                 self._current_horizon = horizon
                 action = self._act(observation)
                 next_observation, reward, done, info = self.environment.step(action)
+                if self._debug:
+                    self.environment.render()
                 self._on_step_done(observation, action, reward, done, info)
                 observation = next_observation
         self._on_sampling_done()
@@ -110,9 +114,13 @@ class InteractiveImitationLearning:
         for listener in self._optimization_done_listener:
             listener.optimization_done(loss)
 
+    def on_process_done(self, listener):
+        self._process_done_listeners.append(listener)
+
     # triggered when the whole training is done
     def _on_process_done(self):
-        pass
+        for listener in self._process_done_listeners:
+            listener.process_done()
 
     # triggered when one step of sampling is done
     def _on_sampling_done(self):

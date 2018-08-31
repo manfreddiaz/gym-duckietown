@@ -25,6 +25,7 @@ class IILTrainingLogger:
         self.algorithm.on_step_done(self)
         self.algorithm.on_episode_done(self)
         self.algorithm.on_optimization_done(self)
+        self.algorithm.on_process_done(self)
 
     # event handlers
     def step_done(self, observation, action, reward, done, info):
@@ -44,17 +45,20 @@ class IILTrainingLogger:
         })
 
     def episode_done(self, episode):
-        self._multithreaded_recording.submit(self._dump_recording, self)
+        self._multithreaded_recording.submit(self._dump_recording)
+        print('Episode {} completed.'.format(episode))
 
     def _dump_recording(self):
         pickle.dump(self._recording, self._log_file)
+        self._log_file.flush()
         self._recording.clear()
 
     def optimization_done(self, loss):
-        self._multithreaded_recording.submit(self._dump_dataset, self, loss)
+        self._multithreaded_recording.submit(self._dump_dataset, loss)
 
     def _dump_dataset(self, loss):
-        pickle.dump([self.algorithm._observations, self.algorithm._actions, loss], self._dataset_file)
+        pickle.dump([self.algorithm._observations, self.algorithm._expert_actions, loss], self._dataset_file)
+        self._dataset_file.flush()
 
     def process_done(self):
         self._log_file.close()
