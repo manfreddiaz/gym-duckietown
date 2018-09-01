@@ -2,8 +2,6 @@ from operator import itemgetter
 import tensorflow as tf
 import numpy as np
 
-tf.set_random_seed(1234)
-
 L2_LAMBDA = 0.01
 
 

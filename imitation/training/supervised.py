@@ -33,7 +33,7 @@ def supervised(env, teacher, experiment_iteration, selected_parametrization, sel
             parametrization_name=PARAMETRIZATIONS_NAMES[selected_parametrization],
             horizon=task_horizon,
             episodes=task_episodes,
-            optimization_name=OPTIMIZATION_METHODS_NAME[selected_optimization],
+            optimization_name=OPTIMIZATION_METHODS_NAMES[selected_optimization],
             learning_rate=LEARNING_RATES[selected_learning_rate]
         )
     )
@@ -50,8 +50,8 @@ if __name__ == '__main__':
     iteration = 0
     horizon_iteration = 0
     parametrization_iteration = 0
-    optimization_iteration = 5
-    learning_rate_iteration = 0
+    optimization_iteration = 2
+    learning_rate_iteration = 1
 
     # training
     environment = simulation(at=MAP_STARTING_POSES[iteration])
@@ -72,7 +72,7 @@ if __name__ == '__main__':
             parametrization_name=PARAMETRIZATIONS_NAMES[parametrization_iteration],
             horizon=HORIZONS[horizon_iteration],
             episodes=EPISODES[horizon_iteration],
-            optimization_name=OPTIMIZATION_METHODS_NAME[optimization_iteration],
+            optimization_name=OPTIMIZATION_METHODS_NAMES[optimization_iteration],
             learning_rate=LEARNING_RATES[learning_rate_iteration]
     )
     logs = IILTrainingLogger(

@@ -53,6 +53,9 @@ class TensorflowParametrization:
         if not self.parameters:
             self._create(input_shape, output_shape)
             self.optimization_fn = optimizer.minimize(loss=self.loss_function, global_step=self.global_step)
+
+            self.tf_session.run(tf.global_variables_initializer())
+            self.tf_session.run(tf.local_variables_initializer())
             tf.train.global_step(self.tf_session, self.global_step)
 
             self._logging(storage_location)
@@ -71,7 +74,7 @@ class TensorflowParametrization:
         self._pre_process()
 
         self.parameters, self.loss_function = self.architecture()
-        self.tf_session.run(tf.global_variables_initializer())
+
 
     def _logging(self, location):
         self.summary_merge = tf.summary.merge_all()

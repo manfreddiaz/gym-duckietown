@@ -4,7 +4,7 @@ import tensorflow as tf
 LEARNING_RATES = [1e-3, 1e-4, 1e-2, 1e-1]
 
 weight_decay = 1e-4
-OPTIMIZATION_METHODS_NAME = ['adamw', 'adam', 'adagrad', 'rmsprop', 'ggt', 'sgd_wr']
+OPTIMIZATION_METHODS_NAMES = ['adamw', 'adam', 'adagrad', 'rmsprop', 'ggt', 'sgd_wr']
 
 def adamw(learning_rate, weight_decay):
     return tf.contrib.opt.AdamWOptimizer(
