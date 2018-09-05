@@ -4,7 +4,7 @@ from tqdm import tqdm
 
 class NeuralNetworkPolicy():
 
-    def __init__(self, parametrization, optimizer, input_shape=(None, 120, 160, 3), output_shape=(None, 2),
+    def __init__(self, parametrization, optimizer=None, input_shape=(None, 120, 160, 3), output_shape=(None, 2),
                  batch_size=16, epochs=10, storage_location=None, training=True):
 
         self.parametrization = parametrization

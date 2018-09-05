@@ -1,10 +1,9 @@
-
-class InteractiveImitationLearning:
+class InteractiveImitationTesting:
     def __init__(self, env, teacher, learner, horizon, episodes):
 
         self.environment = env
-        self.teacher = teacher
         self.learner = learner
+        self.teacher = teacher
 
         # from IIL
         self._horizon = horizon
@@ -29,30 +28,18 @@ class InteractiveImitationLearning:
         self._episode_done_listeners = []
         self._process_done_listeners = []
 
-    def train(self, samples=1, debug=False):
+    def test(self, debug=False):
         self._debug = debug
-        for episode in range(self._episodes):
-            self._current_episode = episode
-            self._sampling(samples)
-            self._optimize() # episodic learning
-            self._on_episode_done()
-        self._on_process_done()
-
-               
-
-
-    def _sampling(self, samples):
         observation = self.environment.render_obs()
-        for sample in range(samples):  # number of T-step trajectories
-            for horizon in range(self._horizon):
-                self._current_horizon = horizon
+        for episode in range(self._episodes):
+            for t in range(self._horizon):
+                self._current_horizon = t
                 action = self._act(observation)
                 next_observation, reward, done, info = self.environment.step(action)
                 if self._debug:
                     self.environment.render()
                 self._on_step_done(observation, action, reward, done, info)
                 observation = next_observation
-        self._on_sampling_done()
 
     # execute current control policy
     def _act(self, observation):
@@ -64,7 +51,7 @@ class InteractiveImitationLearning:
         control_action = control_policy.predict(observation, [self._current_episode, None])
 
         if isinstance(control_action, tuple):
-            control_action, self.active_uncertainty = control_action # if we have uncertainty as input, we do not record it
+            control_action, self.active_uncertainty = control_action  # if we have uncertainty as input, we do not record it
 
         self._query_expert(control_policy, control_action, observation)
 
@@ -79,7 +66,7 @@ class InteractiveImitationLearning:
             expert_action = self.teacher.predict(observation, [self._current_episode, control_action])
 
         if isinstance(expert_action, tuple):
-            expert_action, _ = expert_action # if we have uncertainty as input, we do not record it
+            expert_action, _ = expert_action  # if we have uncertainty as input, we do not record it
 
         if expert_action is not None:
             self._aggregate(observation, expert_action)

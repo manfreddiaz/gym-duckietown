@@ -66,3 +66,7 @@ class IILTrainingLogger:
         os.chmod(self._log_file.name, 0o444) # make file read-only after finishing
         os.chmod(self._dataset_file.name, 0o444) # make file read-only after finishing
         self._multithreaded_recording.shutdown()
+
+
+class IILTestingLogger:
+    pass

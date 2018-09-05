@@ -29,10 +29,10 @@ class MonteCarloDropoutResnetOneMixture(TensorflowParametrization):
 
     def architecture(self):
         model = resnet_1(self.state_tensor, keep_prob=1.0)
-        model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
+        model = tf.layers.dense(model, units=64, activation=tf.nn.tanh,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
-        model = tf.layers.dense(model, units=32, activation=tf.nn.relu,
+        model = tf.layers.dense(model, units=32, activation=tf.nn.tanh,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
         model = tf.nn.dropout(model, keep_prob=self.dropout)
