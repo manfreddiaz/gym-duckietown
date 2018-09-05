@@ -1,10 +1,11 @@
-from ._settings import *
-from ._parametrization import *
-from ._optimization import OPTIMIZATION_METHODS_NAMES, LEARNING_RATES
+from imitation.training._drivers import Icra2019Driver
+from imitation.training._settings import *
+from imitation.training._parametrization import *
+from imitation.training._optimization import OPTIMIZATION_METHODS_NAMES, LEARNING_RATES
 
 from imitation.learners import NeuralNetworkPolicy
 from imitation.training._loggers import IILTestingLogger
-
+from imitation.algorithms.iil_testing import InteractiveImitationTesting
 
 def test(selected_algorithm, experiment_iteration, selected_parametrization, selected_optimization, selected_learning_rate,
                selected_horizon, selected_episode):
@@ -28,8 +29,6 @@ def test(selected_algorithm, experiment_iteration, selected_parametrization, sel
             optimization_name=OPTIMIZATION_METHODS_NAMES[selected_optimization],
             learning_rate=LEARNING_RATES[selected_learning_rate]
         ),
-        batch_size=32,
-        epochs=10,
         training=False
     )
 
@@ -39,8 +38,8 @@ if __name__ == '__main__':
     algorithm = 0
     iteration = 0
     horizon_iteration = 0
-    parametrization_iteration = 1
-    optimization_iteration = 5
+    parametrization_iteration = 0
+    optimization_iteration = 1
     learning_rate_iteration = 0
 
     # training
@@ -56,5 +55,26 @@ if __name__ == '__main__':
         selected_episode=horizon_iteration
     )
 
+    testing = InteractiveImitationTesting(
+        env=environment,
+        teacher=teacher(environment),
+        learner=policy,
+        horizon=HORIZONS[horizon_iteration],
+        episodes=EPISODES[horizon_iteration]
+    )
+
+    # observers
+
+    driver = Icra2019Driver(
+        env=environment,
+        at=MAP_STARTING_POSES[iteration],
+        routine=testing
+    )
+
+    logger = IILTestingLogger(
+        a
+    )
+
+    testing.test(debug=True)
 
     environment.close()

@@ -16,7 +16,8 @@ class InteractiveImitationTesting:
         # statistics
         self.expert_queried = True
         self.active_policy = True  # if teacher is active
-        self.active_uncertainty = None
+        self.learner_uncertainty = None
+        self.expert_uncertainty = None
 
         # internal count
         self._current_horizon = 0
@@ -40,6 +41,8 @@ class InteractiveImitationTesting:
                     self.environment.render()
                 self._on_step_done(observation, action, reward, done, info)
                 observation = next_observation
+            self._on_episode_done()
+        self._on_process_done()
 
     # execute learner control policy
     def _act(self, observation):
@@ -57,7 +60,7 @@ class InteractiveImitationTesting:
         expert_action = self.teacher.predict(observation, [self._current_episode, control_action])
 
         if isinstance(expert_action, tuple):
-            expert_action, _ = expert_action  # if we have uncertainty as input, we do not record it
+            expert_action, self.expert_uncertainty = expert_action  # if we have uncertainty as input, we do not record it
 
         if expert_action is not None:
             self.expert_queried = True

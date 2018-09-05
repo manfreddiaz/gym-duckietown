@@ -34,7 +34,7 @@ EPISODES = [64, 32, 16, 8, 4]
 
 ITERATIONS = 4  # to 4
 
-SUBMISSION_DIRECTORY = 'icra2019/'
+SUBMISSION_DIRECTORY = 'icra2019'
 
 
 def experimental_entry(algorithm, experiment_iteration, parametrization_name, horizon, episodes,
@@ -52,13 +52,18 @@ def experimental_entry(algorithm, experiment_iteration, parametrization_name, ho
     )
 
 
-def simulation(at):
-    environment = DuckietownEnv(
-        domain_rand=False,
-        max_steps=math.inf,
-        map_name=MAP_NAME
-    )
-    environment.reset()
+def simulation(at, env=None, reset=True):
+    if env is None:
+        environment = DuckietownEnv(
+            domain_rand=False,
+            max_steps=math.inf,
+            map_name=MAP_NAME
+        )
+    else:
+        environment = env
+
+    if reset:
+        environment.reset()
 
     environment.cur_pos = np.array(at[0])
     environment.cur_angle = at[1]
