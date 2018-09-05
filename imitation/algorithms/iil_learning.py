@@ -38,9 +38,6 @@ class InteractiveImitationLearning:
             self._on_episode_done()
         self._on_process_done()
 
-               
-
-
     def _sampling(self, samples):
         observation = self.environment.render_obs()
         for sample in range(samples):  # number of T-step trajectories
