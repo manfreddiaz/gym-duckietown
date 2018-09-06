@@ -98,6 +98,7 @@ def process_args():
     parser.add_argument('--parametrization', '-p', default=0, type=int)
     parser.add_argument('--optimization', '-o', default=0, type=int)
     parser.add_argument('--learning-rate', '-l', default=0, type=int)
+    parser.add_argument('--metadata', '-m', default=None)
 
     return parser
 

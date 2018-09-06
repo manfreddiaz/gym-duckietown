@@ -1,3 +1,5 @@
+import ast
+
 from imitation.training._drivers import Icra2019Driver
 from imitation.training._settings import *
 from imitation.training._parametrization import *
@@ -8,7 +10,7 @@ from imitation.training._loggers import IILTestingLogger
 from imitation.algorithms.iil_testing import InteractiveImitationTesting
 
 def test(selected_algorithm, experiment_iteration, selected_parametrization, selected_optimization, selected_learning_rate,
-               selected_horizon, selected_episode):
+               selected_horizon, selected_episode, metadata=None):
 
     task_horizon = HORIZONS[selected_horizon]
     task_episodes = EPISODES[selected_episode]
@@ -27,7 +29,8 @@ def test(selected_algorithm, experiment_iteration, selected_parametrization, sel
             horizon=task_horizon,
             episodes=task_episodes,
             optimization_name=OPTIMIZATION_METHODS_NAMES[selected_optimization],
-            learning_rate=LEARNING_RATES[selected_learning_rate]
+            learning_rate=LEARNING_RATES[selected_learning_rate],
+            metadata=ast.literal_eval(metadata)
         ),
         training=False
     )
@@ -35,7 +38,9 @@ def test(selected_algorithm, experiment_iteration, selected_parametrization, sel
     return policy
 
 if __name__ == '__main__':
-    config = process_args()
+    parser = process_args()
+
+    config = parser.parse_args()
 
     # training
     environment = simulation(at=MAP_STARTING_POSES[config.iteration])
@@ -47,7 +52,8 @@ if __name__ == '__main__':
         selected_optimization=config.optimization,
         selected_learning_rate=config.learning_rate,
         selected_horizon=config.horizon,
-        selected_episode=config.horizon
+        selected_episode=config.horizon,
+        metadata=config.metadata
     )
 
     testing = InteractiveImitationTesting(
