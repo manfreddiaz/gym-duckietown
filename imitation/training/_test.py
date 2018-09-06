@@ -36,12 +36,6 @@ def test(selected_algorithm, experiment_iteration, selected_parametrization, sel
 
 if __name__ == '__main__':
     config = process_args()
-    algorithm = 0
-    iteration = 0
-    horizon_iteration = 0
-    parametrization_iteration = 1
-    optimization_iteration = 4
-    learning_rate_iteration = 0
 
     # training
     environment = simulation(at=MAP_STARTING_POSES[config.iteration])
