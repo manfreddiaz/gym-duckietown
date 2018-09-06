@@ -1,15 +1,16 @@
 import numpy as np
 
 class Summary:
-    def __init__(self):
+    def __init__(self, label):
+        self.label = label
         self._reward = 0.0
         self._penalties = 0.0
         self._queries = 0
         self._out_bounds = 0
 
 class EpisodeSummary(Summary):
-    def __init__(self):
-        Summary.__init__(self)
+    def __init__(self, label):
+        Summary.__init__(self, label)
 
     def process(self, entry):
         state = entry['state']
@@ -29,8 +30,8 @@ class EpisodeSummary(Summary):
 
 
 class IterationSummary(Summary):
-    def __init__(self):
-        Summary.__init__(self)
+    def __init__(self, label):
+        Summary.__init__(self, label)
         self._episodes = []
 
     def add_episode_summary(self, episode_summary : EpisodeSummary):

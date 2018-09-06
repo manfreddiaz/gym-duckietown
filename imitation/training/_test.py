@@ -38,8 +38,8 @@ if __name__ == '__main__':
     algorithm = 0
     iteration = 0
     horizon_iteration = 0
-    parametrization_iteration = 0
-    optimization_iteration = 3
+    parametrization_iteration = 1
+    optimization_iteration = 4
     learning_rate_iteration = 0
 
     # training
@@ -87,6 +87,6 @@ if __name__ == '__main__':
         log_file=logging_entry + 'testing.log'
     )
 
-    testing.test(debug=DEBUG)
+    testing.test(debug=False)
 
     environment.close()

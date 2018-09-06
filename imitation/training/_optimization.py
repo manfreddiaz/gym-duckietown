@@ -58,7 +58,7 @@ def optimizer(optimizer_iteration, learning_rate_iteration, parametrization, tas
     elif optimizer_iteration == 3:
         return rmsprop(learning_rate=LEARNING_RATES[learning_rate_iteration])
     elif optimizer_iteration == 4:
-        return
+        return ggt(learning_rate=LEARNING_RATES[learning_rate_iteration])
     elif optimizer_iteration == 5:
         return sgd_wr(
             learning_rate=LEARNING_RATES[learning_rate_iteration],

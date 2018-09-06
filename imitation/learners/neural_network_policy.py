@@ -34,10 +34,7 @@ class NeuralNetworkPolicy():
 
 
     def predict(self, observation, metadata):
-        action = self.parametrization.predict([observation])
-        if isinstance(action, tuple): # use it with UA parametrization
-            action, _ = action
-        return action
+        return self.parametrization.test([observation])
 
     def save(self):
         self.parametrization.commit()

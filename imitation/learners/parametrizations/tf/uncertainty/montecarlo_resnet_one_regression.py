@@ -12,7 +12,7 @@ class MonteCarloDropoutResnetOneRegression(TensorflowParametrization):
         self.samples = kwargs.get('samples')
         self.keep_probability = kwargs.get('dropout')
 
-    def predict(self, state, horizon=1):
+    def test(self, state):
         regression = TensorflowParametrization.test(self, np.repeat(state, self.samples, axis=0))
         regression = regression[0]
         return np.squeeze(np.mean(regression, axis=1)), np.sum(np.var(regression, axis=1))

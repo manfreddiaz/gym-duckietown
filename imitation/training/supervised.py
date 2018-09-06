@@ -52,7 +52,7 @@ if __name__ == '__main__':
     iteration = 0
     horizon_iteration = 0
     parametrization_iteration = 1
-    optimization_iteration = 5
+    optimization_iteration = 4
     learning_rate_iteration = 0
 
     # training
