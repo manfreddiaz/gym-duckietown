@@ -91,4 +91,4 @@ if __name__ == '__main__':
 
     summaries = algorithm_and_parametrization_by_optimization(config)
 
-    render_summaries(summaries)
+    stats_summaries(summaries)
