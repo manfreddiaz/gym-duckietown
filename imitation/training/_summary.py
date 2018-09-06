@@ -31,10 +31,10 @@ class EpisodeSummary(Summary):
             self._queries += 1
 
         if metadata[1] is not None:
-            print(state[1], metadata[1])
+            # print(state[1], metadata[1])
             self._delta_v += state[1][0] - metadata[1][0]
             self._delta_theta += state[1][1] - metadata[1][1]
-            print(self._delta_theta)
+            # print(self._delta_theta)
         # print(self._delta_v)
 
 
