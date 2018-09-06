@@ -1,3 +1,4 @@
+from imitation.training._drivers import Icra2019Driver
 from imitation.training._settings import *
 from imitation.training._optimization import *
 from imitation.training._parametrization import *
@@ -73,6 +74,14 @@ if __name__ == '__main__':
         selected_learning_rate=config.learning_rate,
         selected_mixing_decay=config.decay
     )
+
+    # observers
+    driver = Icra2019Driver(
+        env=environment,
+        at=MAP_STARTING_POSES[config.iteration],
+        routine=algorithm
+    )
+
     disk_entry = experimental_entry(
         algorithm='dagger',
         experiment_iteration=config.iteration,
