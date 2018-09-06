@@ -1,12 +1,12 @@
-from ._settings import *
-from ._optimization import *
-from ._parametrization import *
+from imitation.training._settings import *
+from imitation.training._optimization import *
+from imitation.training._parametrization import *
 
 from imitation.algorithms import DAgger
 from imitation.learners import NeuralNetworkPolicy
 from imitation.training._loggers import IILTrainingLogger
 
-MIXING_DECAYS = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
+MIXING_DECAYS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
 
 def dagger(env, teacher, experiment_iteration, selected_parametrization, selected_optimization, selected_learning_rate,
            selected_horizon, selected_episode, selected_mixing_decay):
@@ -30,13 +30,16 @@ def dagger(env, teacher, experiment_iteration, selected_parametrization, selecte
         parametrization=policy_parametrization,
         optimizer=policy_optimizer,
         storage_location=experimental_entry(
-            algorithm='supervised',
-            experiment_iteration=experiment_iteration,
-            parametrization_name=PARAMETRIZATIONS_NAMES[selected_parametrization],
-            horizon=task_horizon,
-            episodes=task_episodes,
-            optimization_name=OPTIMIZATION_METHODS_NAMES[selected_optimization],
-            learning_rate=LEARNING_RATES[selected_learning_rate]
+            algorithm='dagger',
+            experiment_iteration=config.iteration,
+            parametrization_name=PARAMETRIZATIONS_NAMES[config.parametrization],
+            horizon=HORIZONS[config.horizon],
+            episodes=EPISODES[config.horizon],
+            optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
+            learning_rate=LEARNING_RATES[config.learning_rate],
+            metadata={
+                'decay': MIXING_DECAYS[config.decay]
+            }
         ),
         batch_size=32,
         epochs=10
@@ -52,43 +55,43 @@ def dagger(env, teacher, experiment_iteration, selected_parametrization, selecte
 
 
 if __name__ == '__main__':
-    iteration = 0
-    horizon_iteration = 0
-    parametrization_iteration = 1
-    optimization_iteration = 5
-    learning_rate_iteration = 0
-    mixing_decay_iteration = 0
+    parser = process_args()
+    parser.add_argument('--decay', '-d', default=0, type=int)
 
+    config = parser.parse_args()
     # training
-    environment = simulation(at=MAP_STARTING_POSES[iteration])
+    environment = simulation(at=MAP_STARTING_POSES[config.iteration])
 
     algorithm = dagger(
         env=environment,
         teacher=teacher(environment),
-        experiment_iteration=iteration,
-        selected_parametrization=parametrization_iteration,
-        selected_optimization=optimization_iteration,
-        selected_horizon=horizon_iteration,
-        selected_episode=horizon_iteration,
-        selected_learning_rate=learning_rate_iteration,
-        selected_mixing_decay=mixing_decay_iteration
+        experiment_iteration=config.iteration,
+        selected_parametrization=config.parametrization,
+        selected_optimization=config.optimization,
+        selected_horizon=config.horizon,
+        selected_episode=config.horizon,
+        selected_learning_rate=config.learning_rate,
+        selected_mixing_decay=config.decay
     )
     disk_entry = experimental_entry(
-            algorithm='dagger',
-            experiment_iteration=iteration,
-            parametrization_name=PARAMETRIZATIONS_NAMES[parametrization_iteration],
-            horizon=HORIZONS[horizon_iteration],
-            episodes=EPISODES[horizon_iteration],
-            optimization_name=OPTIMIZATION_METHODS_NAMES[optimization_iteration],
-            learning_rate=LEARNING_RATES[learning_rate_iteration]
+        algorithm='dagger',
+        experiment_iteration=config.iteration,
+        parametrization_name=PARAMETRIZATIONS_NAMES[config.parametrization],
+        horizon=HORIZONS[config.horizon],
+        episodes=EPISODES[config.horizon],
+        optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
+        learning_rate=LEARNING_RATES[config.learning_rate],
+        metadata={
+            'decay': MIXING_DECAYS[config.decay]
+        }
     )
     logs = IILTrainingLogger(
         env=environment,
         routine=algorithm,
         log_file=disk_entry + 'training.log',
         data_file=disk_entry + 'dataset_evolution.pkl',
-        horizon=HORIZONS[horizon_iteration],
-        episodes=EPISODES[horizon_iteration]
+        horizon=HORIZONS[config.horizon],
+        episodes=EPISODES[config.horizon]
     )
 
     algorithm.train(debug=DEBUG)

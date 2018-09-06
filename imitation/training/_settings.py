@@ -39,8 +39,8 @@ SUBMISSION_DIRECTORY = 'icra2019'
 
 
 def experimental_entry(algorithm, experiment_iteration, parametrization_name, horizon, episodes,
-                       optimization_name, learning_rate):
-    return '{}/{}/{}/h{}e{}/{}_{}/{}_lr_{}/'.format(
+                       optimization_name, learning_rate, metadata=None):
+    entry = '{}/{}/{}/h{}e{}/{}_{}/{}_lr_{}/'.format(
         SUBMISSION_DIRECTORY,
         algorithm,
         experiment_iteration,
@@ -51,6 +51,12 @@ def experimental_entry(algorithm, experiment_iteration, parametrization_name, ho
         optimization_name,
         learning_rate
     )
+
+    if metadata is not None:
+        for key in metadata:
+            entry += '{}_{}/'.format(key, metadata[key])
+
+    return entry
 
 
 def simulation(at, env=None, reset=True):
@@ -93,5 +99,5 @@ def process_args():
     parser.add_argument('--optimization', '-o', default=0, type=int)
     parser.add_argument('--learning-rate', '-l', default=0, type=int)
 
-    return parser.parse_args()
+    return parser
 
