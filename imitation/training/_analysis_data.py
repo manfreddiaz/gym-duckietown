@@ -6,37 +6,48 @@ from imitation.training._summary import *
 from imitation.training._parametrization import PARAMETRIZATIONS_NAMES
 from imitation.training._optimization import OPTIMIZATION_METHODS_NAMES, LEARNING_RATES
 
-def summarize_iteration(disk_entry):
-    import matplotlib.pyplot as plt
-
+def summarize_dataset(disk_entry):
     reading = True
     data_file = open(disk_entry, mode='rb')
 
-    iteration_summary = IterationSummary()
+    v_histograms = []
+    theta_histograms = []
+
     while reading:
         try:
-            episode_data = pickle.load(data_file)
-            summary = EpisodeSummary()
-            for data in episode_data:
-                summary.process(data)
-            iteration_summary.add_episode_summary(summary)
+            _, actions, loss = pickle.load(data_file)
+            actions = np.array(actions)
+            v_histograms.append(np.histogram(actions[::, 0], bins=50, range=[-1, 1]))
+            theta_histograms.append(np.histogram(actions[::, 1], bins=50))
         except EOFError:
             reading = False
 
-    return iteration_summary
+    return v_histograms, theta_histograms
 
-def plot_iteration_per_episode(iteration_summary):
+
+def plot_histograms(histograms):
+    from mpl_toolkits.mplot3d import Axes3D
     import matplotlib.pyplot as plt
-    episode_range = np.arange(0, iteration_summary.episodes())
-    plt.plot(episode_range, iteration_summary.reward_history())
-    plt.show()
 
+    fig = plt.figure()
+
+    ax = fig.add_subplot(111, projection='3d')
+    ax.set_xlabel('X')
+    ax.set_ylabel('Y')
+    ax.set_zlabel('Z')
+
+    for index, histogram in enumerate(histograms):
+        values, bins = histogram
+        ax.bar(bins[:-1], values, zs=np.repeat(index, 50), zdir='y', width=0.05, alpha=0.5, label=str(index))
+
+    plt.legend()
+    plt.show()
 
 if __name__ == '__main__':
     iteration = 0
     horizon_iteration = 0
     parametrization_iteration = 0
-    optimization_iteration = 3
+    optimization_iteration = 2
     learning_rate_iteration = 0
 
     algorithm = 'supervised'
@@ -51,10 +62,6 @@ if __name__ == '__main__':
         learning_rate=LEARNING_RATES[learning_rate_iteration]
     )
 
-    summary = summarize_iteration(disk_entry + 'testing.log')
+    v_histograms, theta_histogram = summarize_dataset(disk_entry + 'dataset_evolution.pkl')
 
-    plot_iteration_per_episode(summary)
-
-    # v_histograms, theta_histogram = summarize_dataset(disk_entry + 'dataset_evolution.pkl')
-
-    # plot_histograms(theta_histogram)
+    plot_histograms(theta_histogram)

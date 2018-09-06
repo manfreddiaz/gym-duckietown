@@ -84,7 +84,7 @@ if __name__ == '__main__':
     )
     logs = IILTrainingLogger(
         env=environment,
-        algorithm=algorithm,
+        routine=algorithm,
         log_file=disk_entry + 'training.log',
         data_file=disk_entry + 'dataset_evolution.pkl',
         horizon=HORIZONS[horizon_iteration],

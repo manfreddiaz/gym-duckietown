@@ -1,3 +1,5 @@
+from tqdm import tqdm
+
 class InteractiveImitationTesting:
     def __init__(self, env, teacher, learner, horizon, episodes):
 
@@ -9,15 +11,12 @@ class InteractiveImitationTesting:
         self._horizon = horizon
         self._episodes = episodes
 
-        # data
-        self._observations = []
-        self._expert_actions = []
-
         # statistics
-        self.expert_queried = True
+        self.teacher_queried = True
+        self.teacher_action = None
         self.active_policy = True  # if teacher is active
         self.learner_uncertainty = None
-        self.expert_uncertainty = None
+        self.teacher_uncertainty = None
 
         # internal count
         self._current_horizon = 0
@@ -31,7 +30,7 @@ class InteractiveImitationTesting:
     def test(self, debug=False):
         self._debug = debug
         observation = self.environment.render_obs()
-        for episode in range(self._episodes):
+        for episode in tqdm(range(self._episodes)):
             self._current_episode = episode
             for t in range(self._horizon):
                 self._current_horizon = t
@@ -60,12 +59,12 @@ class InteractiveImitationTesting:
         expert_action = self.teacher.predict(observation, [self._current_episode, control_action])
 
         if isinstance(expert_action, tuple):
-            expert_action, self.expert_uncertainty = expert_action  # if we have uncertainty as input, we do not record it
+            self.teacher_action, self.teacher_uncertainty = expert_action  # if we have uncertainty as input, we do not record it
 
         if expert_action is not None:
-            self.expert_queried = True
+            self.teacher_queried = True
         else:
-            self.expert_queried = False
+            self.teacher_queried = False
 
     # TRAINING EVENTS
 

@@ -39,7 +39,7 @@ if __name__ == '__main__':
     iteration = 0
     horizon_iteration = 0
     parametrization_iteration = 0
-    optimization_iteration = 1
+    optimization_iteration = 3
     learning_rate_iteration = 0
 
     # training
@@ -64,17 +64,29 @@ if __name__ == '__main__':
     )
 
     # observers
-
     driver = Icra2019Driver(
         env=environment,
         at=MAP_STARTING_POSES[iteration],
         routine=testing
     )
+    logging_entry = experimental_entry(
+        algorithm=ALGORITHMS[algorithm],
+        experiment_iteration=iteration,
+        parametrization_name=PARAMETRIZATIONS_NAMES[parametrization_iteration],
+        horizon=HORIZONS[horizon_iteration],
+        episodes=EPISODES[horizon_iteration],
+        optimization_name=OPTIMIZATION_METHODS_NAMES[optimization_iteration],
+        learning_rate=LEARNING_RATES[learning_rate_iteration]
 
+    )
     logger = IILTestingLogger(
-        a
+        env=environment,
+        routine=testing,
+        horizon=HORIZONS[horizon_iteration],
+        episodes=EPISODES[horizon_iteration],
+        log_file=logging_entry + 'testing.log'
     )
 
-    testing.test(debug=True)
+    testing.test(debug=DEBUG)
 
     environment.close()
