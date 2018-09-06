@@ -89,7 +89,8 @@ def render_summaries(summaries):
 
 
 if __name__ == '__main__':
-    config = process_args()
+    parser = process_args()
+    config = parser.parse_args()
 
     summaries = algorithm_and_parametrization_by_optimization(config)
 
