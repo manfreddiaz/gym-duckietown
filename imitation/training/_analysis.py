@@ -45,6 +45,15 @@ def algorithm_and_parametrization_by_optimization(config):
 
     return summaries
 
+def stats_summaries(summaries):
+    for iteration_summary in summaries:
+        print('method: {}'.format(iteration_summary.label))
+        print('\t reward: {}'.format(sum(iteration_summary.reward_history())))
+        print('\t queries: {}'.format(sum(iteration_summary.queries_history())))
+        print('\t penalties: {}'.format(sum(iteration_summary.penalties_history())))
+        print('\t out bounds: {}'.format(sum(iteration_summary.out_bounds_history())))
+        print('\t delta v: {}'.format(sum(iteration_summary.delta_v_history())))
+        print('\t delta theta: {}'.format(sum(iteration_summary.delt_theta_history())))
 
 def render_summaries(summaries):
     import matplotlib.pyplot as plt
@@ -56,6 +65,7 @@ def render_summaries(summaries):
     axes[0][1].set_title('queries')
     axes[1][0].set_title('penalties')
     axes[1][1].set_title('out_bounds')
+
     axes[2][0].set_title('v_diff')
     axes[2][1].set_title('theta_diff')
 
