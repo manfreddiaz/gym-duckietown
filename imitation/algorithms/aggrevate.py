@@ -13,7 +13,7 @@ class AggreVaTe(DAgger):
 
 
     def _act(self, observation):
-        if self._current_episode == 0:
+        if self._episode == 0:
             control_policy = self.teacher
         else:
             if self._current_horizon < self.t:

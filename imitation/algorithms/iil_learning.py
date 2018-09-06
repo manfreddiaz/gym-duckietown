@@ -21,7 +21,7 @@ class InteractiveImitationLearning:
 
         # internal count
         self._current_horizon = 0
-        self._current_episode = 0
+        self._episode = 0
 
         # event listeners
         self._step_done_listeners = []
@@ -32,7 +32,7 @@ class InteractiveImitationLearning:
     def train(self, samples=1, debug=False):
         self._debug = debug
         for episode in range(self._episodes):
-            self._current_episode = episode
+            self._episode = episode
             self._sampling(samples)
             self._optimize() # episodic learning
             self._on_episode_done()
@@ -53,12 +53,12 @@ class InteractiveImitationLearning:
 
     # execute current control policy
     def _act(self, observation):
-        if self._current_episode == 0:  # initial policy equals expert's
+        if self._episode == 0:  # initial policy equals expert's
             control_policy = self.teacher
         else:
             control_policy = self._mix()
 
-        control_action = control_policy.predict(observation, [self._current_episode, None])
+        control_action = control_policy.predict(observation, [self._episode, None])
 
         if isinstance(control_action, tuple):
             control_action, self.active_uncertainty = control_action # if we have uncertainty as input, we do not record it
@@ -73,7 +73,7 @@ class InteractiveImitationLearning:
         if control_policy == self.teacher:
             expert_action = control_action
         else:
-            expert_action = self.teacher.predict(observation, [self._current_episode, control_action])
+            expert_action = self.teacher.predict(observation, [self._episode, control_action])
 
         if isinstance(expert_action, tuple):
             expert_action, _ = expert_action # if we have uncertainty as input, we do not record it
@@ -104,7 +104,7 @@ class InteractiveImitationLearning:
 
     def _on_episode_done(self):
         for listener in self._episode_done_listeners:
-            listener.episode_done(self._current_episode)
+            listener.episode_done(self._episode)
 
     # triggered when the learning step after an episode is done
     def on_optimization_done(self, listener):
