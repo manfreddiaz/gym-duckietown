@@ -86,12 +86,12 @@ def teacher(env):
 def process_args():
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--algorithm', '-a', default=0)
-    parser.add_argument('--iteration', '-i', default=0)
-    parser.add_argument('--horizon', '-r', default=0)
-    parser.add_argument('--parametrization', '-p', default=0)
-    parser.add_argument('--optimization', '-o', default=0)
-    parser.add_argument('--learning-rate', '-l', default=0)
+    parser.add_argument('--algorithm', '-a', default=0, type=int)
+    parser.add_argument('--iteration', '-i', default=0, type=int)
+    parser.add_argument('--horizon', '-r', default=0, type=int)
+    parser.add_argument('--parametrization', '-p', default=0, type=int)
+    parser.add_argument('--optimization', '-o', default=0, type=int)
+    parser.add_argument('--learning-rate', '-l', default=0, type=int)
 
     return parser.parse_args()
 
