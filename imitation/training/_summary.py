@@ -7,6 +7,8 @@ class Summary:
         self._penalties = 0.0
         self._queries = 0
         self._out_bounds = 0
+        self._delta_v = 0
+        self._delta_theta = 0
 
 class EpisodeSummary(Summary):
     def __init__(self, label):
@@ -27,6 +29,13 @@ class EpisodeSummary(Summary):
 
         if metadata[0]:
             self._queries += 1
+
+        if metadata[1] is not None:
+            print(state[1], metadata[1])
+            self._delta_v += state[1][0] - metadata[1][0]
+            self._delta_theta += state[1][1] - metadata[1][1]
+            print(self._delta_theta)
+        # print(self._delta_v)
 
 
 class IterationSummary(Summary):
@@ -88,6 +97,32 @@ class IterationSummary(Summary):
         history = []
         for episode_summary in self._episodes:
             history.append(episode_summary._out_bounds)
+
+        return np.array(history)
+
+    def delta_v(self):
+        if self._delta_v == 0:
+            for episode_summary in self._episodes:
+                self._delta_v += episode_summary._delta_v
+        return self._delta_v
+
+    def delta_v_history(self):
+        history = []
+        for episode_summary in self._episodes:
+            history.append(episode_summary._delta_v)
+
+        return np.array(history)
+
+    def delta_theta(self):
+        if self._delta_theta == 0:
+            for episode_summary in self._episodes:
+                self._delta_theta += episode_summary._delta_theta
+        return self._delta_theta
+
+    def delta_theta_history(self):
+        history = []
+        for episode_summary in self._episodes:
+            history.append(episode_summary._delta_theta)
 
         return np.array(history)
 

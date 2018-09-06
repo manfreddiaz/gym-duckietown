@@ -49,14 +49,15 @@ def algorithm_and_parametrization_by_optimization(config):
 def render_summaries(summaries):
     import matplotlib.pyplot as plt
 
-    figure, axes = plt.subplots(2, 2)
+    figure, axes = plt.subplots(3, 2)
     figure.canvas.set_window_title('performance')
 
     axes[0][0].set_title('reward')
     axes[0][1].set_title('queries')
     axes[1][0].set_title('penalties')
     axes[1][1].set_title('out_bounds')
-
+    axes[2][0].set_title('v_diff')
+    axes[2][1].set_title('theta_diff')
 
     for iteration_summary in summaries:
         episode_range = np.arange(0, iteration_summary.episodes())
@@ -64,6 +65,9 @@ def render_summaries(summaries):
         axes[0][1].plot(episode_range, iteration_summary.queries_history(), label=iteration_summary.label)
         axes[1][0].plot(episode_range, iteration_summary.penalties_history(), label=iteration_summary.label)
         axes[1][1].plot(episode_range, iteration_summary.out_bounds_history(), label=iteration_summary.label)
+
+        axes[2][0].plot(episode_range, iteration_summary.delta_v_history(), label=iteration_summary.label)
+        axes[2][1].plot(episode_range, iteration_summary.delta_theta_history(), label=iteration_summary.label)
 
     for axis in axes:
         axis[0].legend()

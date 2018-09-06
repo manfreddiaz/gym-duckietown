@@ -97,9 +97,9 @@ class IILTestingLogger(Logger):
                 self.routine.learner_uncertainty
             ],
             'metadata': [
-                self.routine.teacher_queried,
-                self.routine.teacher_action,
-                self.routine.teacher_uncertainty,
-                self.routine.active_policy,
+                self.routine.teacher_queried, # 0
+                self.routine.teacher_action, # 1
+                self.routine.teacher_uncertainty, # 2
+                self.routine.active_policy, # 3
             ]
         })
