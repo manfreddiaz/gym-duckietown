@@ -35,6 +35,7 @@ def test(selected_algorithm, experiment_iteration, selected_parametrization, sel
     return policy
 
 if __name__ == '__main__':
+    config = process_args()
     algorithm = 0
     iteration = 0
     horizon_iteration = 0
@@ -43,47 +44,47 @@ if __name__ == '__main__':
     learning_rate_iteration = 0
 
     # training
-    environment = simulation(at=MAP_STARTING_POSES[iteration])
+    environment = simulation(at=MAP_STARTING_POSES[config.iteration])
 
     policy = test(
-        selected_algorithm=algorithm,
-        experiment_iteration=iteration,
-        selected_parametrization=parametrization_iteration,
-        selected_optimization=optimization_iteration,
-        selected_learning_rate=learning_rate_iteration,
-        selected_horizon=horizon_iteration,
-        selected_episode=horizon_iteration
+        selected_algorithm=config.algorithm,
+        experiment_iteration=config.iteration,
+        selected_parametrization=config.parametrization,
+        selected_optimization=config.optimization,
+        selected_learning_rate=config.learning_rate,
+        selected_horizon=config.horizon,
+        selected_episode=config.horizon
     )
 
     testing = InteractiveImitationTesting(
         env=environment,
         teacher=teacher(environment),
         learner=policy,
-        horizon=HORIZONS[horizon_iteration],
-        episodes=EPISODES[horizon_iteration]
+        horizon=HORIZONS[config.horizon],
+        episodes=EPISODES[config.horizon]
     )
 
     # observers
     driver = Icra2019Driver(
         env=environment,
-        at=MAP_STARTING_POSES[iteration],
+        at=MAP_STARTING_POSES[config.iteration],
         routine=testing
     )
     logging_entry = experimental_entry(
-        algorithm=ALGORITHMS[algorithm],
-        experiment_iteration=iteration,
-        parametrization_name=PARAMETRIZATIONS_NAMES[parametrization_iteration],
-        horizon=HORIZONS[horizon_iteration],
-        episodes=EPISODES[horizon_iteration],
-        optimization_name=OPTIMIZATION_METHODS_NAMES[optimization_iteration],
-        learning_rate=LEARNING_RATES[learning_rate_iteration]
+        algorithm=ALGORITHMS[config.algorithm],
+        experiment_iteration=config.iteration,
+        parametrization_name=PARAMETRIZATIONS_NAMES[config.parametrization],
+        horizon=HORIZONS[config.horizon],
+        episodes=EPISODES[config.horizon],
+        optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
+        learning_rate=LEARNING_RATES[config.learning_rate]
 
     )
     logger = IILTestingLogger(
         env=environment,
         routine=testing,
-        horizon=HORIZONS[horizon_iteration],
-        episodes=EPISODES[horizon_iteration],
+        horizon=HORIZONS[config.horizon],
+        episodes=EPISODES[config.horizon],
         log_file=logging_entry + 'testing.log'
     )
 
