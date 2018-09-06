@@ -29,6 +29,8 @@ def algorithm_and_parametrization_by_optimization(config):
     algorithm = ALGORITHMS[config.algorithm]
     parametrization = PARAMETRIZATIONS_NAMES[config.parametrization]
 
+    print('{} - {}'.format(algorithm, parametrization))
+
     summaries = []
     for optimization_method in range(len(OPTIMIZATION_METHODS_NAMES)):
         disk_entry = experimental_entry(
