@@ -1,3 +1,4 @@
+import math
 
 class InteractiveImitationLearning:
     def __init__(self, env, teacher, learner, horizon, episodes):
@@ -70,6 +71,9 @@ class InteractiveImitationLearning:
         if control_policy == self.learner:
             self.learner_action = control_action
             self.learner_uncertainty = uncertainty # it might but it wont
+        else:
+            self.learner_action = None
+            self.learner_uncertainty = math.inf
 
         self._query_expert(control_policy, control_action, observation)
 
