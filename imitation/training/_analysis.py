@@ -44,7 +44,12 @@ def algorithm_and_parametrization_by_optimization(config):
             metadata=ast.literal_eval(config.metadata)
         )
 
-        summaries.append(summarize_iteration(disk_entry + config.file, label=OPTIMIZATION_METHODS_NAMES[optimization_method]))
+        if config.training:
+            file = 'training.log'
+        else:
+            file = 'testing.log'
+
+        summaries.append(summarize_iteration(disk_entry + file, label=OPTIMIZATION_METHODS_NAMES[optimization_method]))
 
     return summaries
 

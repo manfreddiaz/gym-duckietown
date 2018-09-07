@@ -17,6 +17,7 @@ class InteractiveImitationTesting:
         self.active_policy = True  # if teacher is active
         self.learner_uncertainty = None
         self.teacher_uncertainty = None
+        self.learner_action = None
 
         # internal count
         self._current_horizon = 0
