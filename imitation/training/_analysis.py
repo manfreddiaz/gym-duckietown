@@ -1,3 +1,4 @@
+import ast
 import pickle
 
 
@@ -40,7 +41,8 @@ def algorithm_and_parametrization_by_optimization(config):
             horizon=HORIZONS[config.horizon],
             episodes=EPISODES[config.horizon],
             optimization_name=OPTIMIZATION_METHODS_NAMES[optimization_method],
-            learning_rate=LEARNING_RATES[config.learning_rate]
+            learning_rate=LEARNING_RATES[config.learning_rate],
+            metadata=ast.literal_eval(config.metadata)
         )
 
         summaries.append(summarize_iteration(disk_entry + 'testing.log', label=OPTIMIZATION_METHODS_NAMES[optimization_method]))
