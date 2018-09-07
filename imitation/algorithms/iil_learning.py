@@ -15,9 +15,13 @@ class InteractiveImitationLearning:
         self._expert_actions = []
 
         # statistics
-        self.expert_queried = True
+        self.learner_action = None
+        self.learner_uncertainty = None
+
+        self.teacher_queried = True
+        self.teacher_uncertainty = None
+        self.teacher_action = None
         self.active_policy = True  # if teacher is active
-        self.active_uncertainty = None
 
         # internal count
         self._current_horizon = 0
@@ -61,7 +65,11 @@ class InteractiveImitationLearning:
         control_action = control_policy.predict(observation, [self._episode, None])
 
         if isinstance(control_action, tuple):
-            control_action, self.active_uncertainty = control_action # if we have uncertainty as input, we do not record it
+            control_action, uncertainty = control_action # if we have uncertainty as input, we do not record it
+
+        if control_policy == self.learner:
+            self.learner_action = control_action
+            self.learner_uncertainty = uncertainty # it might but it wont
 
         self._query_expert(control_policy, control_action, observation)
 
@@ -71,18 +79,18 @@ class InteractiveImitationLearning:
 
     def _query_expert(self, control_policy, control_action, observation):
         if control_policy == self.teacher:
-            expert_action = control_action
+            self.teacher_action = control_action
         else:
-            expert_action = self.teacher.predict(observation, [self._episode, control_action])
+            self.teacher_action = self.teacher.predict(observation, [self._episode, control_action])
 
-        if isinstance(expert_action, tuple):
-            expert_action, _ = expert_action # if we have uncertainty as input, we do not record it
+        if isinstance(self.teacher_action, tuple):
+            self.teacher_action, self.teacher_uncertainty = self.teacher_action # if we have uncertainty as input, we do not record it
 
-        if expert_action is not None:
-            self._aggregate(observation, expert_action)
-            self.expert_queried = True
+        if self.teacher_action is not None:
+            self._aggregate(observation, self.teacher_action)
+            self.teacher_queried = True
         else:
-            self.expert_queried = False
+            self.teacher_queried = False
 
     def _mix(self):
         raise NotImplementedError()

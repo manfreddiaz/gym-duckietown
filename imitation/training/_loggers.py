@@ -24,7 +24,23 @@ class Logger:
         self.routine.on_process_done(self)
 
     def step_done(self, observation, action, reward, done, info):
-        raise NotImplementedError()
+        self._recording.append({
+            'state': [
+                (self.env.cur_pos, self.env.cur_angle),
+                action,
+                reward,
+                done,
+                info
+            ],
+            'metadata': [
+                self.routine.teacher_queried,  # 0
+                self.routine.teacher_action,  # 1
+                self.routine.teacher_uncertainty,  # 2
+                self.routine.learner_action,
+                self.routine.learner_uncertainty,
+                self.routine.active_policy,  # 3
+            ]
+        })
 
     def episode_done(self, episode):
         self._multithreaded_recording.submit(self._commit)
@@ -50,23 +66,6 @@ class IILTrainingLogger(Logger):
         self.routine.on_optimization_done(self)
         Logger._configure(self)
 
-    # event handlers
-    def step_done(self, observation, action, reward, done, info):
-        self._recording.append({
-            'state': [
-                (self.env.cur_pos, self.env.cur_angle),
-                action,
-                reward,
-                done,
-                info,
-                self.routine.active_uncertainty,
-            ],
-            'metadata': [
-                self.routine.expert_queried,
-                self.routine.active_policy
-            ]
-        })
-
     def optimization_done(self, loss):
         self._multithreaded_recording.submit(self._dump_dataset, loss)
 
@@ -78,28 +77,3 @@ class IILTrainingLogger(Logger):
         self._dataset_file.close()
         os.chmod(self._dataset_file.name, 0o444) # make file read-only after finishing
         Logger.process_done(self)
-
-
-class IILTestingLogger(Logger):
-
-    def __init__(self, env, routine, horizon, episodes, log_file):
-        Logger.__init__(self, env, routine, horizon, episodes, log_file)
-
-
-    def step_done(self, observation, action, reward, done, info):
-        self._recording.append({
-            'state': [
-                (self.env.cur_pos, self.env.cur_angle),
-                action,
-                reward,
-                done,
-                info,
-                self.routine.learner_uncertainty
-            ],
-            'metadata': [
-                self.routine.teacher_queried, # 0
-                self.routine.teacher_action, # 1
-                self.routine.teacher_uncertainty, # 2
-                self.routine.active_policy, # 3
-            ]
-        })

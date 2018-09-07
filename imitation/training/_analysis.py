@@ -1,7 +1,6 @@
 import ast
 import pickle
 
-
 from imitation.training._settings import *
 from imitation.training._summary import *
 from imitation.training._parametrization import PARAMETRIZATIONS_NAMES
@@ -92,7 +91,7 @@ def render_summaries(summaries):
 
 if __name__ == '__main__':
     parser = process_args()
-    parser.add_argument('--file', '-f', default='testing.log')
+    parser.add_argument('--training', '-t', action='store_true')
     config = parser.parse_args()
 
     summaries = algorithm_and_parametrization_by_optimization(config)
