@@ -45,7 +45,7 @@ def algorithm_and_parametrization_by_optimization(config):
             metadata=ast.literal_eval(config.metadata)
         )
 
-        summaries.append(summarize_iteration(disk_entry + 'testing.log', label=OPTIMIZATION_METHODS_NAMES[optimization_method]))
+        summaries.append(summarize_iteration(disk_entry + config.file, label=OPTIMIZATION_METHODS_NAMES[optimization_method]))
 
     return summaries
 
@@ -92,6 +92,7 @@ def render_summaries(summaries):
 
 if __name__ == '__main__':
     parser = process_args()
+    parser.add_argument('--file', '-f', default='testing.log')
     config = parser.parse_args()
 
     summaries = algorithm_and_parametrization_by_optimization(config)
