@@ -10,7 +10,7 @@ class NeuralNetworkPolicy():
         self.parametrization = parametrization
         self.batch_size = batch_size
         self.epochs = epochs
-
+        print(storage_location)
         if training:
             self.parametrization.prepare_for_train(input_shape, output_shape, optimizer, storage_location)
         else:

@@ -42,6 +42,8 @@ if __name__ == '__main__':
 
     config = parser.parse_args()
 
+    print(config)
+
     # training
     environment = simulation(at=MAP_STARTING_POSES[config.iteration])
 
@@ -80,6 +82,7 @@ if __name__ == '__main__':
         learning_rate=LEARNING_RATES[config.learning_rate]
 
     )
+    print(logging_entry)
     logger = IILTestingLogger(
         env=environment,
         routine=testing,
