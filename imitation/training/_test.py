@@ -79,8 +79,8 @@ if __name__ == '__main__':
         horizon=HORIZONS[config.horizon],
         episodes=EPISODES[config.horizon],
         optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
-        learning_rate=LEARNING_RATES[config.learning_rate]
-
+        learning_rate=LEARNING_RATES[config.learning_rate],
+        metadata = ast.literal_eval(config.metadata)
     )
     print(logging_entry)
     logger = IILTestingLogger(
