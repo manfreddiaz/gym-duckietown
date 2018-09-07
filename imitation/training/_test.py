@@ -6,7 +6,7 @@ from imitation.training._parametrization import *
 from imitation.training._optimization import OPTIMIZATION_METHODS_NAMES, LEARNING_RATES
 
 from imitation.learners import NeuralNetworkPolicy
-from imitation.training._loggers import IILTestingLogger
+from imitation.training._loggers import Logger
 from imitation.algorithms.iil_testing import InteractiveImitationTesting
 
 def test(selected_algorithm, experiment_iteration, selected_parametrization, selected_optimization, selected_learning_rate,
@@ -83,7 +83,7 @@ if __name__ == '__main__':
         metadata = ast.literal_eval(config.metadata)
     )
     print(logging_entry)
-    logger = IILTestingLogger(
+    logger = Logger(
         env=environment,
         routine=testing,
         horizon=HORIZONS[config.horizon],
