@@ -44,14 +44,19 @@ class AggreVaTe(DAgger):
 
     def _query_expert(self, control_policy, control_action, observation):
         if control_policy == self.teacher:
-            if isinstance(self.teacher_action, tuple):
-                self.teacher_action, self.teacher_uncertainty = self.teacher_action # if we have uncertainty as input, we do not record it
+            self.teacher_action = control_action
+        else:
+            self.teacher_action = self.teacher.predict(observation, [self._episode, control_action])
 
-            if self.teacher_action is not None:
+        if isinstance(self.teacher_action, tuple):
+            self.teacher_action, self.teacher_uncertainty = self.teacher_action # if we have uncertainty as input, we do not record it
+
+        if self.teacher_action is not None:
+            if control_policy == self.teacher:  # only aggregate data for t+1 steps
                 self._aggregate(observation, self.teacher_action)
                 self.teacher_queried = True
-            else:
-                self.teacher_queried = False
+        else:
+            self.teacher_queried = False
 
     def _on_sampling_done(self):
         self.t = np.random.randint(0, self._horizon)
