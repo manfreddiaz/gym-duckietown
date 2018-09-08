@@ -32,24 +32,24 @@ def algorithm_and_parametrization_by_optimization(config):
     print('{} - {}'.format(algorithm, parametrization))
 
     summaries = []
-    for optimization_method in range(len(OPTIMIZATION_METHODS_NAMES)):
-        disk_entry = experimental_entry(
-            algorithm=algorithm,
-            experiment_iteration=config.iteration,
-            parametrization_name=parametrization,
-            horizon=HORIZONS[config.horizon],
-            episodes=EPISODES[config.horizon],
-            optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
-            learning_rate=LEARNING_RATES[config.learning_rate],
-            metadata=ast.literal_eval(config.metadata)
-        )
+    #for optimization_method in range(len(OPTIMIZATION_METHODS_NAMES)):
+    disk_entry = experimental_entry(
+        algorithm=algorithm,
+        experiment_iteration=config.iteration,
+        parametrization_name=parametrization,
+        horizon=HORIZONS[config.horizon],
+        episodes=EPISODES[config.horizon],
+        optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
+        learning_rate=LEARNING_RATES[config.learning_rate],
+        metadata=ast.literal_eval(config.metadata)
+    )
 
-        if config.training:
-            file = 'training.log'
-        else:
-            file = 'testing.log'
+    if config.training:
+        file = 'training.log'
+    else:
+        file = 'testing.log'
 
-        summaries.append(summarize_iteration(disk_entry + file, label=OPTIMIZATION_METHODS_NAMES[optimization_method]))
+    summaries.append(summarize_iteration(disk_entry + file, label=OPTIMIZATION_METHODS_NAMES[config.optimization]))
 
     return summaries
 
@@ -57,17 +57,17 @@ def stats_summaries(summaries):
     for iteration_summary in summaries:
         print('method: {}'.format(iteration_summary.label))
         print('\t reward: {}'.format(sum(iteration_summary.reward_history())))
-        print('\t \t per episode: \r\n{}'.format(iteration_summary.reward_history()))
+        # print('\t \t per episode: \r\n{}'.format(iteration_summary.reward_history()))
         print('\t queries: {}'.format(sum(iteration_summary.queries_history())))
-        print('\t \t per episode: \r\n{}'.format(iteration_summary.queries_history()))
+        # print('\t \t per episode: \r\n{}'.format(iteration_summary.queries_history()))
         print('\t penalties: {}'.format(sum(iteration_summary.penalties_history())))
-        print('\t \t per episode: \r\n{}'.format(iteration_summary.penalties_history()))
+        # print('\t \t per episode: \r\n{}'.format(iteration_summary.penalties_history()))
         print('\t out bounds: {}'.format(sum(iteration_summary.out_bounds_history())))
-        print('\t \t per episode: \r\n{}'.format(iteration_summary.out_bounds_history()))
+        # print('\t \t per episode: \r\n{}'.format(iteration_summary.out_bounds_history()))
         print('\t delta v: {}'.format(sum(iteration_summary.delta_v_history())))
-        print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_v_history()))
+        # print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_v_history()))
         print('\t delta theta: {}'.format(sum(iteration_summary.delta_theta_history())))
-        print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_theta_history()))
+        # print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_theta_history()))
 
 def render_summaries(summaries):
     import matplotlib.pyplot as plt
