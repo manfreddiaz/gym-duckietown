@@ -57,11 +57,17 @@ def stats_summaries(summaries):
     for iteration_summary in summaries:
         print('method: {}'.format(iteration_summary.label))
         print('\t reward: {}'.format(sum(iteration_summary.reward_history())))
+        print('\t \t per episode: {}'.format(iteration_summary.reward_history()))
         print('\t queries: {}'.format(sum(iteration_summary.queries_history())))
+        print('\t \t per episode: {}'.format(iteration_summary.queries_history()))
         print('\t penalties: {}'.format(sum(iteration_summary.penalties_history())))
+        print('\t \t per episode: {}'.format(iteration_summary.penalties_history()))
         print('\t out bounds: {}'.format(sum(iteration_summary.out_bounds_history())))
+        print('\t \t per episode: {}'.format(iteration_summary.out_bounds_history()))
         print('\t delta v: {}'.format(sum(iteration_summary.delta_v_history())))
+        print('\t \t per episode: {}'.format(iteration_summary.delta_v_history()))
         print('\t delta theta: {}'.format(sum(iteration_summary.delta_theta_history())))
+        print('\t \t per episode: {}'.format(iteration_summary.delta_theta_history()))
 
 def render_summaries(summaries):
     import matplotlib.pyplot as plt
