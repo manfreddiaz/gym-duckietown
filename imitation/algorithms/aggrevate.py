@@ -31,6 +31,5 @@ class AggreVaTe(DAgger):
 
         return control_action
 
-
     def _on_sampling_done(self):
-        self.t = np.random.uniform(0, self._horizon)
+        self.t = np.random.randint(0, self._horizon)
