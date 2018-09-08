@@ -1,3 +1,4 @@
+import math
 import numpy as np
 from .dagger import DAgger
 
@@ -23,7 +24,17 @@ class AggreVaTe(DAgger):
             else:
                 control_policy = self.teacher
 
-        control_action = control_policy.predict(observation)
+        control_action = control_policy.predict(observation, [self._episode, None])
+
+        if isinstance(control_action, tuple):
+            control_action, uncertainty = control_action # if we have uncertainty as input, we do not record it
+
+        if control_policy == self.learner:
+            self.learner_action = control_action
+            self.learner_uncertainty = uncertainty # it might but it wont
+        else:
+            self.learner_action = None
+            self.learner_uncertainty = math.inf
 
         self._query_expert(control_policy, control_action, observation)
 
