@@ -37,7 +37,7 @@ EPISODES = [64, 32, 16, 8, 4]
 MIXING_DECAYS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
 
 # uncertainty threshold
-UNCERTAINTY_THRESHOLDS = [0.01, 0.05, 0.1, 0.5, 1, 5]
+UNCERTAINTY_THRESHOLDS = [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5]
 
 ITERATIONS = 4  # to 4
 
