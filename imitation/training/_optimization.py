@@ -4,7 +4,7 @@ import tensorflow as tf
 LEARNING_RATES = [1e-3, 1e-4, 1e-5]
 
 weight_decay = 1e-4
-OPTIMIZATION_METHODS_NAMES = ['adamw', 'adam', 'adagrad', 'rmsprop', 'ggt', 'sgd_wr']
+OPTIMIZATION_METHODS_NAMES = ['adam', 'adamw', 'adagrad', 'rmsprop', 'ggt', 'sgd_wr']
 
 def adamw(learning_rate, weight_decay):
     return tf.contrib.opt.AdamWOptimizer(
@@ -49,9 +49,9 @@ def sgd_wr(learning_rate, global_step, first_decay_steps):
 
 
 def optimizer(optimizer_iteration, learning_rate_iteration, parametrization, task_metadata):
-    if optimizer_iteration == 0:
+    if optimizer_iteration == 1:
         return adamw(learning_rate=LEARNING_RATES[learning_rate_iteration], weight_decay=weight_decay)
-    elif optimizer_iteration == 1:
+    elif optimizer_iteration == 0:
         return adam(learning_rate=LEARNING_RATES[learning_rate_iteration])
     elif optimizer_iteration == 2:
         return adagrad(learning_rate=LEARNING_RATES[learning_rate_iteration])
