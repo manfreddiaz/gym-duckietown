@@ -53,7 +53,7 @@ class UAPurePursuitPolicy:
 
         if position_diff > 0.1 or velocity_diff > 0.5:
             self.time_step = self.env.step_count
-            print('unsafe')
+            # print('unsafe')
             return action, 0.0
         else:
             if metadata[0] == 0:

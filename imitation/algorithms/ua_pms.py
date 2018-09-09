@@ -26,7 +26,6 @@ class UPMS(DAgger):
         alpha_p = self._preferential_coefficient(policy_p_uncertainty)
         alpha_q = self._preferential_coefficient(policy_q_uncertainty)
 
-        print(policy_q_uncertainty)
         # consistency
         normalization = alpha_p + alpha_q
         p_mix, q_mix = alpha_p / normalization, alpha_q / normalization
