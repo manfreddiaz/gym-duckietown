@@ -33,7 +33,11 @@ class UPMS(DAgger):
         if math.isnan(p_mix) and math.isnan(q_mix):
             return self._on_impossible_selection()
         # rationality
-        return np.random.choice(a=[(policy_p, alpha_p), (policy_q, alpha_q)], p=[p_mix, q_mix])
+        policy = np.random.choice(a=[policy_p, policy_q], p=[p_mix, q_mix])
+        if policy == policy_p:
+            return policy_p, p_mix
+
+        return policy_q, q_mix
 
     # Preferential Policy Mixing
     def _ppm(self, policy_p, policy_p_uncertainty, policy_s):
