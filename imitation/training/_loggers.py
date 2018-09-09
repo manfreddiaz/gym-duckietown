@@ -56,6 +56,7 @@ class Logger:
         os.chmod(self._log_file.name, 0o444)  # make file read-only after finishing
         self._multithreaded_recording.shutdown()
 
+
 class IILTrainingLogger(Logger):
 
     def __init__(self, env, routine, horizon, episodes, log_file, data_file):

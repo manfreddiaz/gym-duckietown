@@ -7,8 +7,8 @@ from imitation.algorithms import AggreVaTe
 from imitation.learners import NeuralNetworkPolicy, UARandomExploration
 from imitation.training._loggers import IILTrainingLogger
 
-MIXING_DECAYS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
 ALGORITHM_NAME = ALGORITHMS[2]
+SEEDS = [19048, 27009, 43831, 13603, 37218] # Google Random number generator (1-50000)
 
 def dagger(env, teacher, experiment_iteration, selected_parametrization, selected_optimization, selected_learning_rate,
            selected_horizon, selected_episode, selected_mixing_decay):
@@ -40,7 +40,8 @@ def dagger(env, teacher, experiment_iteration, selected_parametrization, selecte
             optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
             learning_rate=LEARNING_RATES[config.learning_rate],
             metadata={
-                'decay': MIXING_DECAYS[config.decay]
+                'decay': MIXING_DECAYS[config.decay],
+                'seed': SEEDS[config.seed]
             }
         ),
         batch_size=32,
@@ -48,18 +49,20 @@ def dagger(env, teacher, experiment_iteration, selected_parametrization, selecte
     )
 
     return AggreVaTe(env=env,
-      teacher=teacher,
-      learner=learner,
-      explorer=UARandomExploration(),
-      horizon=task_horizon,
-      episodes=task_episodes,
-      alpha=MIXING_DECAYS[selected_mixing_decay]
+        teacher=teacher,
+        learner=learner,
+        explorer=UARandomExploration(),
+        horizon=task_horizon,
+        episodes=task_episodes,
+        alpha=MIXING_DECAYS[selected_mixing_decay],
+        seed=SEEDS[config.seed]
     )
 
 
 if __name__ == '__main__':
     parser = process_args()
     parser.add_argument('--decay', '-d', default=0, type=int)
+    parser.add_argument('--seed', '-s', default=0, type=int)
 
     config = parser.parse_args()
     # training
