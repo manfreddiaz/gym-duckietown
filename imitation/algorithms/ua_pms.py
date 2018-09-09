@@ -10,7 +10,6 @@ class UPMS(DAgger):
     def __init__(self, env, teacher, learner, explorer, safety_coefficient, horizon, episodes):
         DAgger.__init__(self, env, teacher, learner, horizon, episodes)
         self.explorer = explorer
-
         self._safety_coefficient = safety_coefficient
 
     def _normalize_uncertainty(self, uncertainty):
@@ -26,6 +25,8 @@ class UPMS(DAgger):
     def _rpm(self, policy_p, policy_p_uncertainty, policy_q, policy_q_uncertainty):
         alpha_p = self._preferential_coefficient(policy_p_uncertainty)
         alpha_q = self._preferential_coefficient(policy_q_uncertainty)
+
+        print(policy_q_uncertainty)
         # consistency
         normalization = alpha_p + alpha_q
         p_mix, q_mix = alpha_p / normalization, alpha_q / normalization
@@ -42,22 +43,23 @@ class UPMS(DAgger):
     # Preferential Policy Mixing
     def _ppm(self, policy_p, policy_p_uncertainty, policy_s):
         alpha_p = self._preferential_coefficient(policy_p_uncertainty)
-
-        return np.random.choice(a=[policy_p, policy_s], p=[alpha_p, 1. - alpha_p])
+        return np.random.choice(a=[policy_p, policy_s], p=[alpha_p, 1. - alpha_p]), alpha_p
 
     def _mix(self):
-        return self._rpm(self.teacher, self.teacher_uncertainty, self.learner, self._normalize_uncertainty(self.learner_uncertainty))
+        _, teacher_uncertainty = self.teacher.predict(None, [self._episode, 0]) # FIX: after experiments done
+        return self._rpm(self.teacher, teacher_uncertainty, self.learner, self._normalize_uncertainty(self.learner_uncertainty))
 
     # \mathcal{E}^\prime
     def _mix_exploration(self):
-        return self._ppm(self.teacher, self.teacher_uncertainty, self.explorer)
+        _, teacher_uncertainty = self.teacher.predict(None, [self._episode, 0])
+        return self._ppm(self.teacher, teacher_uncertainty, self.explorer)
 
     def _act(self, observation):
         if self._episode == 0:
             control_policy = self.teacher
         else:
             pi_i, pi_i_preference = self._mix()
-            e_i = self._mix_exploration()
+            e_i, e_i_preference = self._mix_exploration()
             control_policy = np.random.choice(
                 a=[pi_i, e_i],
                 p=[pi_i_preference, 1. - pi_i_preference]

@@ -1,6 +1,8 @@
 import math
 import numpy as np
 
+POSITION_THRESHOLD = 0.1 # 10 cm
+VELOCITY_THRESHOLD = 0.5
 
 class UAPurePursuitPolicy:
     def __init__(self, env, following_distance, max_iterations=1000, refresh_rate=0.1):
@@ -49,11 +51,14 @@ class UAPurePursuitPolicy:
 
         # print(position_diff, velocity_diff, self.d_velocity, self.time_step, self.env.step_count)
 
-        if position_diff > 0.1 or velocity_diff > 0.5 or metadata[1] is None:
+        if position_diff > 0.1 or velocity_diff > 0.5:
             self.time_step = self.env.step_count
+            print('unsafe')
             return action, 0.0
         else:
             if metadata[0] == 0:
+                return action, 0.0
+            if metadata[1] is None:
                 return action, 0.0
 
         return None, math.inf
