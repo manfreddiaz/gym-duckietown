@@ -50,11 +50,10 @@ class UAPurePursuitPolicy:
         # print(position_diff, velocity_diff, self.d_velocity, self.time_step, self.env.step_count)
 
         if position_diff > 0.1 or velocity_diff > 0.5 or metadata[1] is None:
-            uncertainty = 0
             self.time_step = self.env.step_count
-            return action, uncertainty
+            return action, 0.0
         else:
             if metadata[0] == 0:
-                return action, 0
+                return action, 0.0
 
         return None, math.inf
