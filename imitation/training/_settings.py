@@ -98,7 +98,6 @@ def teacher(env):
     return UAPurePursuitPolicy(
         env=env,
         following_distance=0.3,
-        refresh_rate=1 / 30
     )
 
 def process_args():

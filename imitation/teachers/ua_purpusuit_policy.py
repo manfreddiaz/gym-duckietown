@@ -1,18 +1,17 @@
 import math
 import numpy as np
 
-POSITION_THRESHOLD = 0.1 # 10 cm
+POSITION_THRESHOLD = 0.04 # 10 cm
 VELOCITY_THRESHOLD = 0.5
 
 class UAPurePursuitPolicy:
-    def __init__(self, env, following_distance, max_iterations=1000, refresh_rate=0.1):
+    def __init__(self, env, following_distance=0.3, max_iterations=1000):
         self.env = env
         self.following_distance = following_distance
         self.max_iterations = max_iterations
 
 
     def predict(self, observation, metadata):
-
         closest_point, closest_tangent = self.env.closest_curve_point(self.env.cur_pos)
         iterations = 0
         lookup_distance = self.following_distance
@@ -39,21 +38,17 @@ class UAPurePursuitPolicy:
         point_vec /= norm
 
         dot = np.dot(self.env.get_right_vec(), point_vec)
-        velocity = 0.5
+        velocity = 0.4
+        steering = 4 * -dot
 
-        steering = 8 * -dot
+        position_diff = np.linalg.norm(closest_point - self.env.cur_pos, ord=1)
 
-        position_diff = np.abs(norm - self.following_distance)
-        e_v = velocity - self.env.speed
-        velocity_diff = np.abs(e_v)
+        action = [velocity, steering]
 
-        action = [velocity + 2 * e_v, steering]
+        # print(position_diff, velocity_diff)
 
-        # print(position_diff, velocity_diff, self.d_velocity, self.time_step, self.env.step_count)
-
-        if position_diff > 0.1 or velocity_diff > 0.5:
+        if position_diff > POSITION_THRESHOLD: # or velocity_diff > 0.5:
             self.time_step = self.env.step_count
-            # print('unsafe')
             return action, 0.0
         else:
             if metadata[0] == 0:
