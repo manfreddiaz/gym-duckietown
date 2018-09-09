@@ -15,7 +15,7 @@ class MonteCarloDropoutResnetOneRegression(TensorflowParametrization):
     def test(self, state):
         regression = TensorflowParametrization.test(self, np.repeat(state, self.samples, axis=0))
         regression = regression[0]
-        return np.squeeze(np.mean(regression, axis=1)), np.sum(np.var(regression, axis=1))
+        return np.squeeze(np.mean(regression, axis=1)), np.squeeze(np.var(regression, axis=1))
 
     def architecture(self):
         model = resnet_1(self._preprocessed_state, keep_prob=1.0)

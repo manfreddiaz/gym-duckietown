@@ -24,7 +24,7 @@ MAP_STARTING_POSES = [
 ]
 
 # all with Dataset Aggregation
-ALGORITHMS = ['supervised', 'dagger', 'aggrevate', 'safe_dagger', 'upms', 'upms-ne', 'upms-sl', 'upms-ne-sl']
+ALGORITHMS = ['supervised', 'dagger', 'aggrevate', 'dropout_dagger', 'upms', 'upms-ne', 'upms-sl', 'upms-ne-sl']
 
 # teacher
 teacher_name = 'pure_pursuit'
@@ -32,6 +32,12 @@ teacher_name = 'pure_pursuit'
 # Task Configuration
 HORIZONS = [128, 256, 512, 1024, 2048]
 EPISODES = [64, 32, 16, 8, 4]
+
+# decays
+MIXING_DECAYS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
+
+# uncertainty threshold
+UNCERTAINTY_THRESHOLDS = [0, 0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1]
 
 ITERATIONS = 4  # to 4
 
