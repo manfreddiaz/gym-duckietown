@@ -17,7 +17,7 @@ def temporal_seed(seed):
 
 class AggreVaTe(DAgger):
 
-    def __init__(self, env, teacher, learner, explorer, horizon, seed, episodes, alpha=0.99):
+    def __init__(self, env, teacher, learner, explorer, horizon, episodes, seed=None, alpha=0.99):
         DAgger.__init__(self, env, teacher, learner, horizon, episodes, alpha)
         # self._select_breakpoint()
         self.break_point = None

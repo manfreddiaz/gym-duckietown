@@ -10,8 +10,8 @@ from imitation.training._loggers import IILTrainingLogger
 ALGORITHM_NAME = ALGORITHMS[2]
 SEEDS = [19048, 27009, 43831, 13603, 37218] # Google Random number generator (1-50000)
 
-def dagger(env, teacher, experiment_iteration, selected_parametrization, selected_optimization, selected_learning_rate,
-           selected_horizon, selected_episode, selected_mixing_decay):
+def aggrevate(env, teacher, experiment_iteration, selected_parametrization, selected_optimization, selected_learning_rate,
+              selected_horizon, selected_episode, selected_mixing_decay):
 
     task_horizon = HORIZONS[selected_horizon]
     task_episodes = EPISODES[selected_episode]
@@ -68,7 +68,7 @@ if __name__ == '__main__':
     # training
     environment = simulation(at=MAP_STARTING_POSES[config.iteration])
 
-    algorithm = dagger(
+    algorithm = aggrevate(
         env=environment,
         teacher=teacher(environment),
         experiment_iteration=config.iteration,
