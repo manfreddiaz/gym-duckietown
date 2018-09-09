@@ -8,7 +8,7 @@ class DropoutDAgger(DAgger):
     def __init__(self, env, teacher, learner, threshold, horizon, episodes):
         DAgger.__init__(self, env, teacher, learner, horizon, episodes, None)
         self.threshold = threshold
-        self.learner_uncertainty = math.inf
+        self.learner_uncertainty = [math.inf, math.inf]
 
     def _mix(self):
         uncertainty_v, uncertainty_theta = self.learner_uncertainty
