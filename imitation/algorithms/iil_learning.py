@@ -72,8 +72,7 @@ class InteractiveImitationLearning:
             self.learner_action = control_action
             self.learner_uncertainty = uncertainty # it might but it wont
         else:
-            self.learner_action = None
-            self.learner_uncertainty = [math.inf, math.inf]
+            self.learner_action, self.learner_uncertainty = self.learner.predict(observation, [self._episode, None])
 
         self._query_expert(control_policy, control_action, observation)
 
