@@ -1,35 +1,36 @@
 import math
 import numpy as np
 
+from imitation.algorithms import DAgger
 from .aggrevate import AggreVaTe
 
 
-class UPMSLearning(AggreVaTe):
+class UPMS(DAgger):
 
     def __init__(self, env, teacher, learner, explorer, safety_coefficient, horizon, episodes):
-        AggreVaTe.__init__(self, env, teacher, learner, explorer, horizon, episodes)
+        DAgger.__init__(self, env, teacher, learner, horizon, episodes)
         self.explorer = explorer
-
-        self._teacher_uncertainty = math.inf
-        self._learner_uncertainty = math.inf
 
         self._safety_coefficient = safety_coefficient
 
-    def preferential_coefficient(self, uncertainty):
+    def _normalize_uncertainty(self, uncertainty):
+        return np.sum(self.learner_uncertainty) / uncertainty.shape[0]
+
+    def _preferential_coefficient(self, uncertainty):
         return 1. - np.tanh(self._safety_coefficient * uncertainty)
 
-    def non_preferential_coefficient(self, uncertainty):
+    def _non_preferential_coefficient(self, uncertainty):
         return np.tanh(self._safety_coefficient * uncertainty)
 
     def _mix(self):
-
-        teacher_preference = self.preferential_coefficient(self._teacher_uncertainty)
-        learner_preference = self.preferential_coefficient(self._learner_uncertainty)
-        normalization_factor = teacher_preference + learner_preference
+        alpha_p = self._preferential_coefficient(self.teacher_uncertainty)
+        alpha_q = self._preferential_coefficient(self._normalize_uncertainty(self.learner_uncertainty))
+        normalization = alpha_p + alpha_q
         # rationality
-        mixing_proportions = [teacher_preference / normalization_factor, learner_preference / normalization_factor]
-        if math.isnan(mixing_proportions[0]) and math.isnan(mixing_proportions[1]): # impossibility
-            self._on_emergency_action()
+        mixing_proportions = [alpha_p / normalization, alpha_q / normalization]
+        # impossibility
+        if math.isnan(mixing_proportions[0]) and math.isnan(mixing_proportions[1]):
+            self._on_impossible_selection()
             return None
 
         selected_policy = np.random.choice(a=[self.teacher, self.learner], p=mixing_proportions)
@@ -37,7 +38,7 @@ class UPMSLearning(AggreVaTe):
 
     # \mathcal{E}^\prime
     def _mix_exploration(self):
-        teacher_preference = self.preferential_coefficient(self._teacher_uncertainty)
+        teacher_preference = self._preferential_coefficient(self.teacher_uncertainty)
 
         exploration_control = np.random.choice(a=[self.teacher, self.explorer],
                                                p=[teacher_preference, 1. - teacher_preference])
@@ -45,18 +46,21 @@ class UPMSLearning(AggreVaTe):
         return exploration_control
 
     def _act(self, observation):
-        learner_preference = self.preferential_coefficient(self._learner_uncertainty)
-        control_policy = np.random.choice(
-            a=[self._mix(), self._mix_exploration()],
-            p=[learner_preference, 1. - learner_preference]
-        )
-        control_action = control_policy.predict(observation)
+        if self._episode == 0:
+            control_policy = self.teacher
+        else:
+            learner_preference = self._preferential_coefficient(self._normalize_uncertainty(self.learner_uncertainty))
+            control_policy = np.random.choice(
+                a=[self._mix(), self._mix_exploration()],
+                p=[learner_preference, 1. - learner_preference]
+            )
+        control_action, uncertainty = control_policy.predict(observation, [self._episode, None])
 
-        self._query_expert(control_policy, control_action, observation)
+        self._query_expert(control_policy, control_action, uncertainty, observation)
 
         self._active_policy = control_policy == self.teacher
 
         return control_action
 
-    def _on_emergency_action(self):
+    def _on_impossible_selection(self):
         print('emergency action applied')

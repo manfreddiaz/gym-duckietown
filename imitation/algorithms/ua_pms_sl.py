@@ -1,7 +1,7 @@
-from .ua_pms import UPMSLearning
+from .ua_pms import UPMS
 
 
-class UPMSSelfLearning(UPMSLearning):
+class UPMSSelfLearning(UPMS):
 
     def _on_expert_input(self, control_policy, control_action, observation):
         if control_policy == self.primary:

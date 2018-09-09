@@ -63,31 +63,26 @@ class InteractiveImitationLearning:
         else:
             control_policy = self._mix()
 
-        control_action = control_policy.predict(observation, [self._episode, None])
+        control_action, uncertainty = control_policy.predict(observation, [self._episode, None])
 
-        if isinstance(control_action, tuple):
-            control_action, uncertainty = control_action # if we have uncertainty as input, we do not record it
+        self._query_expert(control_policy, control_action, uncertainty, observation)
 
+        self.active_policy = control_policy == self.teacher
+
+        return control_action
+
+    def _query_expert(self, control_policy, control_action, uncertainty, observation):
         if control_policy == self.learner:
             self.learner_action = control_action
             self.learner_uncertainty = uncertainty # it might but it wont
         else:
             self.learner_action, self.learner_uncertainty = self.learner.predict(observation, [self._episode, None])
 
-        self._query_expert(control_policy, control_action, observation)
-
-        self.active_policy = control_policy == self.teacher
-
-        return control_action
-
-    def _query_expert(self, control_policy, control_action, observation):
         if control_policy == self.teacher:
             self.teacher_action = control_action
+            self.teacher_uncertainty = uncertainty
         else:
-            self.teacher_action = self.teacher.predict(observation, [self._episode, control_action])
-
-        if isinstance(self.teacher_action, tuple):
-            self.teacher_action, self.teacher_uncertainty = self.teacher_action # if we have uncertainty as input, we do not record it
+            self.teacher_action, self.teacher_uncertainty = self.teacher.predict(observation, [self._episode, control_action])
 
         if self.teacher_action is not None:
             self._aggregate(observation, self.teacher_action)
