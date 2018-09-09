@@ -73,7 +73,6 @@ class InteractiveImitationLearning:
 
     def _query_expert(self, control_policy, control_action, uncertainty, observation):
         if control_policy == self.learner:
-            print('learner control')
             self.learner_action = control_action
             self.learner_uncertainty = uncertainty # it might but it wont
         else:
