@@ -11,7 +11,6 @@ class DropoutDAgger(DAgger):
         self.learner_uncertainty = [math.inf, math.inf]
 
     def _mix(self):
-        print(self.learner_uncertainty)
         uncertainty_v, uncertainty_theta = self.learner_uncertainty
         if uncertainty_v > self.threshold or uncertainty_theta > self.threshold:
             return self.teacher
