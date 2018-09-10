@@ -45,7 +45,7 @@ class UPMS(DAgger):
         return np.random.choice(a=[policy_p, policy_s], p=[alpha_p, 1. - alpha_p]), alpha_p
 
     def _mix(self):
-        _, teacher_uncertainty = self.teacher.predict(None, [self._episode, 0]) # FIX: after experiments done
+        _, teacher_uncertainty = self.teacher.predict(None, [self._episode, 0]) # FIXME: after experiments done
         return self._rpm(self.teacher, teacher_uncertainty, self.learner, self._normalize_uncertainty(self.learner_uncertainty))
 
     # \mathcal{E}^\prime

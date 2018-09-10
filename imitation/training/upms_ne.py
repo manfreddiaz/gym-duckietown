@@ -1,9 +1,9 @@
+from imitation.algorithms.upms_dagger import UPMSDAgger
 from imitation.training._drivers import Icra2019Driver
 from imitation.training._settings import *
 from imitation.training._optimization import *
 from imitation.training._parametrization import *
 
-from imitation.algorithms import UPMS
 from imitation.learners import NeuralNetworkPolicy, UARandomExploration
 from imitation.training._loggers import IILTrainingLogger
 
@@ -48,7 +48,7 @@ def upms(env, teacher, experiment_iteration, selected_parametrization, selected_
         epochs=10
     )
 
-    return UPMS(env=env,
+    return UPMSDAgger(env=env,
         teacher=teacher,
         learner=learner,
         explorer=learner,
