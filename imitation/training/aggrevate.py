@@ -96,7 +96,8 @@ if __name__ == '__main__':
         optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
         learning_rate=LEARNING_RATES[config.learning_rate],
         metadata={
-            'decay': MIXING_DECAYS[config.decay]
+            'decay': MIXING_DECAYS[config.decay],
+            'seed': SEEDS[config.seed]
         }
     )
     logs = IILTrainingLogger(
