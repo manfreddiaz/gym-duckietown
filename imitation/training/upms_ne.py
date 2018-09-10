@@ -7,7 +7,7 @@ from imitation.algorithms import UPMS
 from imitation.learners import NeuralNetworkPolicy, UARandomExploration
 from imitation.training._loggers import IILTrainingLogger
 
-ALGORITHM_NAME = ALGORITHMS[4]
+ALGORITHM_NAME = ALGORITHMS[5]
 SATURATION_POINT = 3
 
 
