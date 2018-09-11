@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class Summary:
     def __init__(self, label):
         self.label = label
@@ -10,9 +11,43 @@ class Summary:
         self._delta_v = 0
         self._delta_theta = 0
 
+
 class EpisodeSummary(Summary):
     def __init__(self, label):
         Summary.__init__(self, label)
+        self.gain = 1.0
+        self.trim = 0.0
+        self.radius = 0.0318
+        self.k = 27.0
+        self.limit = 1.0
+        self.wheel_dist = 0.102
+
+    def _convert_to_vel(self, action):
+        vel, angle = action
+
+        # Distance between the wheels
+        baseline = self.wheel_dist
+
+        # assuming same motor constants k for both motors
+        k_r = self.k
+        k_l = self.k
+
+        # adjusting k by gain and trim
+        k_r_inv = (self.gain + self.trim) / k_r
+        k_l_inv = (self.gain - self.trim) / k_l
+
+        omega_r = (vel + 0.5 * angle * baseline) / self.radius
+        omega_l = (vel - 0.5 * angle * baseline) / self.radius
+
+        # conversion from motor rotation rate to duty cycle
+        u_r = omega_r * k_r_inv
+        u_l = omega_l * k_l_inv
+
+        # limiting output to limit, which is 1.0 for the duckiebot
+        u_r_limited = max(min(u_r, self.limit), -self.limit)
+        u_l_limited = max(min(u_l, self.limit), -self.limit)
+
+        return u_l_limited, u_r_limited
 
     def process(self, entry):
         state = entry['state']
@@ -32,8 +67,10 @@ class EpisodeSummary(Summary):
 
         if metadata[1] is not None:
             # print(state[1], metadata[1])
-            self._delta_v += state[1][0] - metadata[1][0]
-            self._delta_theta += state[1][1] - metadata[1][1]
+            velocity_teacher = self._convert_to_vel(state[1])
+            velocity_agent = self._convert_to_vel(metadata[1])
+            self._delta_v += velocity_teacher[0] - velocity_agent[0]
+            self._delta_theta += velocity_teacher[1] - velocity_agent[1]
             # print(self._delta_theta)
         # print(self._delta_v)
 

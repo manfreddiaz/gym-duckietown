@@ -25,13 +25,14 @@ def test(config, entry):
         env=environment,
         teacher=teacher(environment),
         learner=policy,
-        horizon=HORIZONS[config.horizon],
-        episodes=EPISODES[config.horizon]
+        horizon=HORIZONS[config.test_horizon],
+        episodes=EPISODES[config.test_horizon]
     )
+
 
 if __name__ == '__main__':
     parser = process_args()
-
+    parser.add_argument('--test-horizon', '-th', default=0, type=int)
     config = parser.parse_args()
 
     # training

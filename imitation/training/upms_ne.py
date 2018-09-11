@@ -4,7 +4,7 @@ from imitation.training._settings import *
 from imitation.training._optimization import *
 from imitation.training._parametrization import *
 
-from imitation.learners import NeuralNetworkPolicy, UARandomExploration
+from imitation.learners import NeuralNetworkPolicy
 from imitation.training._loggers import IILTrainingLogger
 
 ALGORITHM_NAME = ALGORITHMS[5]
@@ -49,12 +49,11 @@ def upms(env, teacher, experiment_iteration, selected_parametrization, selected_
     )
 
     return UPMSDAgger(env=env,
-        teacher=teacher,
-        learner=learner,
-        explorer=learner,
-        horizon=task_horizon,
-        episodes=task_episodes,
-        safety_coefficient=SATURATION_POINT / UNCERTAINTY_THRESHOLDS[config.uncertainty]
+                      teacher=teacher,
+                      learner=learner,
+                      explorer=learner,
+                      horizon=task_horizon, episodes=task_episodes,
+                      safety_coefficient=SATURATION_POINT / UNCERTAINTY_THRESHOLDS[config.uncertainty]
     )
 
 
