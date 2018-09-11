@@ -6,6 +6,7 @@ from imitation.training._summary import *
 from imitation.training._parametrization import PARAMETRIZATIONS_NAMES
 from imitation.training._optimization import OPTIMIZATION_METHODS_NAMES, LEARNING_RATES
 
+
 def summarize_iteration(disk_entry, label):
     reading = True
     data_file = open(disk_entry, mode='rb')
@@ -65,10 +66,11 @@ def stats_summaries(summaries):
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.penalties_history()))
         print('  out bounds: {}'.format(sum(iteration_summary.out_bounds_history())))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.out_bounds_history()))
-        print('  delta v: {}'.format(sum(iteration_summary.delta_v_history())))
+        print('  delta v_l: {}'.format(sum(iteration_summary.delta_v_l_history())))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_v_history()))
-        print('  delta theta: {}'.format(sum(iteration_summary.delta_theta_history())))
+        print('  delta v_r: {}'.format(sum(iteration_summary.delta_v_r_history())))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_theta_history()))
+
 
 def render_summaries(summaries):
     import matplotlib.pyplot as plt
@@ -91,8 +93,8 @@ def render_summaries(summaries):
         axes[1][0].plot(episode_range, iteration_summary.penalties_history(), label=iteration_summary.label)
         axes[1][1].plot(episode_range, iteration_summary.out_bounds_history(), label=iteration_summary.label)
 
-        axes[2][0].plot(episode_range, iteration_summary.delta_v_history(), label=iteration_summary.label)
-        axes[2][1].plot(episode_range, iteration_summary.delta_theta_history(), label=iteration_summary.label)
+        axes[2][0].plot(episode_range, iteration_summary.delta_v_l_history(), label=iteration_summary.label)
+        axes[2][1].plot(episode_range, iteration_summary.delta_v_r_history(), label=iteration_summary.label)
 
     for axis in axes:
         axis[0].legend()

@@ -8,8 +8,8 @@ class Summary:
         self._penalties = 0.0
         self._queries = 0
         self._out_bounds = 0
-        self._delta_v = 0
-        self._delta_theta = 0
+        self._delta_v_l = 0
+        self._delta_v_r = 0
 
 
 class EpisodeSummary(Summary):
@@ -69,8 +69,8 @@ class EpisodeSummary(Summary):
             # print(state[1], metadata[1])
             velocity_teacher = self._convert_to_vel(state[1])
             velocity_agent = self._convert_to_vel(metadata[1])
-            self._delta_v += velocity_teacher[0] - velocity_agent[0]
-            self._delta_theta += velocity_teacher[1] - velocity_agent[1]
+            self._delta_v_l += velocity_teacher[0] - velocity_agent[0]
+            self._delta_v_r += velocity_teacher[1] - velocity_agent[1]
             # print(self._delta_theta)
         # print(self._delta_v)
 
@@ -137,29 +137,29 @@ class IterationSummary(Summary):
 
         return np.array(history)
 
-    def delta_v(self):
-        if self._delta_v == 0:
+    def delta_v_l(self):
+        if self._delta_v_l == 0:
             for episode_summary in self._episodes:
-                self._delta_v += episode_summary._delta_v
-        return self._delta_v
+                self._delta_v_l += episode_summary._delta_v_l
+        return self._delta_v_l
 
-    def delta_v_history(self):
+    def delta_v_l_history(self):
         history = []
         for episode_summary in self._episodes:
-            history.append(episode_summary._delta_v)
+            history.append(episode_summary._delta_v_l)
 
         return np.array(history)
 
-    def delta_theta(self):
-        if self._delta_theta == 0:
+    def delta_v_r(self):
+        if self._delta_v_r == 0:
             for episode_summary in self._episodes:
-                self._delta_theta += episode_summary._delta_theta
-        return self._delta_theta
+                self._delta_v_r += episode_summary._delta_v_r
+        return self._delta_v_r
 
-    def delta_theta_history(self):
+    def delta_v_r_history(self):
         history = []
         for episode_summary in self._episodes:
-            history.append(episode_summary._delta_theta)
+            history.append(episode_summary._delta_v_r)
 
         return np.array(history)
 
