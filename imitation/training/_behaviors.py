@@ -1,8 +1,8 @@
 # experiments configurations for submissions, define behavior of the environment after each episode
 from ._settings import simulation
 
-class Icra2019Behavior:
 
+class Icra2019Behavior:
     def __init__(self, env, at, routine):
         self.env = env
         self.at = at
@@ -19,6 +19,7 @@ class Icra2019Behavior:
     def step_done(self, observation, action, reward, done, info):
         if done:
             self.restart()
+
 
 class Icra2019TestBehavior:
 

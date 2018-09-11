@@ -100,6 +100,7 @@ def teacher(env):
         following_distance=0.3,
     )
 
+
 def process_args():
     parser = argparse.ArgumentParser()
 
