@@ -1,64 +1,27 @@
 import ast
 
-from imitation.training._drivers import Icra2019Driver
 from imitation.training._settings import *
 from imitation.training._parametrization import *
 from imitation.training._optimization import OPTIMIZATION_METHODS_NAMES, LEARNING_RATES
 
 from imitation.learners import NeuralNetworkPolicy
 from imitation.training._loggers import Logger
+from imitation.training._behaviors import Icra2019TestBehavior
 from imitation.algorithms.iil_testing import InteractiveImitationTesting
 
-def test(selected_algorithm, experiment_iteration, selected_parametrization, selected_optimization, selected_learning_rate,
-               selected_horizon, selected_episode, metadata=None):
-
-    task_horizon = HORIZONS[selected_horizon]
-    task_episodes = EPISODES[selected_episode]
-
+def test(config, entry):
     policy_parametrization = parametrization(
-            iteration=selected_parametrization,
+            iteration=config.parametrization,
             extra_parameters={'samples': 25, 'dropout': 0.9}
     )
 
     policy = NeuralNetworkPolicy(
         parametrization=policy_parametrization,
-        storage_location=experimental_entry(
-            algorithm=ALGORITHMS[selected_algorithm],
-            experiment_iteration=experiment_iteration,
-            parametrization_name=PARAMETRIZATIONS_NAMES[selected_parametrization],
-            horizon=task_horizon,
-            episodes=task_episodes,
-            optimization_name=OPTIMIZATION_METHODS_NAMES[selected_optimization],
-            learning_rate=LEARNING_RATES[selected_learning_rate],
-            metadata=ast.literal_eval(metadata)
-        ),
+        storage_location=entry,
         training=False
     )
 
-    return policy
-
-if __name__ == '__main__':
-    parser = process_args()
-
-    config = parser.parse_args()
-
-    print(config)
-
-    # training
-    environment = simulation(at=MAP_STARTING_POSES[config.iteration])
-
-    policy = test(
-        selected_algorithm=config.algorithm,
-        experiment_iteration=config.iteration,
-        selected_parametrization=config.parametrization,
-        selected_optimization=config.optimization,
-        selected_learning_rate=config.learning_rate,
-        selected_horizon=config.horizon,
-        selected_episode=config.horizon,
-        metadata=config.metadata
-    )
-
-    testing = InteractiveImitationTesting(
+    return InteractiveImitationTesting(
         env=environment,
         teacher=teacher(environment),
         learner=policy,
@@ -66,12 +29,15 @@ if __name__ == '__main__':
         episodes=EPISODES[config.horizon]
     )
 
-    # observers
-    driver = Icra2019Driver(
-        env=environment,
-        at=MAP_STARTING_POSES[config.iteration],
-        routine=testing
-    )
+if __name__ == '__main__':
+    parser = process_args()
+
+    config = parser.parse_args()
+
+    # training
+    environment = simulation(at=MAP_STARTING_POSES[config.iteration])
+
+    #
     logging_entry = experimental_entry(
         algorithm=ALGORITHMS[config.algorithm],
         experiment_iteration=config.iteration,
@@ -80,9 +46,18 @@ if __name__ == '__main__':
         episodes=EPISODES[config.horizon],
         optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
         learning_rate=LEARNING_RATES[config.learning_rate],
-        metadata = ast.literal_eval(config.metadata)
+        metadata=ast.literal_eval(config.metadata)
     )
-    print(logging_entry)
+
+    testing = test(config, entry=logging_entry)
+
+    # observers
+    driver = Icra2019TestBehavior(
+        env=environment,
+        starting_positions=MAP_STARTING_POSES,
+        routine=testing
+    )
+
     logger = Logger(
         env=environment,
         routine=testing,
@@ -91,6 +66,6 @@ if __name__ == '__main__':
         log_file=logging_entry + 'testing.log'
     )
 
-    testing.test(debug=False)
+    testing.test(debug=DEBUG)
 
     environment.close()

@@ -1,5 +1,5 @@
 from imitation.algorithms.upms_dagger import UPMSDAgger
-from imitation.training._drivers import Icra2019Driver
+from imitation.training._behaviors import Icra2019Behavior
 from imitation.training._settings import *
 from imitation.training._optimization import *
 from imitation.training._parametrization import *
@@ -79,7 +79,7 @@ if __name__ == '__main__':
     )
 
     # observers
-    driver = Icra2019Driver(
+    driver = Icra2019Behavior(
         env=environment,
         at=MAP_STARTING_POSES[config.iteration],
         routine=algorithm
