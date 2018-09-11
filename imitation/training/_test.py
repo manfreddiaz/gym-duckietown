@@ -9,6 +9,7 @@ from imitation.training._loggers import Logger
 from imitation.training._behaviors import Icra2019TestBehavior
 from imitation.algorithms.iil_testing import InteractiveImitationTesting
 
+
 def test(config, entry):
     policy_parametrization = parametrization(
             iteration=config.parametrization,

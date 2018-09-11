@@ -4,7 +4,6 @@ import math
 import numpy as np
 import tensorflow as tf
 
-
 from gym_duckietown.envs import DuckietownEnv, DuckiebotEnv
 from imitation.teachers import UAPurePursuitPolicy
 
