@@ -71,6 +71,9 @@ class InteractiveImitationLearning:
 
         return control_action
 
+    def _self_learning(self, observation, control_action):
+        pass
+
     def _query_expert(self, control_policy, control_action, uncertainty, observation):
         if control_policy == self.learner:
             self.learner_action = control_action
@@ -87,6 +90,9 @@ class InteractiveImitationLearning:
         if self.teacher_action is not None:
             self._aggregate(observation, self.teacher_action)
             self.teacher_queried = True
+        elif control_policy == self.learner:
+            self._self_learning(observation, control_action)
+            self.teacher_queried = False
         else:
             self.teacher_queried = False
 
