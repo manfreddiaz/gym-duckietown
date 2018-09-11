@@ -1,15 +1,18 @@
 import math
 import numpy as np
 
-POSITION_THRESHOLD = 0.04 # 10 cm
-VELOCITY_THRESHOLD = 0.5
+POSITION_THRESHOLD = 0.04
+REF_VELOCITY = 0.4
+
 
 class UAPurePursuitPolicy:
-    def __init__(self, env, following_distance=0.3, max_iterations=1000):
+    def __init__(self, env, ref_velocity=REF_VELOCITY, position_threshold=POSITION_THRESHOLD,
+                 following_distance=0.3, max_iterations=1000):
         self.env = env
         self.following_distance = following_distance
         self.max_iterations = max_iterations
-
+        self.ref_velocity = ref_velocity
+        self.position_threshold = position_threshold
 
     def predict(self, observation, metadata):
         closest_point, closest_tangent = self.env.closest_curve_point(self.env.cur_pos)
@@ -23,7 +26,6 @@ class UAPurePursuitPolicy:
 
             # If we have a valid point on the curve, stop
             if curve_point is not None:
-                # print('found at: {}'.format(iterations))
                 break
 
             iterations += 1
@@ -34,21 +36,18 @@ class UAPurePursuitPolicy:
 
         # Compute a normalized vector to the curve point
         point_vec = curve_point - self.env.cur_pos
-        norm = np.linalg.norm(point_vec)
-        point_vec /= norm
+        point_vec /= np.linalg.norm(point_vec)
 
         dot = np.dot(self.env.get_right_vec(), point_vec)
-        velocity = 0.4
         steering = 4 * -dot
 
         position_diff = np.linalg.norm(closest_point - self.env.cur_pos, ord=1)
 
-        action = [velocity, steering]
+        action = [self.ref_velocity, steering]
 
         # print(position_diff, velocity_diff)
 
-        if position_diff > POSITION_THRESHOLD: # or velocity_diff > 0.5:
-            self.time_step = self.env.step_count
+        if position_diff > self.position_threshold: # or velocity_diff > 0.5:
             return action, 0.0
         else:
             if metadata[0] == 0:
