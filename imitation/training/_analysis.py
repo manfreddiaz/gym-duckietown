@@ -54,21 +54,24 @@ def algorithm_and_parametrization_by_optimization(config):
 
     return summaries
 
+
 def stats_summaries(summaries):
     for iteration_summary in summaries:
         print('method: {}'.format(iteration_summary.label))
-        print('  reward: {}'.format(sum(iteration_summary.reward_history())))
+        print('  reward: {}'.format(iteration_summary.reward()))
         # print('  per episode:')
         # print('     {}'.format(iteration_summary.reward_history()))
-        print('  queries: {}'.format(sum(iteration_summary.queries_history())))
+        print('  queries: {}'.format(iteration_summary.queries()))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.queries_history()))
-        print('  penalties: {}'.format(sum(iteration_summary.penalties_history())))
+        print('  penalties: {}'.format(iteration_summary.penalties()))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.penalties_history()))
-        print('  out bounds: {}'.format(sum(iteration_summary.out_bounds_history())))
+        print('  out bounds: {}'.format(iteration_summary.out_bounds))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.out_bounds_history()))
-        print('  delta v_l: {}'.format(sum(iteration_summary.delta_v_l_history())))
+        print('  delta v_l: {}'.format(iteration_summary.delta_v_l()))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_v_history()))
-        print('  delta v_r: {}'.format(sum(iteration_summary.delta_v_r_history())))
+        print('  delta v_r: {}'.format(iteration_summary.delta_v_r()))
+        # print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_theta_history()))
+        print('  no_control: {}'.format(iteration_summary.no_control()))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_theta_history()))
 
 

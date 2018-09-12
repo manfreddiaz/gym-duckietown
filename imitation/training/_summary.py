@@ -10,6 +10,7 @@ class Summary:
         self._out_bounds = 0
         self._delta_v_l = 0
         self._delta_v_r = 0
+        self._no_control = 0
 
 
 class EpisodeSummary(Summary):
@@ -64,6 +65,9 @@ class EpisodeSummary(Summary):
 
         if metadata[0]:
             self._queries += 1
+
+        if metadata[0] and not metadata[5]:
+            self._no_control += 1
 
         if metadata[1] is not None:
             # print(state[1], metadata[1])
@@ -160,6 +164,20 @@ class IterationSummary(Summary):
         history = []
         for episode_summary in self._episodes:
             history.append(episode_summary._delta_v_r)
+
+        return np.array(history)
+
+    def no_control(self):
+        if self._no_control == 0:
+            for episode_summary in self._episodes:
+                self._no_control += episode_summary._no_control
+
+        return self._no_control
+
+    def no_control_history(self):
+        history = []
+        for episode_summary in self._episodes:
+            history.append(episode_summary._no_control)
 
         return np.array(history)
 

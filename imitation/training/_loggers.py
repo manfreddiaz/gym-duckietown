@@ -36,9 +36,9 @@ class Logger:
                 self.routine.teacher_queried,  # 0
                 self.routine.teacher_action,  # 1
                 self.routine.teacher_uncertainty,  # 2
-                self.routine.learner_action,
-                self.routine.learner_uncertainty,
-                self.routine.active_policy,  # 3
+                self.routine.learner_action, # 3
+                self.routine.learner_uncertainty, # 4
+                self.routine.active_policy,  # 5
             ]
         })
 
