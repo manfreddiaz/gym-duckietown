@@ -17,7 +17,7 @@ def dagger(env, teacher, experiment_iteration, selected_parametrization, selecte
 
     policy_parametrization = parametrization(
         iteration=selected_parametrization,
-        extra_parameters={'samples': 25, 'dropout': 0.9}
+        extra_parameters={'samples': 25, 'dropout': 0.9, 'seed': SEED}
     )
 
     policy_optimizer = optimizer(

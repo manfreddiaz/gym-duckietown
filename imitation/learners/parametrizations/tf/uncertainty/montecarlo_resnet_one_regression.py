@@ -11,6 +11,7 @@ class MonteCarloDropoutResnetOneRegression(TensorflowParametrization):
         TensorflowParametrization.__init__(self)
         self.samples = kwargs.get('samples')
         self.keep_probability = kwargs.get('dropout')
+        self.seed = kwargs.get('seed')
 
     def test(self, state):
         regression = TensorflowParametrization.test(self, np.repeat(state, self.samples, axis=0))
@@ -18,14 +19,14 @@ class MonteCarloDropoutResnetOneRegression(TensorflowParametrization):
         return np.squeeze(np.mean(regression, axis=1)), np.squeeze(np.var(regression, axis=1))
 
     def architecture(self):
-        model = resnet_1(self._preprocessed_state, keep_prob=1.0)
+        model = resnet_1(self._preprocessed_state, keep_prob=1.0, seed=self.seed)
         model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
-                                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
+                                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed),
+                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed))
         model = tf.layers.dense(model, units=32, activation=tf.nn.relu,
-                                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
-                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
-        model = tf.nn.dropout(model, keep_prob=self.keep_probability)
+                                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed),
+                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed))
+        model = tf.nn.dropout(model, keep_prob=self.keep_probability, seed=self.seed)
 
         model = tf.layers.dense(model, self.action_tensor.shape[1])
 

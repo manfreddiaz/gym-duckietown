@@ -3,21 +3,21 @@ import tensorflow as tf
 l2_lambda = 1e-04
 
 
-def residual_block(x, size, dropout=False, dropout_prob=0.5):
+def residual_block(x, size, dropout=False, dropout_prob=0.5, seed=None):
     residual = tf.layers.batch_normalization(x)  # TODO: check if the defaults in Tf are the same as in Keras
     residual = tf.nn.relu(residual)
     residual = tf.layers.conv2d(residual, filters=size, kernel_size=3, strides=2, padding='same',
-                                kernel_initializer=tf.keras.initializers.he_normal(),
+                                kernel_initializer=tf.keras.initializers.he_normal(seed=seed),
                                 kernel_regularizer=tf.keras.regularizers.l2(l2_lambda))
     if dropout:
-        residual = tf.nn.dropout(residual, dropout_prob)
+        residual = tf.nn.dropout(residual, dropout_prob, seed=seed)
     residual = tf.layers.batch_normalization(residual)
     residual = tf.nn.relu(residual)
     residual = tf.layers.conv2d(residual, filters=size, kernel_size=3, padding='same',
-                                kernel_initializer=tf.keras.initializers.he_normal(),
+                                kernel_initializer=tf.keras.initializers.he_normal(seed=seed),
                                 kernel_regularizer=tf.keras.regularizers.l2(l2_lambda))
     if dropout:
-        residual = tf.nn.dropout(residual, dropout_prob)
+        residual = tf.nn.dropout(residual, dropout_prob, seed=seed)
 
     return residual
 
@@ -44,17 +44,17 @@ def resnet_0(x, keep_prob=0.5):
     return nn
 
 
-def resnet_1(x, keep_prob=0.5):
+def resnet_1(x, keep_prob=0.5, seed=None):
     nn = tf.layers.conv2d(x, filters=32, kernel_size=5, strides=2, padding='same',
-                             kernel_initializer=tf.keras.initializers.he_normal(),
+                             kernel_initializer=tf.keras.initializers.he_normal(seed=seed),
                              kernel_regularizer=tf.keras.regularizers.l2(l2_lambda))
     nn = tf.layers.max_pooling2d(nn, pool_size=3, strides=2)
 
-    rb_1 = residual_block(nn, 32)
+    rb_1 = residual_block(nn, 32, dropout_prob=keep_prob)
 
     nn = tf.layers.conv2d(nn, filters=32, kernel_size=1, strides=2, padding='same',
-                             kernel_initializer=tf.keras.initializers.he_normal(),
-                             kernel_regularizer=tf.keras.regularizers.l2(l2_lambda))
+                          kernel_initializer=tf.keras.initializers.he_normal(seed=seed),
+                          kernel_regularizer=tf.keras.regularizers.l2(l2_lambda))
     nn = tf.keras.layers.add([rb_1, nn])
 
     # TODO: check https://github.com/raghakot/keras-resnet for the absence of RELU after merging

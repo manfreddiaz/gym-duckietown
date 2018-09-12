@@ -14,7 +14,7 @@ class MonteCarloDropoutResnetOneMixture(TensorflowParametrization):
         self.mixtures = mixtures
         self.samples = kwargs.get('samples')
         self.dropout = kwargs.get('dropout')
-
+        self.seed = kwargs.get('seed')
 
     def test(self, state, horizon=1):
         mdn = TensorflowParametrization.test(self, np.repeat(state, self.samples, axis=0))
@@ -35,7 +35,7 @@ class MonteCarloDropoutResnetOneMixture(TensorflowParametrization):
         model = tf.layers.dense(model, units=32, activation=tf.nn.tanh,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False))
-        model = tf.nn.dropout(model, keep_prob=self.dropout)
+        model = tf.nn.dropout(model, keep_prob=self.dropout, seed=self.seed)
 
         loss, components, _ = MixtureDensityNetwork.create(model, self.action_tensor, number_mixtures=self.mixtures)
 
