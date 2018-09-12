@@ -68,9 +68,7 @@ class UPMS(DAgger):
 
         self._query_expert(control_policy, control_action, uncertainty, observation)
 
-        self._active_policy = control_policy == self.teacher
-
-        print(self.teacher == control_policy)
+        self.active_policy = control_policy == self.teacher
 
         return control_action
 
