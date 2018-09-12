@@ -58,7 +58,7 @@ class EpisodeSummary(Summary):
         self._reward += reward
         # penalties
         if reward < 0.0:
-            self._penalties += reward
+            self._penalties += 1
 
         if state[3] and reward == -1000:
             self._out_bounds += 1
