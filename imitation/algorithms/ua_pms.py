@@ -70,7 +70,7 @@ class UPMS(DAgger):
 
         self._active_policy = control_policy == self.teacher
 
-        print(self.active_policy)
+        print(self.teacher == control_policy)
 
         return control_action
 
