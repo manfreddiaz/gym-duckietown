@@ -69,8 +69,6 @@ class InteractiveImitationLearning:
 
         self.active_policy = control_policy == self.teacher
 
-        print(self.active_policy)
-
         return control_action
 
     def _self_learning(self, observation, control_action):

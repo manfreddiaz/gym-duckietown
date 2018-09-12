@@ -70,6 +70,8 @@ class UPMS(DAgger):
 
         self._active_policy = control_policy == self.teacher
 
+        print(self.active_policy)
+
         return control_action
 
     def _on_impossible_selection(self):
