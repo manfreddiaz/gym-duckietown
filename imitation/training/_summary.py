@@ -66,8 +66,8 @@ class EpisodeSummary(Summary):
         if metadata[0]:
             self._queries += 1
 
-        # print(metadata[1], metadata[5])
-        if metadata[1][0] is not None and not metadata[5]:
+        print(metadata[1], metadata[5])
+        if metadata[1] is not None and not metadata[5]:
             self._no_control += 1
 
         if metadata[1] is not None:
