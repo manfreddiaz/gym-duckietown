@@ -65,13 +65,13 @@ def stats_summaries(summaries):
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.queries_history()))
         print('  penalties: {}'.format(iteration_summary.penalties()))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.penalties_history()))
-        print('  out bounds: {}'.format(iteration_summary.out_bounds))
+        print('  out bounds: {}'.format(iteration_summary.out_bounds()))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.out_bounds_history()))
         print('  delta v_l: {}'.format(iteration_summary.delta_v_l()))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_v_history()))
         print('  delta v_r: {}'.format(iteration_summary.delta_v_r()))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_theta_history()))
-        print('  no_control: {}'.format(iteration_summary.no_control()))
+        print('  no_control: {}'.format(iteration_summary.no_control_history()))
         # print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_theta_history()))
 
 
