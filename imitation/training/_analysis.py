@@ -68,11 +68,11 @@ def stats_summaries(summaries):
         print('  out bounds: {}'.format(iteration_summary.out_bounds()))
         print('\t\t per episode: \r\n{}'.format(iteration_summary.out_bounds_history()))
         print('  delta v_l: {}'.format(iteration_summary.delta_v_l()))
-        print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_v_history()))
+        print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_v_r_history()))
         print('  delta v_r: {}'.format(iteration_summary.delta_v_r()))
-        print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_theta_history()))
+        print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_v_l_history()))
         print('  no_control: {}'.format(iteration_summary.no_control()))
-        print('\t \t per episode: \r\n{}'.format(iteration_summary.delta_theta_history()))
+        print('\t \t per episode: \r\n{}'.format(iteration_summary.no_control_history()))
 
 
 def render_summaries(summaries):
