@@ -14,7 +14,7 @@ from pyglet.window import key
 import numpy as np
 import gym
 import gym_duckietown
-from gym_duckietown.envs import DuckietownEnv
+from gym_duckietown.envs import DuckiebotEnv
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env-name', default=None)
@@ -24,11 +24,7 @@ parser.add_argument('--domain-rand', action='store_true', help='enable domain ra
 args = parser.parse_args()
 
 if args.env_name is None:
-    env = DuckietownEnv(
-        map_name = args.map_name,
-        domain_rand = args.domain_rand,
-        max_steps = math.inf
-    )
+    env = DuckiebotEnv()
 else:
     env = gym.make(args.env_name)
 
@@ -182,7 +178,7 @@ def update(dt):
 
     env.render()
 
-pyglet.clock.schedule_interval(update, 1 / env.unwrapped.frame_rate)
+pyglet.clock.schedule_interval(update, 1/30)
 
 # Registers joysticks and recording controls
 joysticks = pyglet.input.get_joysticks()
