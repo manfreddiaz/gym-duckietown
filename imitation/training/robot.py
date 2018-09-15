@@ -46,7 +46,8 @@ def upms(env, teacher, experiment_iteration, selected_parametrization, selected_
             }
         ),
         batch_size=32,
-        epochs=10
+        epochs=10,
+        output_shape=(None, 1)
     )
 
     return UPMSDAgger(env=env,

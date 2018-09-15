@@ -32,12 +32,12 @@ class UADuckietownPipelinePolicy:
         if self._uncertainty == np.inf or round(self._last_cmd[0], 2) == 0.0:
             return None, np.inf
 
-        return self._last_cmd, self._uncertainty
+        return self._last_cmd[1], self._uncertainty
 
     def _action_received(self, car_cmd):
-        self._last_cmd[0] = car_cmd.v
+        self._last_cmd[0] = 0.4
         self._last_cmd[1] = car_cmd.omega
-        print(self._last_cmd)
+        # print(self._last_cmd)
 
     def _uncertainty_received(self, joy):
         if joy.buttons[5] == 1:

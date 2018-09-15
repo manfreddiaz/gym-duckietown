@@ -38,7 +38,8 @@ class DuckiebotEnvIcra2019(RemoteRobot):
         self.limit = limit
 
     def step(self, action, with_observation=True):
-        vel, angle = action
+        vel = 0.4
+        angle = action
 
         # Distance between the wheels
         baseline = 0.13
@@ -64,7 +65,8 @@ class DuckiebotEnvIcra2019(RemoteRobot):
 
         vels = np.array([u_l_limited, u_r_limited])
 
-        return RemoteRobot.step(self, vels)
+        obs, rew, done, misc = RemoteRobot.step(self, vels)
+        return obs[:, :, ::-1], rew, done, misc
 
     def render_obs(self):
         return RemoteRobot.observe(self)[0]

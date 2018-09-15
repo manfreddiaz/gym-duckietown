@@ -25,13 +25,12 @@ class NeuralNetworkPolicy():
             for iteration in range(0, data_size, self.batch_size):
                 batch_observations = observations[iteration:iteration + self.batch_size]
                 batch_actions = actions[iteration:iteration + self.batch_size]
-                self.parametrization.train(batch_observations, batch_actions)
+                self.parametrization.train(batch_observations, np.expand_dims(batch_actions, axis=1))
             if iteration + self.batch_size < data_size:
                 remainder = data_size - iteration
                 batch_observations = observations[iteration:remainder]
                 batch_actions = actions[iteration:remainder]
                 self.parametrization.train(batch_observations, batch_actions)
-
 
     def predict(self, observation, metadata):
         return self.parametrization.test([observation])

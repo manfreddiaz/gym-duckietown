@@ -75,7 +75,6 @@ class TensorflowParametrization:
 
         self.parameters, self.loss_function = self.architecture()
 
-
     def _logging(self, location):
         self.summary_merge = tf.summary.merge_all()
         self.summary_writer = tf.summary.FileWriter(location, self.tf_session.graph)

@@ -15,7 +15,7 @@ class UPMS(DAgger):
         self._safety_coefficient = safety_coefficient
 
     def _normalize_uncertainty(self, uncertainty):
-        return np.sum(self.learner_uncertainty) / uncertainty.shape[0]
+        return self.learner_uncertainty
 
     def _preferential_coefficient(self, uncertainty):
         return 1. - np.tanh(self._safety_coefficient * uncertainty)

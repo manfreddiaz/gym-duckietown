@@ -1,5 +1,8 @@
 import math
 
+import cv2
+
+
 class InteractiveImitationLearning:
     def __init__(self, env, teacher, learner, horizon, episodes):
 
@@ -76,6 +79,7 @@ class InteractiveImitationLearning:
 
     def _query_expert(self, control_policy, control_action, uncertainty, observation):
         if control_policy == self.learner:
+            print('learner: {}, {}'.format(control_action, uncertainty))
             self.learner_action = control_action
             self.learner_uncertainty = uncertainty  # it might but it wont
         else:
@@ -84,6 +88,7 @@ class InteractiveImitationLearning:
         if control_policy == self.teacher:
             self.teacher_action = control_action
             self.teacher_uncertainty = uncertainty
+            print('teacher: {}, {}'.format(control_action, uncertainty))
         else:
             self.teacher_action, self.teacher_uncertainty = self.teacher.predict(observation, [self._episode, control_action])
 
