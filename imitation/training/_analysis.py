@@ -62,7 +62,7 @@ def stats_summaries(summaries):
         # print('\t\t  per episode:')
         # print('     {}'.format(iteration_summary.reward_history()))
         print('  queries: {}'.format(iteration_summary.queries()))
-        queries_ = ', '.join(iteration_summary.queries_history())
+        queries_ = ', '.join(str(i) for i in iteration_summary.queries_history())
         print('\t\t per episode: \r\n{}'.format(queries_))
         print('  penalties: {}'.format(iteration_summary.penalties()))
         print('\t\t per episode: \r\n{}'.format(iteration_summary.penalties_history()))
