@@ -78,3 +78,46 @@ class IILTrainingLogger(Logger):
         self._dataset_file.close()
         os.chmod(self._dataset_file.name, 0o444) # make file read-only after finishing
         Logger.process_done(self)
+
+
+class IILTrainingRobotLogger(Logger):
+
+    def __init__(self, env, routine, horizon, episodes, log_file, data_file):
+        Logger.__init__(self, env, routine, horizon, episodes, log_file)
+        self._dataset_file = open(data_file, 'wb')
+
+    def _configure(self):
+        self.routine.on_optimization_done(self)
+        Logger._configure(self)
+
+    def optimization_done(self, loss):
+        pass
+
+    def step_done(self, observation, action, reward, done, info):
+        self._recording.append({
+            'state': [
+                (0.0, 0.0),
+                action,
+                reward,
+                done,
+                info
+            ],
+            'metadata': [
+                self.routine.teacher_queried,  # 0
+                self.routine.teacher_action,  # 1
+                self.routine.teacher_uncertainty,  # 2
+                self.routine.learner_action, # 3
+                self.routine.learner_uncertainty, # 4
+                self.routine.active_policy,  # 5
+            ]
+        })
+
+    def _dump_dataset(self, loss):
+        pickle.dump([self.routine._observations, self.routine._expert_actions, loss], self._dataset_file)
+        self._dataset_file.flush()
+
+    def process_done(self):
+        self._dump_dataset(0.0)
+        self._dataset_file.close()
+        os.chmod(self._dataset_file.name, 0o444) # make file read-only after finishing
+        Logger.process_done(self)

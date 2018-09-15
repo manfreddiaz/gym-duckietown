@@ -14,7 +14,7 @@ from pyglet.window import key
 import numpy as np
 import gym
 import gym_duckietown
-from gym_duckietown.envs import DuckiebotEnv
+from imitation.training._duckiebot_env import DuckiebotEnvIcra2019
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env-name', default=None)
@@ -24,7 +24,7 @@ parser.add_argument('--domain-rand', action='store_true', help='enable domain ra
 args = parser.parse_args()
 
 if args.env_name is None:
-    env = DuckiebotEnv()
+    env = DuckiebotEnvIcra2019()
 else:
     env = gym.make(args.env_name)
 

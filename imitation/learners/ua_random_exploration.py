@@ -5,7 +5,7 @@ from controllers import Controller
 
 class UARandomExploration:
 
-    def __init__(self, uncertainty=math.inf):
+    def __init__(self, uncertainty=np.inf):
         self.uncertainty = uncertainty
 
     def _do_update(self, dt):
