@@ -19,7 +19,7 @@ def upms(env, teacher, experiment_iteration, selected_parametrization, selected_
 
     policy_parametrization = parametrization(
         iteration=selected_parametrization,
-        extra_parameters={'samples': 25, 'dropout': 0.9, 'seed': SEED}
+        extra_parameters={'samples': 16, 'dropout': 0.5, 'seed': SEED}
     )
 
     policy_optimizer = optimizer(
