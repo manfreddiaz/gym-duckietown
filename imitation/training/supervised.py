@@ -37,7 +37,7 @@ def supervised(env, teacher, experiment_iteration, selected_parametrization, sel
             learning_rate=LEARNING_RATES[selected_learning_rate]
         ),
         batch_size=32,
-        epochs=10
+        epochs=1
     )
 
     return SupervisedLearning(env=env,
