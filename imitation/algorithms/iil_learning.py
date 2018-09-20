@@ -1,4 +1,4 @@
-import math
+
 
 class InteractiveImitationLearning:
     def __init__(self, env, teacher, learner, horizon, episodes):
@@ -100,8 +100,8 @@ class InteractiveImitationLearning:
         raise NotImplementedError()
 
     def _aggregate(self, observation, action):
-        self._observations.insert(0, observation)
-        self._expert_actions.insert(0, action)
+        self._observations.append(observation)
+        self._expert_actions.append(action)
 
     def _optimize(self):
         loss = self.learner.optimize(self._observations, self._expert_actions)
