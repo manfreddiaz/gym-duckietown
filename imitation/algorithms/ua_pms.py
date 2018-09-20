@@ -1,10 +1,8 @@
 import math
 
-import cv2
 import numpy as np
 
 from imitation.algorithms import DAgger
-from .aggrevate import AggreVaTe
 
 
 class UPMS(DAgger):
