@@ -2,7 +2,7 @@ import numpy as np
 import tensorflow as tf
 
 from ..tf_parametrization import TensorflowParametrization
-from .._layers import resnet_1, resnet_1_dropout
+from .._layers import resnet_1
 
 
 class MonteCarloDropoutResnetOneRegression(TensorflowParametrization):
@@ -23,7 +23,6 @@ class MonteCarloDropoutResnetOneRegression(TensorflowParametrization):
         model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed))
-        model = tf.nn.dropout(model, keep_prob=self.keep_probability, seed=self.seed)
         model = tf.layers.dense(model, units=32, activation=tf.nn.relu,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed))
