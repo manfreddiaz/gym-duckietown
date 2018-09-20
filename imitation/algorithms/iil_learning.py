@@ -1,7 +1,3 @@
-import math
-
-import cv2
-
 
 class InteractiveImitationLearning:
     def __init__(self, env, teacher, learner, horizon, episodes):
