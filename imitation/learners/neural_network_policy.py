@@ -17,7 +17,7 @@ class NeuralNetworkPolicy():
             self.parametrization.prepare_for_test(input_shape, output_shape, storage_location)
 
     def optimize(self, observations, expert_actions):
-        indexes = np.arange(observations.shape[0])
+        indexes = np.arange(len(observations))
         np.random.shuffle(indexes)
         observations = np.array(observations)[indexes]
         actions = np.array(expert_actions)[indexes]
