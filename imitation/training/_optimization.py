@@ -22,7 +22,7 @@ def adam(learning_rate):
 
     return tf.train.AdamOptimizer(
         learning_rate=learning_rate,
-        epsilon=1.0
+        epsilon=0.1
     )
 
 
