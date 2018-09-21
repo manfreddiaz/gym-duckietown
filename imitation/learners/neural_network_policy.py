@@ -19,8 +19,10 @@ class NeuralNetworkPolicy():
     def optimize(self, observations, expert_actions):
         indexes = np.arange(len(observations))
         np.random.shuffle(indexes)
+
         observations = np.array(observations)[indexes]
         actions = np.array(expert_actions)[indexes]
+
         data_size = observations.shape[0]
 
         for _ in tqdm(range(self.epochs)):

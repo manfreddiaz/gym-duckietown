@@ -44,8 +44,8 @@ def upms(env, teacher, experiment_iteration, selected_parametrization, selected_
                 'thresh': UNCERTAINTY_THRESHOLDS[config.uncertainty]
             }
         ),
-        batch_size=32,
-        epochs=10
+        batch_size=64,
+        epochs=32
     )
 
     return UPMSDAgger(env=env,
