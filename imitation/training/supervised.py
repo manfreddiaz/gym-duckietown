@@ -6,6 +6,7 @@ from imitation.learners import NeuralNetworkPolicy
 from imitation.algorithms import SupervisedLearning
 from imitation.training._loggers import IILTrainingLogger
 
+
 def supervised(env, teacher, experiment_iteration, selected_parametrization, selected_optimization, selected_learning_rate,
                selected_horizon, selected_episode):
 
@@ -51,8 +52,8 @@ def supervised(env, teacher, experiment_iteration, selected_parametrization, sel
 if __name__ == '__main__':
     iteration = 0
     horizon_iteration = 0
-    parametrization_iteration = 1
-    optimization_iteration = 4
+    parametrization_iteration = 0
+    optimization_iteration = 0
     learning_rate_iteration = 0
 
     # training

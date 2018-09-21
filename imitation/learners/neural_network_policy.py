@@ -32,7 +32,6 @@ class NeuralNetworkPolicy():
                 batch_actions = actions[iteration:remainder]
                 self.parametrization.train(batch_observations, batch_actions)
 
-
     def predict(self, observation, metadata):
         return self.parametrization.test([observation])
 
