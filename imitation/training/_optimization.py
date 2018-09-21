@@ -1,10 +1,11 @@
 import tensorflow as tf
 
 # optimization
-LEARNING_RATES = [1e-2, 1e-3, 1e-4, 1e-5]
+LEARNING_RATES = [1e-1, 1e-2, 1e-3, 1e-4, 1e-5]
 
 weight_decay = 1e-4
 OPTIMIZATION_METHODS_NAMES = ['adam', 'adamw', 'adagrad', 'rmsprop', 'ggt', 'sgd_wr']
+
 
 def adamw(learning_rate, weight_decay):
     return tf.contrib.opt.AdamWOptimizer(
@@ -12,25 +13,34 @@ def adamw(learning_rate, weight_decay):
         learning_rate=learning_rate
     )
 
+
 def adam(learning_rate):
+    learning_rate_tensor = tf.Variable(initial_value=learning_rate, trainable=False)
+    # logging
+    tf.summary.scalar('learning_rate', learning_rate_tensor)
+
     return tf.train.AdamOptimizer(
-        learning_rate=learning_rate
+        learning_rate=learning_rate_tensor
     )
+
 
 def adagrad(learning_rate):
     return tf.train.AdagradOptimizer(
         learning_rate=learning_rate
     )
 
+
 def rmsprop(learning_rate):
     return tf.train.RMSPropOptimizer(
         learning_rate=learning_rate
     )
 
+
 def ggt(learning_rate):
     return tf.contrib.opt.GGTOptimizer(
         learning_rate=learning_rate
     )
+
 
 def sgd_wr(learning_rate, global_step, first_decay_steps):
     learning_rate_warm_restarts = tf.train.cosine_decay_restarts(
