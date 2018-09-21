@@ -15,13 +15,14 @@ def adamw(learning_rate, weight_decay):
 
 
 def adam(learning_rate):
-    learning_rate_tensor = tf.Variable(initial_value=learning_rate, trainable=True)
+    # learning_rate_tensor = tf.Variable(initial_value=learning_rate, trainable=True)
     # logging
-    with tf.name_scope('adam'):
-        tf.summary.scalar('learning_rate', learning_rate_tensor)
+    # with tf.name_scope('adam'):
+    #     tf.summary.scalar('learning_rate', learning_rate_tensor)
 
     return tf.train.AdamOptimizer(
-        learning_rate=learning_rate_tensor
+        learning_rate=learning_rate,
+        epsilon=1.0
     )
 
 
