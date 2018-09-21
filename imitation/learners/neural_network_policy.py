@@ -17,8 +17,10 @@ class NeuralNetworkPolicy():
             self.parametrization.prepare_for_test(input_shape, output_shape, storage_location)
 
     def optimize(self, observations, expert_actions):
-        observations = np.array(observations)
-        actions = np.array(expert_actions)
+        indexes = np.arange(observations.shape[0])
+        np.random.shuffle(indexes)
+        observations = np.array(observations)[indexes]
+        actions = np.array(expert_actions)[indexes]
         data_size = observations.shape[0]
 
         for _ in tqdm(range(self.epochs)):
