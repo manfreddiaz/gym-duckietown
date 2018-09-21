@@ -15,7 +15,7 @@ def adamw(learning_rate, weight_decay):
 
 
 def adam(learning_rate):
-    learning_rate_tensor = tf.Variable(initial_value=learning_rate, trainable=False)
+    learning_rate_tensor = tf.Variable(initial_value=learning_rate, trainable=True)
     # logging
     with tf.name_scope('adam'):
         tf.summary.scalar('learning_rate', learning_rate_tensor)
