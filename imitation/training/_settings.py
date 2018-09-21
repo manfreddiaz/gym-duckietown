@@ -35,7 +35,7 @@ teacher_name = 'pure_pursuit'
 
 # Task Configuration
 HORIZONS = [128, 256, 512, 1024, 2048]
-EPISODES = [64,   32,  32,    8,    8]
+EPISODES = [64,   32,  16,    8,    8]
 # decays
 MIXING_DECAYS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
 # uncertainty threshold
