@@ -16,18 +16,18 @@ class NeuralNetworkPolicy():
         else:
             self.parametrization.prepare_for_test(input_shape, output_shape, storage_location)
 
-    def optimize(self, observations, expert_actions):
-        indexes = np.arange(len(observations))
-        np.random.shuffle(indexes)
+    def optimize(self, observations, expert_actions, episode):
+        # indexes = np.arange(len(observations))
+        # np.random.shuffle(indexes)
 
-        observations = np.array(observations)[indexes]
-        actions = np.array(expert_actions)[indexes]
+        observations = np.array(observations) # [indexes]
+        actions = np.array(expert_actions) # [indexes]
 
         data_size = observations.shape[0]
 
         self.parametrization.reset()
 
-        for _ in tqdm(range(self.epochs)):
+        for _ in tqdm(range(self.epochs * (episode + 1))):
             for iteration in range(0, data_size, self.batch_size):
                 batch_observations = observations[iteration:iteration + self.batch_size]
                 batch_actions = actions[iteration:iteration + self.batch_size]
