@@ -47,7 +47,7 @@ class UAPurePursuitPolicy:
 
         position_diff = np.linalg.norm(closest_point - self.env.cur_pos, ord=1)
 
-        action = steering  # [self.ref_velocity, steering]
+        action = [self.ref_velocity, steering]
 
         # print(position_diff, velocity_diff)
 
