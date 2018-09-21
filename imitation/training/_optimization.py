@@ -57,7 +57,8 @@ def sgd_wr(learning_rate, global_step, first_decay_steps):
 
     return tf.train.MomentumOptimizer(
         learning_rate=learning_rate,
-        momentum=0.9
+        momentum=0.9,
+        use_nesterov=True
     )
 
 
