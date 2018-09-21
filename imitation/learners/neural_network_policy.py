@@ -25,6 +25,8 @@ class NeuralNetworkPolicy():
 
         data_size = observations.shape[0]
 
+        self.parametrization.reset()
+
         for _ in tqdm(range(self.epochs)):
             for iteration in range(0, data_size, self.batch_size):
                 batch_observations = observations[iteration:iteration + self.batch_size]

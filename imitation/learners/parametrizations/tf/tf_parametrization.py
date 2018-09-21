@@ -25,6 +25,11 @@ class TensorflowParametrization:
         })
         return action
 
+    def reset(self):
+        self.tf_session.run(tf.global_variables_initializer())
+        self.tf_session.run(tf.local_variables_initializer())
+        tf.train.global_step(self.tf_session, self.global_step)
+
     def train(self, state, action):
         summary, step, _, learning_loss = self.tf_session.run(
             [self.summary_merge, self.global_step, self.optimization_fn, self.loss_function],
@@ -54,9 +59,7 @@ class TensorflowParametrization:
             self._create(input_shape, output_shape)
             self.optimization_fn = optimizer.minimize(loss=self.loss_function, global_step=self.global_step)
 
-            self.tf_session.run(tf.global_variables_initializer())
-            self.tf_session.run(tf.local_variables_initializer())
-            tf.train.global_step(self.tf_session, self.global_step)
+            self.reset()
 
             self._logging(storage_location)
             self._storing(storage_location)
