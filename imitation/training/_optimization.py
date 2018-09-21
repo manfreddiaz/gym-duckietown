@@ -75,7 +75,7 @@ def optimizer(optimizer_iteration, learning_rate_iteration, parametrization, tas
         return sgd_wr(
             learning_rate=LEARNING_RATES[learning_rate_iteration],
             global_step=parametrization.global_step,
-            first_decay_steps=task_metadata[0] * task_metadata[2]
+            first_decay_steps=task_metadata[0] * (task_metadata[2] + 1) * 32
         )
     else:
         raise IndexError()
