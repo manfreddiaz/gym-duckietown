@@ -17,8 +17,9 @@ class Icra2019Behavior:
         simulation(self.at, self.env, reset=True)
 
     def step_done(self, observation, action, reward, done, info):
-        if done:
-            self.restart()
+        pass
+        # if done:
+        #     self.restart()
 
 
 class Icra2019TestBehavior:
