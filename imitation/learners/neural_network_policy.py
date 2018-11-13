@@ -14,7 +14,7 @@ class NeuralNetworkPolicy():
         if training:
             self.parametrization.prepare_for_train(input_shape, output_shape, optimizer, storage_location)
         else:
-            self.parametrization.prepare_for_test(input_shape, output_shape, storage_location)
+            self.parametrization.initialize(input_shape, output_shape, storage_location)
 
     def optimize(self, observations, expert_actions, episode):
         # indexes = np.arange(len(observations))
@@ -27,7 +27,7 @@ class NeuralNetworkPolicy():
 
         self.parametrization.reset()
 
-        for _ in tqdm(range(self.epochs * (episode + 1))):
+        for _ in tqdm(range(self.epochs)):
             for iteration in range(0, data_size, self.batch_size):
                 batch_observations = observations[iteration:iteration + self.batch_size]
                 batch_actions = actions[iteration:iteration + self.batch_size]
@@ -39,7 +39,7 @@ class NeuralNetworkPolicy():
                 self.parametrization.train(batch_observations, batch_actions)
 
     def predict(self, observation, metadata):
-        return self.parametrization.test([observation])
+        return self.parametrization.predict([observation])
 
     def save(self):
         self.parametrization.commit()
