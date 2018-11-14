@@ -7,6 +7,7 @@ GAIN = 10
 FOLLOWING_DISTANCE = 0.3
 
 
+
 class UAPurePursuitPolicy:
     def __init__(self, env, ref_velocity=REF_VELOCITY, position_threshold=POSITION_THRESHOLD,
                  following_distance=FOLLOWING_DISTANCE, max_iterations=1000):
@@ -16,8 +17,46 @@ class UAPurePursuitPolicy:
         self.ref_velocity = ref_velocity
         self.position_threshold = position_threshold
 
+        self.gain = 1.0
+        self.trim = 0.0
+        self.radius = 0.0318
+        self.k = 27.0
+        self.limit = 1.0
+        self.wheel_dist = 0.102
+
+
+    def inverse_kinematics(self, action):
+        vel, angle = action
+
+        # Distance between the wheels
+        baseline = self.wheel_dist
+
+        # assuming same motor constants k for both motors
+        k_r = self.k
+        k_l = self.k
+
+        # adjusting k by gain and trim
+        k_r_inv = (self.gain + self.trim) / k_r
+        k_l_inv = (self.gain - self.trim) / k_l
+
+        omega_r = (vel + 0.5 * angle * baseline) / self.radius
+        omega_l = (vel - 0.5 * angle * baseline) / self.radius
+
+        # conversion from motor rotation rate to duty cycle
+        u_r = omega_r * k_r_inv
+        u_l = omega_l * k_l_inv
+
+        # limiting output to limit, which is 1.0 for the duckiebot
+        u_r_limited = max(min(u_r, self.limit), -self.limit)
+        u_l_limited = max(min(u_l, self.limit), -self.limit)
+
+        vels = np.array([u_l_limited, u_r_limited])
+
+        return vels
+
+
     def predict(self, observation, metadata):
-        closest_point, closest_tangent = self.env.closest_curve_point(self.env.cur_pos)
+        closest_point, closest_tangent = self.env.closest_curve_point(self.env.cur_pos, self.env.cur_angle)
 
         iterations = 0
         lookup_distance = self.following_distance
@@ -26,7 +65,7 @@ class UAPurePursuitPolicy:
             # Project a point ahead along the curve tangent,
             # then find the closest point to to that
             follow_point = closest_point + closest_tangent * lookup_distance
-            curve_point, _ = self.env.closest_curve_point(follow_point)
+            curve_point, _ = self.env.closest_curve_point(follow_point, self.env.cur_angle)
 
             # If we have a valid point on the curve, stop
             if curve_point is not None:
@@ -48,6 +87,7 @@ class UAPurePursuitPolicy:
         position_diff = np.linalg.norm(closest_point - self.env.cur_pos, ord=1)
 
         action = [self.ref_velocity, steering]
+        action = self.inverse_kinematics(action)
 
         # print(position_diff, velocity_diff)
 
