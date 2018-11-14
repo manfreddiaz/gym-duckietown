@@ -1,5 +1,5 @@
+# coding=utf-8
 import os
-import numpy as np
 import gym
 
 from .duckietown_env import DuckietownEnv
