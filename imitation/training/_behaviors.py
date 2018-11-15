@@ -8,7 +8,7 @@ class Icra2019Behavior:
         self.at = at
 
         self.routine = routine
-        self.routine.on_step_done(self)
+        self.routine.on_episode_done(self)
 
     def restart(self):
         simulation(self.at, self.env, reset=False)
@@ -16,10 +16,12 @@ class Icra2019Behavior:
     def reset(self):
         simulation(self.at, self.env, reset=True)
 
-    def step_done(self, observation, action, reward, done, info):
+    def episode_done(self, episode):
         # pass
-        if done:
-            self.restart()
+        self.env.start_tile = None
+        self.env.user_tile_start = None
+        self.reset()
+        print('episode: {}'.format(episode))
 
 
 class Icra2019TestBehavior:
