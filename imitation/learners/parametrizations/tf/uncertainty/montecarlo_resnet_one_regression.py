@@ -20,13 +20,13 @@ class MonteCarloDropoutResnetOneRegression(TensorflowParametrization):
 
     def architecture(self):
         model = resnet_1(self._preprocessed_state, keep_prob=self.keep_probability, seed=self.seed)
-        model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
-                                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed),
-                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed))
-        model = tf.layers.dense(model, units=32, activation=tf.nn.relu,
-                                kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed),
-                                bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed))
-        model = tf.nn.dropout(model, keep_prob=self.keep_probability, seed=self.seed)
+        # model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
+        #                         kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed),
+        #                         bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed))
+        # model = tf.layers.dense(model, units=32, activation=tf.nn.relu,
+        #                         kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed),
+        #                         bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed))
+        # model = tf.nn.dropout(model, keep_prob=self.keep_probability, seed=self.seed)
 
         model = tf.layers.dense(model, self.action_tensor.shape[1])
 

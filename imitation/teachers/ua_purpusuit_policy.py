@@ -2,7 +2,7 @@ import math
 import numpy as np
 
 POSITION_THRESHOLD = 0.04
-REF_VELOCITY = 0.8
+REF_VELOCITY = .8
 GAIN = 10
 FOLLOWING_DISTANCE = 0.3
 
@@ -10,7 +10,7 @@ FOLLOWING_DISTANCE = 0.3
 
 class UAPurePursuitPolicy:
     def __init__(self, env, ref_velocity=REF_VELOCITY, position_threshold=POSITION_THRESHOLD,
-                 following_distance=FOLLOWING_DISTANCE, max_iterations=1000):
+                 following_distance=0.3, max_iterations=1000):
         self.env = env
         self.following_distance = following_distance
         self.max_iterations = max_iterations
@@ -53,7 +53,6 @@ class UAPurePursuitPolicy:
         vels = np.array([u_l_limited, u_r_limited])
 
         return vels
-
 
     def predict(self, observation, metadata):
         closest_point, closest_tangent = self.env.closest_curve_point(self.env.cur_pos, self.env.cur_angle)

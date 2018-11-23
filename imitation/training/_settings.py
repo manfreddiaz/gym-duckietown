@@ -17,7 +17,7 @@ else:
 np.random.seed(SEED)
 tf.set_random_seed(SEED)
 
-MAP_NAME = 'udem1'
+MAP_NAME = 'zigzag_dists'
 MAP_STARTING_POSES = [
     [[0.8, 0.0, 1.5], 10.90],
     [[0.8, 0.0, 2.5], 10.90],
@@ -35,7 +35,7 @@ teacher_name = 'pure_pursuit'
 
 # Task Configuration
 HORIZONS = [128, 256, 512, 1024, 2048]
-EPISODES = [64,   32,  16,    8,    8]
+EPISODES = [64,   32,  16,   64,    8]
 # decays
 MIXING_DECAYS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
 # uncertainty threshold
@@ -69,9 +69,13 @@ def simulation(at, env=None, reset=True):
     from gym_duckietown.simulator import Simulator
     if env is None:
         environment = Simulator(
-            domain_rand=False,
+            domain_rand=True,
             max_steps=math.inf,
-            map_name=MAP_NAME
+            map_name=MAP_NAME,
+            # draw_bbox=True,
+            # draw_curve=True,
+            # camera_height=60,
+            # camera_width=80,
         )
     else:
         environment = env
@@ -79,8 +83,8 @@ def simulation(at, env=None, reset=True):
     if reset:
         environment.reset()
 
-    environment.cur_pos = np.array(at[0])
-    environment.cur_angle = at[1]
+    # environment.cur_pos = np.array(at[0])
+    # environment.cur_angle = at[1]
 
     return environment
 
