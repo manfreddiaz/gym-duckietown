@@ -34,8 +34,8 @@ ALGORITHMS = ['supervised', 'dagger', 'aggrevate', 'dropout_dagger', 'upms', 'up
 teacher_name = 'pure_pursuit'
 
 # Task Configuration
-HORIZONS = [128, 256, 512, 1024, 2048]
-EPISODES = [64,   32,  16,   64,    8]
+HORIZONS = [128, 512, 512, 1024, 2048]
+EPISODES = [64,   64,  16,  64,    8]
 # decays
 MIXING_DECAYS = [0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95]
 # uncertainty threshold
@@ -72,10 +72,7 @@ def simulation(at, env=None, reset=True):
             domain_rand=True,
             max_steps=math.inf,
             map_name=MAP_NAME,
-            # draw_bbox=True,
-            # draw_curve=True,
-            # camera_height=60,
-            # camera_width=80,
+            distortion=False
         )
     else:
         environment = env

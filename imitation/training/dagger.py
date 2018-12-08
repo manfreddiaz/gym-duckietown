@@ -43,7 +43,7 @@ def dagger(env, teacher, experiment_iteration, selected_parametrization, selecte
             }
         ),
         batch_size=32,
-        epochs=10
+        epochs=25
     )
 
     return DAgger(env=env,
@@ -82,26 +82,26 @@ if __name__ == '__main__':
         routine=algorithm
     )
 
-    disk_entry = experimental_entry(
-        algorithm='dagger',
-        experiment_iteration=config.iteration,
-        parametrization_name=PARAMETRIZATIONS_NAMES[config.parametrization],
-        horizon=HORIZONS[config.horizon],
-        episodes=EPISODES[config.horizon],
-        optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
-        learning_rate=LEARNING_RATES[config.learning_rate],
-        metadata={
-            'decay': MIXING_DECAYS[config.decay]
-        }
-    )
-    logs = IILTrainingLogger(
-        env=environment,
-        routine=algorithm,
-        log_file=disk_entry + 'training.log',
-        data_file=disk_entry + 'dataset_evolution.pkl',
-        horizon=HORIZONS[config.horizon],
-        episodes=EPISODES[config.horizon]
-    )
+    # disk_entry = experimental_entry(
+    #     algorithm='dagger',
+    #     experiment_iteration=config.iteration,
+    #     parametrization_name=PARAMETRIZATIONS_NAMES[config.parametrization],
+    #     horizon=HORIZONS[config.horizon],
+    #     episodes=EPISODES[config.horizon],
+    #     optimization_name=OPTIMIZATION_METHODS_NAMES[config.optimization],
+    #     learning_rate=LEARNING_RATES[config.learning_rate],
+    #     metadata={
+    #         'decay': MIXING_DECAYS[config.decay]
+    #     }
+    # )
+    # logs = IILTrainingLogger(
+    #     env=environment,
+    #     routine=algorithm,
+    #     log_file=disk_entry + 'training.log',
+    #     data_file=disk_entry + 'dataset_evolution.pkl',
+    #     horizon=HORIZONS[config.horizon],
+    #     episodes=EPISODES[config.horizon]
+    # )
 
     algorithm.train(debug=DEBUG)
 
