@@ -48,12 +48,15 @@ class InteractiveImitationLearning:
         for sample in range(samples):  # number of T-step trajectories
             for horizon in range(self._horizon):
                 self._current_horizon = horizon
-                action = self._act(observation)
-                next_observation, reward, done, info = self.environment.step(action)
-                if self._debug:
-                    self.environment.render()
-                self._on_step_done(observation, action, reward, done, info)
-                observation = next_observation
+                try:
+                    action = self._act(observation)
+                    next_observation, reward, done, info = self.environment.step(action)
+                    if self._debug:
+                        self.environment.render()
+                    self._on_step_done(observation, action, reward, done, info)
+                    observation = next_observation
+                except:
+                    self.environment.reset()
         self._on_sampling_done()
 
     # execute current control policy
