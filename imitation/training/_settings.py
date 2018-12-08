@@ -72,7 +72,7 @@ def simulation(at, env=None, reset=True):
             domain_rand=True,
             max_steps=math.inf,
             map_name=MAP_NAME,
-            distortion=False
+            distortion=True
         )
     else:
         environment = env
