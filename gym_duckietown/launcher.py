@@ -1,11 +1,14 @@
-from gym_duckietown.config import DEFAULTS
+# coding=utf-8
+from .config import DEFAULTS
 from duckietown_slimremote.networking import make_pull_socket, has_pull_message, receive_data, make_pub_socket, \
     send_gym
 import os
 import numpy as np
-from gym_duckietown.envs import DuckietownEnv
+from .envs import DuckietownEnv
 
 DEBUG = False
+
+from . import logger
 
 
 def main():
@@ -15,7 +18,7 @@ def main():
     # get parameters from environment (set during docker launch) otherwise take default
     map = os.getenv('DUCKIETOWN_MAP', DEFAULTS["map"])
     domain_rand = bool(os.getenv('DUCKIETOWN_DOMAIN_RAND', DEFAULTS["domain_rand"]))
-    max_steps = os.getenv('DUCKIETOWN_MAX_STEPS', DEFAULTS["max_steps"])
+    max_steps = int(os.getenv('DUCKIETOWN_MAX_STEPS', DEFAULTS["max_steps"]))
 
     # if a challenge is set, it overrides the map selection
 
@@ -23,11 +26,11 @@ def main():
 
     challenge = os.getenv('DUCKIETOWN_CHALLENGE', "")
     if challenge in ["LF", "LFV"]:
-        print("Launching challenge:", challenge)
+        logger.info("Launching challenge:", challenge)
         map = DEFAULTS["challenges"][challenge]
         misc["challenge"] = challenge
 
-    print("Using map:", map)
+    logger.info("Using map:", map)
 
     env = DuckietownEnv(
         map_name=map,
@@ -41,13 +44,13 @@ def main():
     publisher_socket = None
     command_socket, command_poll = make_pull_socket()
 
-    print("Simulator listening to incoming connections...")
+    logger.info("Simulator listening to incoming connections...")
 
     while True:
         if has_pull_message(command_socket, command_poll):
             success, data = receive_data(command_socket)
             if not success:
-                print(data)  # in error case, this will contain the err msg
+                logger.info(data)  # in error case, this will contain the err msg
                 continue
 
             reward = 0  # in case it's just a ping, not a motor command, we are sending a 0 reward
@@ -57,7 +60,7 @@ def main():
             if data["topic"] == 0:
                 obs, reward, done, misc_ = env.step(data["msg"])
                 if DEBUG:
-                    print("challenge={}, step_count={}, reward={}, done={}".format(
+                    logger.info("challenge={}, step_count={}, reward={}, done={}".format(
                         challenge,
                         env.unwrapped.step_count,
                         np.around(reward,3),

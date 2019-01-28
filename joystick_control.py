@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 """
 This script allows you to manually control the simulator or Duckiebot
@@ -14,24 +14,30 @@ from pyglet.window import key
 import numpy as np
 import gym
 import gym_duckietown
-from imitation.training._duckiebot_env import DuckiebotEnvIcra2019
+from gym_duckietown.envs import DuckietownEnv
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--env-name', default=None)
 parser.add_argument('--map-name', default='udem1')
+parser.add_argument('--distortion', default=False, action='store_true')
 parser.add_argument('--draw-curve', action='store_true', help='draw the lane following curve')
 parser.add_argument('--domain-rand', action='store_true', help='enable domain randomization')
 args = parser.parse_args()
 
 if args.env_name is None:
-    env = DuckiebotEnvIcra2019()
+    env = DuckietownEnv(
+        map_name = args.map_name,
+        distortion= args.distortion,
+        domain_rand = args.domain_rand,
+        max_steps = np.inf
+    )
 else:
     env = gym.make(args.env_name)
 
 env.reset()
 env.render()
 
-# global variables for demos recording
+# global variables for demo recording
 positions = []
 actions = []
 demos = []
@@ -56,7 +62,7 @@ def process_recording():
         if len(demos) == 0:
             return
 
-        # Remove the last recorded demos
+        # Remove the last recorded demo
         demos.pop()
         write_to_file(demos)
         return
@@ -178,7 +184,7 @@ def update(dt):
 
     env.render()
 
-pyglet.clock.schedule_interval(update, 1/30)
+pyglet.clock.schedule_interval(update, 1.0 / env.unwrapped.frame_rate)
 
 # Registers joysticks and recording controls
 joysticks = pyglet.input.get_joysticks()
