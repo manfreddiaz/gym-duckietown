@@ -5,6 +5,7 @@ import pickle
 
 # Stats for ICRA submission
 
+
 class Logger:
     def __init__(self, env, routine, horizon, episodes, log_file):
         self.env = env

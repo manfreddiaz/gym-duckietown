@@ -48,6 +48,7 @@ def resnet_1(x, keep_prob=0.5, seed=None):
     nn = tf.layers.conv2d(x, filters=32, kernel_size=5, strides=2, padding='same',
                              kernel_initializer=tf.keras.initializers.he_normal(seed=seed),
                              kernel_regularizer=tf.keras.regularizers.l2(l2_lambda))
+
     nn = tf.layers.max_pooling2d(nn, pool_size=3, strides=2)
 
     rb_1 = residual_block(nn, 32, dropout_prob=keep_prob, seed=seed)

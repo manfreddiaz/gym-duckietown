@@ -2,7 +2,6 @@ import numpy as np
 import tensorflow as tf
 
 from ..tf_parametrization import TensorflowParametrization
-from .._layers import resnet_1, resnet_1_dropout
 
 
 class MonteCarloDropoutResnetOneRegression(TensorflowParametrization):
@@ -19,14 +18,67 @@ class MonteCarloDropoutResnetOneRegression(TensorflowParametrization):
         return np.squeeze(np.mean(regression, axis=1)), np.squeeze(np.var(regression, axis=1))
 
     def architecture(self):
-        model = resnet_1(self._preprocessed_state, keep_prob=self.keep_probability, seed=self.seed)
-        model = tf.layers.dense(model, units=64, activation=tf.nn.relu,
+        model = tf.layers.conv2d(self._preprocessed_state,
+                                 filters=32,
+                                 kernel_size=5,
+                                 strides=2,
+                                 padding='same',
+                                 kernel_initializer=tf.keras.initializers.he_normal(seed=self.seed))
+        model = tf.layers.dropout(model, rate=0.9)
+        model = tf.layers.max_pooling2d(model,
+                                        pool_size=3,
+                                        strides=2)
+
+        # residual block
+        residual_1 = tf.layers.batch_normalization(model)  # TODO: check if the defaults in Tf are the same as in Keras
+        residual_1 = tf.nn.relu(residual_1)
+        residual_1 = tf.layers.conv2d(residual_1,
+                                      filters=32,
+                                      kernel_size=3,
+                                      strides=2,
+                                      padding='same',
+                                      kernel_initializer=tf.keras.initializers.he_normal(seed=self.seed))
+        residual_1 = tf.layers.dropout(residual_1,
+                                       rate=0.9,
+                                       seed=self.seed)
+        residual_1 = tf.layers.batch_normalization(residual_1)
+        residual_1 = tf.nn.relu(residual_1)
+        residual_1 = tf.layers.conv2d(residual_1,
+                                      filters=32,
+                                      kernel_size=3,
+                                      padding='same',
+                                      kernel_initializer=tf.keras.initializers.he_normal(seed=self.seed))
+        residual_1 = tf.layers.dropout(residual_1,
+                                       rate=0.9,
+                                       seed=self.seed)
+        # end residual block
+
+        model = tf.layers.conv2d(model,
+                                 filters=32,
+                                 kernel_size=1,
+                                 strides=2,
+                                 padding='same',
+                                 kernel_initializer=tf.keras.initializers.he_normal(seed=self.seed))
+        model = tf.layers.dropout(model,
+                                  rate=0.9,
+                                  seed=self.seed)
+        model = tf.keras.layers.add([residual_1, model])
+        model = tf.layers.dense(model,
+                                units=64,
+                                activation=tf.nn.relu,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed))
-        model = tf.layers.dense(model, units=32, activation=tf.nn.relu,
+        model = tf.layers.dropout(model,
+                                  rate=0.5,
+                                  seed=self.seed)
+        model = tf.layers.dense(model,
+                                units=32,
+                                activation=tf.nn.relu,
                                 kernel_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed),
                                 bias_initializer=tf.contrib.layers.xavier_initializer(uniform=False, seed=self.seed))
-        model = tf.nn.dropout(model, keep_prob=self.keep_probability, seed=self.seed)
+        model = tf.layers.dropout(model,
+                                  keep_prob=self.keep_probability,
+                                  seed=self.seed)
 
         model = tf.layers.dense(model, self.action_tensor.shape[1])
 

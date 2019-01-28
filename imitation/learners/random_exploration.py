@@ -1,12 +1,10 @@
 import math
 import numpy as np
-from controllers import Controller
 
 
-class RandomExploration(Controller):
+class RandomExploration:
 
     def __init__(self, env, fake_uncertainty=1):
-        Controller.__init__(self, env)
         self.uncertainty = fake_uncertainty
 
     def _do_update(self, dt):

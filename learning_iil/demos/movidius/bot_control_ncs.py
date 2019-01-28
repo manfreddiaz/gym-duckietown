@@ -43,8 +43,6 @@ while True:
         print('here: {}'.format(vels[1]))
     obs, reward, done, info = env.step(vels[0])
     #print('stepCount = %s, reward=%.3f' % (env.stepCount, reward))
-
-
     env.render()
 
 
