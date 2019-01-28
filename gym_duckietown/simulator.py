@@ -793,10 +793,10 @@ class Simulator(gym.Env):
                     [0.50, 0, 0.20],
                 ],
                 [
-                    [0.20, 0, -0.50],
-                    [0.20, 0, -0.30],
-                    [0.30, 0, -0.20],
                     [0.50, 0, -0.20],
+                    [0.30, 0, -0.20],
+                    [0.20, 0, -0.30],
+                    [0.20, 0, -0.50],
                 ]
             ]) * ROAD_TILE_SIZE
 
@@ -947,6 +947,7 @@ class Simulator(gym.Env):
         i, j = self.get_grid_coords(pos)
         tile = self._get_tile(i, j)
 
+        print(tile['kind'])
         if tile is None or not tile['drivable']:
             return None, None
 
