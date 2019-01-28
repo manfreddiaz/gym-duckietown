@@ -947,7 +947,6 @@ class Simulator(gym.Env):
         i, j = self.get_grid_coords(pos)
         tile = self._get_tile(i, j)
 
-        print(tile['kind'])
         if tile is None or not tile['drivable']:
             return None, None
 
