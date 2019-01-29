@@ -3,7 +3,7 @@
 class InteractiveImitationLearning:
     def __init__(self, env, teacher, learner, horizon, episodes):
 
-        self.environment = env
+        self.env = env
         self.teacher = teacher
         self.learner = learner
 
@@ -22,7 +22,6 @@ class InteractiveImitationLearning:
         self.teacher_queried = True
         self.teacher_uncertainty = None
         self.teacher_action = None
-        self.active_policy = True  # if teacher is active
 
         # internal count
         self._current_horizon = 0
@@ -44,14 +43,14 @@ class InteractiveImitationLearning:
         self._on_process_done()
 
     def _sampling(self, samples):
-        observation = self.environment.render_obs()
         for sample in range(samples):  # number of T-step trajectories
+            observation = self.env.reset()
             for horizon in range(self._horizon):
                 self._current_horizon = horizon
                 action = self._act(observation)
-                next_observation, reward, done, info = self.environment.step(action)
+                next_observation, reward, done, info = self.env.step(action)
                 if self._debug:
-                    self.environment.render()
+                    self.env.render()
                 self._on_step_done(observation, action, reward, done, info)
                 observation = next_observation
         self._on_sampling_done()
@@ -67,12 +66,7 @@ class InteractiveImitationLearning:
 
         self._query_expert(control_policy, control_action, uncertainty, observation)
 
-        self.active_policy = control_policy == self.teacher
-
         return control_action
-
-    def _self_learning(self, observation, control_action):
-        pass
 
     def _query_expert(self, control_policy, control_action, uncertainty, observation):
         if control_policy == self.learner:
@@ -90,9 +84,6 @@ class InteractiveImitationLearning:
         if self.teacher_action is not None:
             self._aggregate(observation, self.teacher_action)
             self.teacher_queried = True
-        elif control_policy == self.learner:
-            self._self_learning(observation, control_action)
-            self.teacher_queried = False
         else:
             self.teacher_queried = False
 

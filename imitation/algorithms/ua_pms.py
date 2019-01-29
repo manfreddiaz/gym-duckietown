@@ -33,7 +33,7 @@ class UPMS(DAgger):
         if math.isnan(p_mix) and math.isnan(q_mix):
             return self._on_impossible_selection()
         # rationality
-        policy = np.random.choice(a=[policy_p, policy_q], p=[p_mix, q_mix])
+        policy = self.sampling_generator.choice(a=[policy_p, policy_q], p=[p_mix, q_mix])
         if policy == policy_p:
             return policy_p, p_mix
 
@@ -42,7 +42,7 @@ class UPMS(DAgger):
     # Preferential Policy Mixing
     def _ppm(self, policy_p, policy_p_uncertainty, policy_s):
         alpha_p = self._preferential_coefficient(policy_p_uncertainty)
-        return np.random.choice(a=[policy_p, policy_s], p=[alpha_p, 1. - alpha_p]), alpha_p
+        return self.sampling_generator.choice(a=[policy_p, policy_s], p=[alpha_p, 1. - alpha_p]), alpha_p
 
     def _mix(self):
         _, teacher_uncertainty = self.teacher.predict(None, [self._episode, 0]) # FIXME: after experiments done
@@ -59,7 +59,7 @@ class UPMS(DAgger):
         else:
             pi_i, pi_i_preference = self._mix()
             e_i, e_i_preference = self._mix_exploration()
-            control_policy = np.random.choice(
+            control_policy = self.sampling_generator.choice(
                 a=[pi_i, e_i],
                 p=[pi_i_preference, 1. - pi_i_preference]
             )
@@ -74,3 +74,4 @@ class UPMS(DAgger):
 
     def _on_impossible_selection(self):
         return self.teacher, 1.0 # trigger the 'always attentive' algorithmic expert
+
